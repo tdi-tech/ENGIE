@@ -1,0 +1,289 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuthenticated() {
+      return request.auth != null
+        && request.auth.token.email != null
+        && request.auth.token.email.matches('.*@tierradeideas\\.mx$')
+        && request.auth.token.firebase.sign_in_provider != 'anonymous';
+    }
+
+    function isAnySignedIn() {
+      return request.auth != null;
+    }
+
+    function userPath(appId) {
+      return /databases/$(database)/documents/artifacts/$(appId)/public/data/users/$(request.auth.token.email);
+    }
+
+    function userExists(appId) {
+      return isAuthenticated() && exists(userPath(appId));
+    }
+
+    function getUserData(appId) {
+      return get(userPath(appId)).data;
+    }
+
+    function hasRole(appId, role) {
+      return userExists(appId) 
+        && getUserData(appId).disabled != true 
+        && getUserData(appId).role == role;
+    }
+
+    function isITAdmin(appId) { return hasRole(appId, 'ADMIN_IT'); }
+    function isCMAdmin(appId) { return hasRole(appId, 'ADMIN_CM'); }
+    function isCMEditor(appId) { return hasRole(appId, 'EDITOR_CM'); }
+    
+    // ROL: Identificado aisladamente
+    function isContentEditor(appId) { return hasRole(appId, 'EDITOR_CONTENT'); }
+    
+    // isCMTeam excluye al Content Editor para proteger Hackeos, RRSS y Comentarios
+    function isCMTeam(appId) { return isITAdmin(appId) || isCMAdmin(appId) || isCMEditor(appId); }
+
+    function isValidUser() {
+      let data = request.resource.data;
+      return data.keys().hasOnly(['email', 'displayName', 'photoURL', 'role', 'disabled', 'isProtected', 'lastLogin', 'preferences'])
+          && data.keys().hasAll(['email', 'displayName', 'lastLogin'])
+          && data.email is string
+          && data.displayName is string
+          && (!('photoURL' in data) || data.photoURL is string || data.photoURL == null)
+          && (!('role' in data) || (data.role is string && data.role in ['READER', 'EDITOR_CM', 'EDITOR_CONTENT', 'ADMIN_CM', 'ADMIN_IT']))
+          && (!('disabled' in data) || data.disabled is bool)
+          && (!('isProtected' in data) || data.isProtected is bool)
+          && (!('preferences' in data) || data.preferences is map)
+          && data.lastLogin is string;
+    }
+
+    function isValidIncident() {
+      let data = request.resource.data;
+      return data.keys().hasOnly([
+        'id', 'fecha', 'autor', 'plataforma', 'vector', 'descripcion', 
+        'vistas', 'interacciones', 'impacto', 'contencion', 'erradicacion', 
+        'lecciones', 'estado'
+      ])
+      && data.keys().hasAll([
+        'id', 'fecha', 'autor', 'plataforma', 'vector', 'descripcion', 'impacto', 'estado'
+      ])
+      && data.id is string
+      && data.fecha is string
+      && data.autor is string
+      && data.plataforma is string
+      && data.vector is string
+      && data.descripcion is string
+      && data.impacto in ['Bajo', 'Medio', 'Alto', 'Crítico', 'Critico'] 
+      && data.estado in ['Abierto', 'Resuelto']
+      && (!('vistas' in data) || data.vistas is number)
+      && (!('interacciones' in data) || data.interacciones is number)
+      && (!('contencion' in data) || data.contencion is string)
+      && (!('erradicacion' in data) || data.erradicacion is string)
+      && (!('lecciones' in data) || data.lecciones is string);
+    }
+
+    function isValidRRSSIncident() {
+      let data = request.resource.data;
+      return data.keys().hasOnly([
+        'totalIncidencias', 'fecha', 'usuario', 'medio', 'campus', 'riesgo', 
+        'descripcion', 'area', 'comentarios', 'enlacePublicacion', 'enlaceDrive', 
+        'reporteTexto', 'autor', 'timestamp', 'id', 'estado'
+      ])
+      && data.keys().hasAll([
+        'totalIncidencias', 'fecha', 'usuario', 'medio', 'campus', 'riesgo', 'descripcion', 'autor', 'timestamp'
+      ]) 
+      && data.totalIncidencias is number
+      && data.fecha is string
+      && data.usuario is string
+      && data.medio is string
+      && data.campus is string
+      && data.riesgo in ['Bajo', 'Medio', 'Alto', 'Critico', 'Crítico'] 
+      && data.autor is string
+      && data.timestamp is string
+      && (!('id' in data) || data.id is string)
+      && (!('area' in data) || data.area is string)
+      && (!('comentarios' in data) || data.comentarios is string)
+      && (!('enlacePublicacion' in data) || data.enlacePublicacion is string)
+      && (!('enlaceDrive' in data) || data.enlaceDrive is string)
+      && (!('reporteTexto' in data) || data.reporteTexto is string)
+      // Validación estricta del semáforo de estados en RRSS
+      && (!('estado' in data) || data.estado in ['Monitoreo activo', 'En revisión', 'Seguimiento activo', 'Resuelto / solucionado']);
+    }
+
+    function isValidCommentReport() {
+      let data = request.resource.data;
+      return data.keys().hasOnly([
+        'fechaInicio', 'fechaFin', 'contenido', 'evidencia', 'comentariosList', 
+        'autor', 'timestamp', 'id'
+      ])
+      && data.keys().hasAll([
+        'fechaInicio', 'fechaFin', 'contenido', 'comentariosList', 'autor', 'timestamp'
+      ]) 
+      && data.fechaInicio is string
+      && data.fechaFin is string
+      && data.contenido in ['Orgánico', 'Pautado']
+      && data.comentariosList is list
+      && data.autor is string
+      && data.timestamp is string
+      && (!('id' in data) || data.id is string)
+      && (!('evidencia' in data) || data.evidencia is string);
+    }
+
+    function isValidNotification() {
+      let data = request.resource.data;
+      return data.keys().hasOnly([
+        'userId', 'userName', 'userPhoto', 'action', 'module', 'type', 
+        'incidentId', 'timestamp', 'readBy', 'deletedBy', 'targetUserEmail'
+      ])
+      && data.keys().hasAll([
+        'userId', 'userName', 'action', 'module', 'type', 'timestamp', 'readBy', 'deletedBy'
+      ])
+      && data.userId is string
+      && data.userName is string
+      && data.action is string
+      && data.module is string
+      && data.type is string
+      && data.timestamp is string
+      && data.readBy is list
+      && data.deletedBy is list
+      && (!('userPhoto' in data) || data.userPhoto is string)
+      && (!('incidentId' in data) || data.incidentId is string)
+      && (!('targetUserEmail' in data) || data.targetUserEmail is string);
+    }
+
+    match /artifacts/{appId}/public/data {
+
+      match /firewall_locks/{lockId} {
+        allow read, write: if true;
+      }
+
+      match /tickets/{ticketId} {
+        allow read: if true; 
+        
+        allow create: if request.resource.data.keys().hasOnly([
+          'prioridad', 'tema', 'descripcion', 'mensaje', 'plataforma', 'formato', 
+          'objetivo', 'fechaLimite', 'pin', 'estado', 'timestamp',
+          'autor', 'fechaEntregaReal', 'linkArte', 'notasInternas',
+          'responsable', 'readBy'
+        ])
+        && request.resource.data.keys().hasAll([
+          'prioridad', 'tema', 'descripcion', 'mensaje', 'plataforma', 'formato', 
+          'objetivo', 'fechaLimite', 'pin', 'estado', 'timestamp', 'readBy'
+        ])
+        && request.resource.data.pin == 'INNOVA-2026'
+        && request.resource.data.estado == 'Pendiente'
+        && request.resource.data.readBy == []
+        && request.resource.data.get('responsable', '') == ''
+        && request.resource.data.get('notasInternas', '') == '';
+        
+        allow update: if isITAdmin(appId) || isCMAdmin(appId) || (
+          (isCMEditor(appId) || isContentEditor(appId))
+          && request.resource.data.get('responsable', '') == resource.data.get('responsable', '')
+        );
+        
+        allow delete: if isITAdmin(appId) || isCMAdmin(appId);
+      }
+
+      match /users/{userEmail} {
+        // 🔥 Para asegurar que CM Admin pueda generar el JSON Backup sin problemas de lectura
+        allow read: if isITAdmin(appId) || isCMAdmin(appId) || (isAuthenticated() && request.auth.token.email == userEmail);
+        
+        allow create: if (
+          isAuthenticated()
+          && request.auth.token.email == userEmail
+          && !request.resource.data.keys().hasAny(['role', 'disabled', 'isProtected'])
+          && isValidUser()
+        ) || isITAdmin(appId) || (
+          isCMAdmin(appId)
+          && request.resource.data.get('role', '') != 'ADMIN_IT'
+          && request.resource.data.isProtected != true
+          && isValidUser()
+        );
+
+        allow update: if (
+          isAuthenticated()
+          && request.auth.token.email == userEmail
+          && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'disabled', 'isProtected'])
+          && isValidUser()
+        ) || (
+          isITAdmin(appId)
+          && resource.data.get('isProtected', false) != true
+          && isValidUser()
+        ) || (
+          isCMAdmin(appId)
+          && resource.data.get('isProtected', false) != true
+          && resource.data.role != 'ADMIN_IT'
+          && request.resource.data.get('role', '') != 'ADMIN_IT'
+          && isValidUser()
+        );
+
+        allow delete: if isITAdmin(appId) && resource.data.get('isProtected', false) != true;
+      }
+
+      match /incidents/{incidentId} {
+        allow read: if true; 
+        allow create: if isCMTeam(appId) && isValidIncident();
+        allow update: if isCMTeam(appId) && isValidIncident() && request.resource.data.id == resource.data.id && request.resource.data.fecha == resource.data.fecha && request.resource.data.autor == resource.data.autor;
+        allow delete: if isITAdmin(appId) || isCMAdmin(appId);
+      }
+
+      match /rrss_incidents/{incidentId} {
+        allow read: if true; 
+        allow create: if isCMTeam(appId) && isValidRRSSIncident();
+        allow update: if isCMTeam(appId) && isValidRRSSIncident() && request.resource.data.autor == resource.data.autor && request.resource.data.timestamp == resource.data.timestamp;
+        allow delete: if isITAdmin(appId) || isCMAdmin(appId);
+      }
+
+      match /comments/{commentId} {
+        allow read: if true; 
+        allow create: if isCMTeam(appId) && isValidCommentReport();
+        allow update: if isCMTeam(appId) && isValidCommentReport() && request.resource.data.autor == resource.data.autor && request.resource.data.timestamp == resource.data.timestamp;
+        allow delete: if isITAdmin(appId) || isCMAdmin(appId);
+      }
+
+      match /notifications/{notificationId} {
+        allow read: if isAnySignedIn();
+        allow create: if userExists(appId) && isValidNotification() && request.resource.data.userId == request.auth.uid;
+        allow update: if userExists(appId) && (
+          isCMTeam(appId) || isContentEditor(appId) || (
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['readBy', 'deletedBy'])
+          )
+        );
+        allow delete: if isITAdmin(appId) || (isAnySignedIn() && resource.data.userId == request.auth.uid);
+      }
+
+      match /auditLogs/{logId} {
+        allow read: if isITAdmin(appId);
+        allow create: if request.resource.data.keys().hasOnly([
+            'ip', 'pais', 'fecha', 'uid', 'email',
+            'provider', 'userAgent', 'accion', 'expireAt'
+          ])
+          && request.resource.data.ip is string
+          && request.resource.data.pais is string
+          && request.resource.data.fecha is timestamp 
+          && request.resource.data.expireAt is timestamp
+          && request.resource.data.uid is string
+          && request.resource.data.provider is string
+          && request.resource.data.accion is string
+          && request.resource.data.expireAt > request.time
+          && request.resource.data.expireAt <= request.time + duration.value(14, 'd')
+          && (
+            (request.auth != null && request.resource.data.uid == request.auth.uid) ||
+            (request.auth == null && request.resource.data.uid == 'anonymous_attacker')
+          );
+        allow update: if false; 
+        allow delete: if isITAdmin(appId);
+      }
+
+      match /appState/{docId} {
+        allow read: if isAnySignedIn();
+        allow write: if isITAdmin(appId);
+      }
+      
+      // 🔥 FIX DE SEGURIDAD CRÍTICA: La colección config del Microservicio AHORA SOLO LA ESCRIBE EL IT_ADMIN
+      match /config/{document=**} {
+        allow read: if isITAdmin(appId);
+        allow write: if isITAdmin(appId);
+      }
+    }
+  }
+}

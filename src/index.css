@@ -1,0 +1,103 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ==== Variables de Tema ==== */
+:root {
+    --surface: #f9fafb;
+    --surface-lowest: #ffffff;
+    --surface-low: #f3f4f6;
+    --surface-container: #ffffff;
+    --surface-high: #e5e7eb;
+    --on-surface: #101828;
+    --on-surface-variant: #475467;
+    --primary: #2e90fa;
+    --on-primary: #ffffff;
+    --border: #eaecf0;
+    --error: #f04438;
+    --success: #12b76a;
+    --warning: #f79009;
+    /* Nuevas variables para Scrollbar Light Mode */
+    --scrollbar-thumb: #cbd5e1; /* Un gris más fuerte para que contraste bien */
+    --scrollbar-thumb-hover: #94a3b8;
+}
+.dark {
+    --surface: #0b1323;
+    --surface-lowest: #060e1e;
+    --surface-low: #141b2c;
+    --surface-container: #1c2537;
+    --surface-high: #283145;
+    --on-surface: #f2f4f7;
+    --on-surface-variant: #98a2b3;
+    --primary: #2e90fa;
+    --on-primary: #ffffff;
+    --border: #333c53;
+    --error: #f04438;
+    --success: #12b76a;
+    --warning: #f79009;
+    /* Nuevas variables para Scrollbar Dark Mode */
+    --scrollbar-thumb: #333c53; /* Gris azulado acorde a tu tema oscuro */
+    --scrollbar-thumb-hover: #475467;
+}
+body { background-color: var(--surface); color: var(--on-surface); }
+.theme-bg-surface { background-color: var(--surface); }
+.theme-bg-lowest { background-color: var(--surface-lowest); }
+.theme-bg-low { background-color: var(--surface-low); }
+.theme-bg-container { background-color: var(--surface-container); }
+.theme-bg-high { background-color: var(--surface-high); }
+.theme-text-main { color: var(--on-surface); }
+.theme-text-muted { color: var(--on-surface-variant); }
+.theme-border { border-color: var(--border); }
+
+.theme-input {
+    background-color: var(--surface-lowest);
+    border: 1px solid var(--border);
+    color: var(--on-surface);
+    transition: all 0.2s;
+}
+.theme-input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(46, 144, 250, 0.2);
+}
+
+@media print {
+    body, html, main { height: auto !important; overflow: visible !important; background: white !important; color: black !important; }
+    #sidebar, header, .no-print, .toast-container { display: none !important; }
+    #main-content { padding: 0 !important; margin: 0 !important; width: 100% !important; }
+    .theme-bg-container, .theme-bg-low, .theme-bg-lowest { background: white !important; border: 1px solid #ddd !important; box-shadow: none !important; color: black !important; }
+    .theme-text-main, .theme-text-muted { color: #111 !important; }
+    .print-friendly { display: block !important; width: 100% !important; border: none !important; }
+    #print-header { display: block !important; text-align: center; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px; }
+}
+
+/* ==== Estilos Personalizados del Scrollbar ==== */
+::-webkit-scrollbar {
+    width: 12px; /* Un poco más ancha para dar espacio al truco visual */
+    height: 12px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent; /* Transparente para que se adapte al contenedor */
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: var(--scrollbar-thumb);
+    border-radius: 10px;
+    /* Truco visual: Bordes transparentes para que la barra se vea más delgada y elegante */
+    border: 3px solid transparent;
+    background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: var(--scrollbar-thumb-hover);
+}
+
+::-webkit-scrollbar-thumb:active {
+    background-color: var(--primary);
+}
+
+/* Para Firefox */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) transparent;
+}
