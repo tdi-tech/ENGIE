@@ -161,23 +161,10 @@ export const Sidebar = ({ sidebarOpen, setSidebarOpen, currentView, navigate, is
 
             <aside className={`fixed md:static inset-y-0 left-0 transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 transition-transform duration-300 w-64 flex-shrink-0 theme-bg-lowest border-r theme-border flex flex-col z-40 no-print`}>
 
-                <div className="p-6 flex items-center gap-3 mb-2">
-                    <div className="w-10 h-10 rounded-xl bg-[var(--primary)] flex items-center justify-center shadow-lg shadow-blue-500/20">
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 24 24"
-                            className="w-6 h-6 text-white"
-                            fill="currentColor"
-                        >
-                            <path d="M11.57,1.72s1.99,4.81,2.21,9.54c.35,7.65-1.53,12.6-1.53,12.6.8-.46,4.2-3.37,6.5-7.48,2.3-4.11,2.91-7.91,2.91-7.91C17.43,3.69,11.57,1.72,11.57,1.72Z" />
-                            <path d="M11.27,9.05s-3.77-2.39-8.49-1.01c0,0,1.19,9.39,9.47,15.82,0,0,1.49-7.63-.98-14.81Z" />
-                            <path d="M10.89,7.9s-1.16-3.76-3.72-7.33c0,0-1.66-.4-4.66-.43,0,0-.36,2.46-.04,5.53,0,0,4.12-1.01,8.41,2.24Z" />
-                        </svg>
-                    </div>
-                    <div>
-                        <h1 className="font-bold text-base theme-text-main leading-tight">ENGIE Management</h1>
-                        <p className="text-[10px] theme-text-muted font-medium tracking-wide uppercase mt-0.5">Engie Management</p>
-                    </div>
+                <div className="p-6 flex flex-col items-center mb-2">
+                    <img src="/logo-engie.svg" alt="ENGIE" className="h-8 w-auto" />
+                    <h2 className="font-bold text-sm theme-text-main leading-tight mt-2">Management</h2>
+                    <p className="text-[10px] theme-text-muted font-medium tracking-wide uppercase mt-0.5">Tierra de Ideas</p>
                 </div>
 
                 <nav className="flex-1 overflow-y-auto px-4 space-y-1 custom-scrollbar">
