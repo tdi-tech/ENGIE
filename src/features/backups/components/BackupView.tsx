@@ -6,7 +6,7 @@ import { db, appId, IS_MOCK } from '../../../services/firebase/config';
 import { logAuditEvent } from "../../../services/firebase/audit.service";
 import { getMonthName } from '../../../shared/utils/date';
 
-const inputStyles = "w-full p-3 rounded-xl theme-bg-low border theme-border theme-text-main focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all text-sm";
+const inputStyles = "w-full p-3 rounded-xl theme-bg-low border theme-border theme-text-main focus:border-[var(--accent-purple)] focus:ring-1 focus:ring-[var(--accent-purple)] outline-none transition-all text-sm";
 // radioLabelStyles eliminado por la nueva UI de tarjetas
 
 export const BackupView = ({ showToast }: any) => {
@@ -266,7 +266,7 @@ export const BackupView = ({ showToast }: any) => {
                     <Database className="w-48 h-48" />
                 </div>
                 <div className="relative z-10">
-                    <p className="text-xs font-bold text-indigo-500 uppercase tracking-widest mb-3 flex items-center gap-2">
+                    <p className="text-xs font-bold text-[var(--accent-purple)] uppercase tracking-widest mb-3 flex items-center gap-2">
                         <Server className="w-4 h-4" /> Infraestructura Segura
                     </p>
                     <h2 className="text-4xl font-black theme-text-main mb-4 tracking-tight">Centro de Respaldos Core</h2>
@@ -294,7 +294,7 @@ export const BackupView = ({ showToast }: any) => {
                 <div className="space-y-8 border-b lg:border-b-0 lg:border-r theme-border pb-12 lg:pb-0 lg:pr-12">
                     <div>
                         <h3 className="text-2xl font-black theme-text-main flex items-center gap-3 mb-3">
-                            <Download className="w-7 h-7 text-indigo-500" /> Generar Respaldo
+                            <Download className="w-7 h-7 text-[var(--accent-purple)]" /> Generar Respaldo
                         </h3>
                         <p className="text-sm theme-text-muted leading-relaxed">
                             Descarga historiales operativos en un archivo JSON protegido. Este archivo será ilegible si es interceptado por un tercero.
@@ -305,36 +305,36 @@ export const BackupView = ({ showToast }: any) => {
                         
                         {/* 🔥 FIX UX: Nueva UI de Tarjetas Selectables (Selectable Cards) */}
                         <div className="p-5 border theme-border rounded-2xl theme-bg-container shadow-sm space-y-5">
-                            <h4 className="font-bold text-sm theme-text-main flex items-center gap-2"><Filter className="w-4 h-4 text-indigo-500"/> Alcance del Respaldo</h4>
+                            <h4 className="font-bold text-sm theme-text-main flex items-center gap-2"><Filter className="w-4 h-4 text-[var(--accent-purple)]"/> Alcance del Respaldo</h4>
                             
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <button 
                                     type="button"
                                     onClick={() => setExportType('all')}
-                                    className={`flex flex-col items-start p-4 rounded-xl border-2 transition-all text-left group ${exportType === 'all' ? 'border-indigo-500 bg-indigo-500/10 shadow-md' : 'border-gray-200 dark:border-gray-800 hover:border-indigo-500/50 bg-black/5 dark:bg-white/5'}`}
+                                    className={`flex flex-col items-start p-4 rounded-xl border-2 transition-all text-left group ${exportType === 'all' ? 'border-[var(--accent-purple)] bg-[var(--accent-purple)]/10 shadow-md' : 'border-gray-200 dark:border-gray-800 hover:border-[var(--accent-purple)]/50 bg-black/5 dark:bg-white/5'}`}
                                 >
                                     <div className="flex justify-between items-center w-full mb-3">
-                                        <Database className={`w-5 h-5 ${exportType === 'all' ? 'text-indigo-600 dark:text-indigo-400' : 'theme-text-muted group-hover:text-indigo-400 transition-colors'}`} />
-                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${exportType === 'all' ? 'border-indigo-500 bg-indigo-500' : 'border-gray-400 dark:border-gray-600'}`}>
+                                        <Database className={`w-5 h-5 ${exportType === 'all' ? 'text-[var(--accent-purple)]' : 'theme-text-muted group-hover:text-[var(--accent-purple)] transition-colors'}`} />
+                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${exportType === 'all' ? 'border-[var(--accent-purple)] bg-[var(--accent-purple)]' : 'border-gray-400 dark:border-gray-600'}`}>
                                             {exportType === 'all' && <div className="w-2 h-2 bg-white rounded-full" />}
                                         </div>
                                     </div>
-                                    <span className={`font-black text-sm ${exportType === 'all' ? 'text-indigo-700 dark:text-indigo-400' : 'theme-text-main'}`}>Toda la Nube</span>
+                                    <span className={`font-black text-sm ${exportType === 'all' ? 'text-[var(--accent-purple)]' : 'theme-text-main'}`}>Toda la Nube</span>
                                     <span className="text-[10px] font-medium theme-text-muted mt-1">Extrae el 100% de la historia.</span>
                                 </button>
 
                                 <button 
                                     type="button"
                                     onClick={() => { setExportType('filtered'); if(!exportYear && availableYears.length) setExportYear(availableYears[0]); }}
-                                    className={`flex flex-col items-start p-4 rounded-xl border-2 transition-all text-left group ${exportType === 'filtered' ? 'border-indigo-500 bg-indigo-500/10 shadow-md' : 'border-gray-200 dark:border-gray-800 hover:border-indigo-500/50 bg-black/5 dark:bg-white/5'}`}
+                                    className={`flex flex-col items-start p-4 rounded-xl border-2 transition-all text-left group ${exportType === 'filtered' ? 'border-[var(--accent-purple)] bg-[var(--accent-purple)]/10 shadow-md' : 'border-gray-200 dark:border-gray-800 hover:border-[var(--accent-purple)]/50 bg-black/5 dark:bg-white/5'}`}
                                 >
                                     <div className="flex justify-between items-center w-full mb-3">
-                                        <Calendar className={`w-5 h-5 ${exportType === 'filtered' ? 'text-indigo-600 dark:text-indigo-400' : 'theme-text-muted group-hover:text-indigo-400 transition-colors'}`} />
-                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${exportType === 'filtered' ? 'border-indigo-500 bg-indigo-500' : 'border-gray-400 dark:border-gray-600'}`}>
+                                        <Calendar className={`w-5 h-5 ${exportType === 'filtered' ? 'text-[var(--accent-purple)]' : 'theme-text-muted group-hover:text-[var(--accent-purple)] transition-colors'}`} />
+                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${exportType === 'filtered' ? 'border-[var(--accent-purple)] bg-[var(--accent-purple)]' : 'border-gray-400 dark:border-gray-600'}`}>
                                             {exportType === 'filtered' && <div className="w-2 h-2 bg-white rounded-full" />}
                                         </div>
                                     </div>
-                                    <span className={`font-black text-sm ${exportType === 'filtered' ? 'text-indigo-700 dark:text-indigo-400' : 'theme-text-main'}`}>Rango Específico</span>
+                                    <span className={`font-black text-sm ${exportType === 'filtered' ? 'text-[var(--accent-purple)]' : 'theme-text-main'}`}>Rango Específico</span>
                                     <span className="text-[10px] font-medium theme-text-muted mt-1">Filtra por Año o Mes exacto.</span>
                                 </button>
                             </div>
@@ -360,20 +360,20 @@ export const BackupView = ({ showToast }: any) => {
                         </div>
 
                         <div className="relative focus-within:scale-[1.02] transition-transform duration-300">
-                            <div className="absolute left-4 top-1/2 -translate-y-1/2 p-1 bg-indigo-500/10 rounded-md">
-                                <Key className="w-4 h-4 text-indigo-500" />
+                            <div className="absolute left-4 top-1/2 -translate-y-1/2 p-1 bg-[var(--accent-purple)]/10 rounded-md">
+                                <Key className="w-4 h-4 text-[var(--accent-purple)]" />
                             </div>
                             <input 
                                 type={showExportPassword ? "text" : "password"} 
                                 placeholder="Establece una contraseña segura..." 
                                 value={exportPassword} 
                                 onChange={(e) => setExportPassword(e.target.value)} 
-                                className="w-full pl-14 pr-12 py-4 rounded-2xl theme-bg-low border-2 border-transparent theme-text-main outline-none focus:border-indigo-500/50 focus:bg-[var(--surface)] text-sm font-bold shadow-inner transition-all" 
+                                className="w-full pl-14 pr-12 py-4 rounded-2xl theme-bg-low border-2 border-transparent theme-text-main outline-none focus:border-[var(--accent-purple)]/50 focus:bg-[var(--surface)] text-sm font-bold shadow-inner transition-all" 
                             />
                             <button
                                 type="button"
                                 onClick={() => setShowExportPassword(!showExportPassword)}
-                                className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-indigo-500 transition-colors rounded-lg"
+                                className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-[var(--accent-purple)] transition-colors rounded-lg"
                                 title={showExportPassword ? "Ocultar clave" : "Mostrar clave"}
                             >
                                 {showExportPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
@@ -384,7 +384,7 @@ export const BackupView = ({ showToast }: any) => {
                             type="button"
                             onClick={handleExportAll} 
                             disabled={!exportPassword || exportPassword.length < 6 || (exportType === 'filtered' && !exportYear) || IS_MOCK} 
-                            className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-indigo-600 text-white font-bold text-sm rounded-2xl hover:bg-indigo-500 shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-indigo-600"
+                            className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-[var(--accent-purple)] text-white font-bold text-sm rounded-2xl hover:bg-[var(--accent-purple)]/80 shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             <Lock className="w-4 h-4" /> Encriptar y Descargar JSON
                         </button>
@@ -483,10 +483,10 @@ export const BackupView = ({ showToast }: any) => {
                             </div>
                             
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 py-6 border-y theme-border text-center">
-                                <div><span className="block text-3xl font-black theme-text-main">{backupInfo.modules?.hackeos?.length || 0}</span><span className="text-xs uppercase font-bold text-red-500 tracking-wider">Hackeos</span></div>
-                                <div><span className="block text-3xl font-black theme-text-main">{backupInfo.modules?.rrss?.length || 0}</span><span className="text-xs uppercase font-bold text-orange-500 tracking-wider">Crisis RRSS</span></div>
-                                <div><span className="block text-3xl font-black theme-text-main">{backupInfo.modules?.comentarios?.length || 0}</span><span className="text-xs uppercase font-bold text-blue-500 tracking-wider">Comentarios</span></div>
-                                <div><span className="block text-3xl font-black theme-text-main">{backupInfo.modules?.tickets?.length || 0}</span><span className="text-xs uppercase font-bold text-purple-500 tracking-wider">Tickets</span></div>
+                                <div><span className="block text-3xl font-black theme-text-main">{backupInfo.modules?.hackeos?.length || 0}</span><span className="text-xs uppercase font-bold text-[var(--error)] tracking-wider">Hackeos</span></div>
+                                <div><span className="block text-3xl font-black theme-text-main">{backupInfo.modules?.rrss?.length || 0}</span><span className="text-xs uppercase font-bold text-[var(--warning)] tracking-wider">Crisis RRSS</span></div>
+                                <div><span className="block text-3xl font-black theme-text-main">{backupInfo.modules?.comentarios?.length || 0}</span><span className="text-xs uppercase font-bold text-[var(--primary)] tracking-wider">Comentarios</span></div>
+                                <div><span className="block text-3xl font-black theme-text-main">{backupInfo.modules?.tickets?.length || 0}</span><span className="text-xs uppercase font-bold text-[var(--accent-purple)] tracking-wider">Tickets</span></div>
                             </div>
                             
                             <div className="space-y-4">

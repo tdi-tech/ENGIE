@@ -11,8 +11,8 @@ import { db, appId, auth, IS_MOCK } from '../../../services/firebase/config';
 import DOMPurify from 'dompurify';
 import { useTickets } from '../hooks/useTickets';
 
-const inputStyles = "w-full p-3 rounded-xl theme-bg-low border theme-border theme-text-main focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all text-sm";
-const gridInputExactClass = "w-full h-12 px-3.5 rounded-xl theme-bg-low border theme-border theme-text-main focus:border-purple-500 focus:ring-1 focus:ring-purple-500 outline-none transition-all text-xs font-semibold box-border flex items-center";
+const inputStyles = "w-full p-3 rounded-xl theme-bg-low border theme-border theme-text-main focus:border-[var(--accent-purple)] focus:ring-1 focus:ring-[var(--accent-purple)] outline-none transition-all text-sm";
+const gridInputExactClass = "w-full h-12 px-3.5 rounded-xl theme-bg-low border theme-border theme-text-main focus:border-[var(--accent-purple)] focus:ring-1 focus:ring-[var(--accent-purple)] outline-none transition-all text-xs font-semibold box-border flex items-center";
 const editorStyles = `.wysiwyg-content ul { list-style-type: disc !important; padding-left: 1.5rem !important; margin: 0.5rem 0; } .wysiwyg-content ol { list-style-type: decimal !important; padding-left: 1.5rem !important; margin: 0.5rem 0; }`;
 
 const PLATAFORMAS_OPTIONS = ['TikTok', 'Instagram', 'Facebook', 'LinkedIn'];
@@ -80,7 +80,7 @@ export const SolicitudTicketsView = ({ showToast, navigate }: any) => {
                         <Ticket className="w-48 h-48" />
                     </div>
                     <div className="relative z-10">
-                        <p className="text-xs font-bold text-purple-500 uppercase tracking-widest mb-3 flex items-center gap-2">
+                        <p className="text-xs font-bold text-[var(--accent-purple)] uppercase tracking-widest mb-3 flex items-center gap-2">
                             <Send className="w-4 h-4" /> Solicitudes Emergentes
                         </p>
                         <h2 className="text-4xl font-black theme-text-main mb-4 tracking-tight">Emisión de Ticket de Contenido</h2>
@@ -96,7 +96,7 @@ export const SolicitudTicketsView = ({ showToast, navigate }: any) => {
                         ? 'bg-red-500/10 border-red-500/40' 
                         : ticketRemainingAttempts <= 2 
                         ? 'bg-yellow-500/10 border-yellow-500/40' 
-                        : 'bg-purple-500/10 border-purple-500/30'
+                        : 'bg-[var(--accent-purple)]/10 border-[var(--accent-purple)]/30'
                     }`}>
                         <div className="flex items-center gap-3">
                             <div className={`p-3 rounded-xl shadow-md text-white ${isLocked ? 'bg-red-500' : 'bg-purple-500'}`}>

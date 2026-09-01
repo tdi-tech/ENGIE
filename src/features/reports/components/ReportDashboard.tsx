@@ -326,17 +326,17 @@ export const ReportDashboard = ({ showToast, isAdmin, userRole }: any) => {
             </div>
 
             {hasDbData && (
-                <div className="p-6 theme-bg-container border theme-border rounded-2xl shadow-sm border-l-[6px] border-l-indigo-500">
+                <div className="p-6 theme-bg-container border theme-border rounded-2xl shadow-sm border-l-[6px] border-l-[var(--accent-purple)]">
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-5">
                         <div className="flex items-center gap-3">
-                            <div className="p-2.5 bg-indigo-500/10 rounded-lg"><Filter className="w-5 h-5 text-indigo-500" /></div>
+                            <div className="p-2.5 bg-[var(--accent-purple)]/10 rounded-lg"><Filter className="w-5 h-5 text-[var(--accent-purple)]" /></div>
                             <div>
                                 <h3 className="font-bold theme-text-main text-sm uppercase tracking-wider">Filtro de Temporalidad</h3>
                                 <p className="text-xs theme-text-muted mt-0.5">Aisla los datos por mes y año operativo</p>
                             </div>
                         </div>
                         {filterYear && (
-                            <button onClick={() => { setFilterYear(''); setFilterMonth(''); setRowData(allData); }} className="text-xs font-bold text-indigo-500 hover:text-indigo-400 transition-colors bg-indigo-500/10 px-3 py-1.5 rounded-md">Restablecer filtros</button>
+                            <button onClick={() => { setFilterYear(''); setFilterMonth(''); setRowData(allData); }} className="text-xs font-bold text-[var(--accent-purple)] hover:text-[var(--accent-purple)]/80 transition-colors bg-[var(--accent-purple)]/10 px-3 py-1.5 rounded-md">Restablecer filtros</button>
                         )}
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -356,7 +356,7 @@ export const ReportDashboard = ({ showToast, isAdmin, userRole }: any) => {
                         </div>
                     </div>
                     <div className="mt-4 pt-4 border-t theme-border flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></div>
+                        <div className="w-2 h-2 rounded-full bg-[var(--accent-purple)] animate-pulse"></div>
                         <p className="text-[11px] theme-text-muted font-bold">Base de datos segmentada: {rowData.length} de {allData.length} registros cargados en memoria.</p>
                     </div>
                 </div>

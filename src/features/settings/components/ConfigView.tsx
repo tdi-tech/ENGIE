@@ -357,23 +357,23 @@ export const ConfigView = ({
 
                             <div className="mb-8 space-y-4 relative z-10 p-5 bg-black/5 dark:bg-white/5 border theme-border rounded-xl">
                                 <div>
-                                    <h4 className="text-sm font-bold theme-text-main flex items-center gap-2"><Server className="w-4 h-4 text-indigo-500"/> Visores Exactos de Facturación</h4>
+                                    <h4 className="text-sm font-bold theme-text-main flex items-center gap-2"><Server className="w-4 h-4 text-[var(--accent-purple)]"/> Visores Exactos de Facturación</h4>
                                     <p className="text-xs theme-text-muted mt-1">Acceso directo a las gráficas oficiales de uso saltando los menús intermedios.</p>
                                 </div>
                                 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <button onClick={openFirestoreUsage} className="flex flex-col items-start gap-2 p-4 border theme-border rounded-xl theme-bg-low hover:border-indigo-500/50 hover:bg-indigo-500/5 transition-all text-left group">
+                                    <button onClick={openFirestoreUsage} className="flex flex-col items-start gap-2 p-4 border theme-border rounded-xl theme-bg-low hover:border-[var(--accent-purple)]/50 hover:bg-[var(--accent-purple)]/5 transition-all text-left group">
                                         <div className="flex items-center justify-between w-full">
-                                            <span className="text-sm font-black theme-text-main group-hover:text-indigo-500 transition-colors">Lecturas / Escrituras</span>
-                                            <ExternalLink className="w-4 h-4 text-gray-400 group-hover:text-indigo-500" />
+                                            <span className="text-sm font-black theme-text-main group-hover:text-[var(--accent-purple)] transition-colors">Lecturas / Escrituras</span>
+                                            <ExternalLink className="w-4 h-4 text-gray-400 group-hover:text-[var(--accent-purple)]" />
                                         </div>
                                         <span className="text-[11px] font-medium theme-text-muted leading-tight">Abre la gráfica exacta de Firestore para monitorear el límite de 50k lecturas/día.</span>
                                     </button>
 
-                                    <button onClick={openStorageUsage} className="flex flex-col items-start gap-2 p-4 border theme-border rounded-xl theme-bg-low hover:border-indigo-500/50 hover:bg-indigo-500/5 transition-all text-left group">
+                                    <button onClick={openStorageUsage} className="flex flex-col items-start gap-2 p-4 border theme-border rounded-xl theme-bg-low hover:border-[var(--accent-purple)]/50 hover:bg-[var(--accent-purple)]/5 transition-all text-left group">
                                         <div className="flex items-center justify-between w-full">
-                                            <span className="text-sm font-black theme-text-main group-hover:text-indigo-500 transition-colors">Ancho de Banda (Red)</span>
-                                            <ExternalLink className="w-4 h-4 text-gray-400 group-hover:text-indigo-500" />
+                                            <span className="text-sm font-black theme-text-main group-hover:text-[var(--accent-purple)] transition-colors">Ancho de Banda (Red)</span>
+                                            <ExternalLink className="w-4 h-4 text-gray-400 group-hover:text-[var(--accent-purple)]" />
                                         </div>
                                         <span className="text-[11px] font-medium theme-text-muted leading-tight">Abre la gráfica de Storage y Hosting para vigilar el límite de los 10 GB mensuales.</span>
                                     </button>
@@ -405,19 +405,19 @@ export const ConfigView = ({
                                 </div>
 
                                 {/* 2. 🔥 NUEVO: AUTOMATIZACIÓN CRONJOB */}
-                                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5 theme-bg-low border border-indigo-500/30 rounded-xl transition-colors bg-indigo-500/5 shadow-inner">
+                                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5 theme-bg-low border border-[var(--accent-purple)]/30 rounded-xl transition-colors bg-[var(--accent-purple)]/5 shadow-inner">
                                     <div className="flex items-start gap-3 w-full sm:w-auto">
-                                        <div className="p-2 bg-indigo-500 text-white rounded-lg shadow-sm mt-0.5"><Clock className="w-5 h-5"/></div>
+                                        <div className="p-2 bg-[var(--accent-purple)] text-white rounded-lg shadow-sm mt-0.5"><Clock className="w-5 h-5"/></div>
                                         <div>
-                                            <p className="text-sm font-black theme-text-main text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">Automatización de Purga</p>
-                                            <p className="text-xs text-indigo-600/80 dark:text-indigo-400/80 max-w-sm leading-relaxed mt-1">Programa el microservicio en Hostinger para ejecutar la purga en segundo plano según tus reglas.</p>
+                                            <p className="text-sm font-black theme-text-main text-[var(--accent-purple)] uppercase tracking-wider">Automatización de Purga</p>
+                                            <p className="text-xs text-[var(--accent-purple)]/80 max-w-sm leading-relaxed mt-1">Programa el microservicio en Hostinger para ejecutar la purga en segundo plano según tus reglas.</p>
                                         </div>
                                     </div>
                                     <select 
                                         value={cronFreq} 
                                         onChange={(e) => programarPurga(e.target.value)} 
                                         disabled={isSettingCron}
-                                        className="w-full sm:w-auto px-4 py-3 bg-white dark:bg-gray-900 border border-indigo-500/30 rounded-xl text-sm font-bold theme-text-main outline-none focus:border-indigo-500 cursor-pointer disabled:opacity-50"
+                                        className="w-full sm:w-auto px-4 py-3 bg-white dark:bg-gray-900 border border-[var(--accent-purple)]/30 rounded-xl text-sm font-bold theme-text-main outline-none focus:border-[var(--accent-purple)] cursor-pointer disabled:opacity-50"
                                     >
                                         <option value="manual">Modo Manual</option>
                                         <option value="diario">Purga Diaria</option>

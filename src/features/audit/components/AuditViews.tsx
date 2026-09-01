@@ -73,7 +73,7 @@ export const AuditViews: React.FC = () => {
   if (loading) {
     return (
       <div className="max-w-6xl mx-auto space-y-6 fade-in pb-10 mt-6 flex flex-col items-center justify-center py-32">
-        <Activity className="w-12 h-12 text-red-500 animate-spin mb-4 opacity-80" />
+        <Activity className="w-12 h-12 text-[var(--error)] animate-spin mb-4 opacity-80" />
         <h3 className="text-lg font-bold theme-text-main">Inicializando Radar Perimetral</h3>
         <p className="text-sm theme-text-muted mt-1">Conectando con Google Cloud Security...</p>
       </div>
@@ -88,7 +88,7 @@ export const AuditViews: React.FC = () => {
         </div>
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
-            <p className="text-xs font-bold text-red-500 uppercase tracking-wider mb-2 flex items-center gap-2">
+            <p className="text-xs font-bold text-[var(--error)] uppercase tracking-wider mb-2 flex items-center gap-2">
               <AlertOctagon className="w-4 h-4" /> Centro de Seguridad Zero-Trust
             </p>
             <h2 className="text-3xl font-black theme-text-main mb-2">Radar de Intrusos</h2>
@@ -157,8 +157,8 @@ export const AuditViews: React.FC = () => {
                         log.accion.toLowerCase().includes('ddos') ||
                         log.accion.toLowerCase().includes('brute-force') ||
                         log.accion.toLowerCase().includes('anónimo')
-                        ? 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20' 
-                        : 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20'
+                        ? 'bg-[var(--error)]/10 text-[var(--error)] border-[var(--error)]/20' 
+                        : 'bg-[var(--primary)]/10 text-[var(--primary)] dark:text-[var(--info)] border-[var(--primary)]/20'
                       }`}>
                         <Laptop className="w-4 h-4 flex-shrink-0" />
                         {formatActionStr(log.accion)}

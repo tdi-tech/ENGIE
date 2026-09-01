@@ -45,8 +45,8 @@ export const InfoBox = ({ label, value, block = false, font = '' }: any) => (
 );
 
 // 🚨 FIX REACT DOCTOR: Módulos fuera del alcance del render
-const ROLE_BORDERS: Record<string, string> = { primary: 'border-[var(--primary)]', purple: 'border-purple-500', warning: 'border-[var(--warning)]', success: 'border-[var(--success)]' };
-const ROLE_TEXTS: Record<string, string> = { primary: 'text-[var(--primary)]', purple: 'text-purple-500', warning: 'text-[var(--warning)]', success: 'text-[var(--success)]' };
+const ROLE_BORDERS: Record<string, string> = { primary: 'border-[var(--primary)]', purple: 'border-[var(--accent-purple)]', warning: 'border-[var(--warning)]', success: 'border-[var(--success)]' };
+const ROLE_TEXTS: Record<string, string> = { primary: 'text-[var(--primary)]', purple: 'text-[var(--accent-purple)]', warning: 'text-[var(--warning)]', success: 'text-[var(--success)]' };
 
 export const RoleCard = ({ title, desc, icon, color, list }: any) => {
     return (

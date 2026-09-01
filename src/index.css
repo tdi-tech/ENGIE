@@ -17,9 +17,12 @@
     --primary: #0072CE;            /* Action Blue (botones/pills) */
     --on-primary: #ffffff;
     --border: #E2E8F0;
-    --error: #f04438;
-    --success: #12b76a;
-    --warning: #f79009;
+    --error: #E11D48;            /* Rose Stopper — contrasta fuerte sobre cualquier fondo */
+    --success: #0CA5A4;          /* Teal ENGIE — derivado del cian, coherente con la marca */
+    --warning: #D97706;          /* Amber ENERGY — calidez sin romper la paleta */
+    --info: #00A3E0;             /* Electric Cyan — mismo que el acento primario */
+    --accent-purple: #7C3AED;    /* Violet Signal — para badges/roles secundarios */
+    --icon-muted: #94A3B8;       /* Slate Muted — iconos de baja prioridad */
     /* Nuevas variables para Scrollbar Light Mode */
     --scrollbar-thumb: #cbd5e1; /* Un gris más fuerte para que contraste bien */
     --scrollbar-thumb-hover: #94a3b8;
@@ -55,9 +58,12 @@
     --primary: #00A3E0;            /* Electric Cyan resalta sobre navy */
     --on-primary: #ffffff;
     --border: #24406B;
-    --error: #f04438;
-    --success: #12b76a;
-    --warning: #f79009;
+    --error: #E11D48;            /* Rose Stopper */
+    --success: #0CA5A4;          /* Teal ENGIE */
+    --warning: #D97706;          /* Amber ENERGY */
+    --info: #00A3E0;             /* Electric Cyan */
+    --accent-purple: #7C3AED;    /* Violet Signal */
+    --icon-muted: #64748B;       /* Slate Muted — más tenue sobre navy */
     /* Nuevas variables para Scrollbar Dark Mode */
     --scrollbar-thumb: #333c53; /* Gris azulado acorde a tu tema oscuro */
     --scrollbar-thumb-hover: #475467;

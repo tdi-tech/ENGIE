@@ -48,17 +48,17 @@ const helpTopics = [
         id: 'roles-operativos',
         category: 'Fundamentos y Accesos',
         title: 'Roles Operativos',
-        icon: <Users className="w-5 h-5 text-indigo-500" />,
+        icon: <Users className="w-5 h-5 text-[var(--accent-purple)]" />,
         badge: 'Ejecución',
-        badgeColor: 'bg-indigo-500/10 text-indigo-500 border-indigo-500/20',
+        badgeColor: 'bg-[var(--accent-purple)]/10 text-[var(--accent-purple)] border-[var(--accent-purple)]/20',
         content: (
             <ul className="space-y-3 theme-text-main text-sm leading-relaxed">
                 <li className="flex items-start gap-3">
-                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1.5 flex-shrink-0"></span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent-purple)] mt-1.5 flex-shrink-0"></span>
                     <p><strong className="theme-text-main">EDITOR_CM:</strong> Nivel operativo. Capacidad de crear/editar incidentes en Hackeos y RRSS. Documentación de avances en tickets y acceso visual a los Reportes Analíticos de Comentarios.</p>
                 </li>
                 <li className="flex items-start gap-3">
-                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1.5 flex-shrink-0"></span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent-purple)] mt-1.5 flex-shrink-0"></span>
                     <p><strong className="theme-text-main">EDITOR_CONTENT:</strong> Perfil especializado en la consola de Tickets Emergentes. Gestiona estados y metadatos de tickets. Acceso de lectura al historial de Comentarios para descarga CSV.</p>
                 </li>
                 <li className="flex items-start gap-3">
