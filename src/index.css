@@ -58,7 +58,7 @@
     --primary: #00A3E0;            /* Electric Cyan resalta sobre navy */
     --on-primary: #ffffff;
     --border: #24406B;
-    --error: #E11D48;            /* Rose Stopper */
+    --error: #FF7A90;            /* Bright Rose — WCAG AA 4.5:1+ sobre fondos navy */
     --success: #0CA5A4;          /* Teal ENGIE */
     --warning: #D97706;          /* Amber ENERGY */
     --info: #00A3E0;             /* Electric Cyan */
