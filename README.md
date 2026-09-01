@@ -1,4 +1,4 @@
-# Innova Management
+# ENGIE Management
 
 **Plataforma Integral SaaS para la Gestión de Seguridad, Cumplimiento y Control Operativo de Incidencias.**
 
