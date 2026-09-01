@@ -4,16 +4,19 @@
 
 /* ==== Variables de Tema ==== */
 :root {
-    --surface: #f9fafb;
-    --surface-lowest: #ffffff;
-    --surface-low: #f3f4f6;
-    --surface-container: #ffffff;
-    --surface-high: #e5e7eb;
-    --on-surface: #101828;
-    --on-surface-variant: #475467;
-    --primary: #2e90fa;
+    /* ⚡ ENGIE LOOK & FEEL — paleta oficial aplicada al tema base.
+       Antes: grises tailwind (#f9fafb...) y azul genérico #2e90fa.
+       Ahora: Surface Gray / Text Slate / Action Blue del style guide. */
+    --surface: #F8FAFC;            /* Background Light / Surface Gray */
+    --surface-lowest: #FFFFFF;     /* Background Light */
+    --surface-low: #F1F5F9;
+    --surface-container: #FFFFFF;
+    --surface-high: #E2E8F0;
+    --on-surface: #0F172A;         /* Text Primary */
+    --on-surface-variant: #64748B; /* Text Muted */
+    --primary: #0072CE;            /* Action Blue (botones/pills) */
     --on-primary: #ffffff;
-    --border: #eaecf0;
+    --border: #E2E8F0;
     --error: #f04438;
     --success: #12b76a;
     --warning: #f79009;
@@ -41,16 +44,17 @@
     --engie-hover-lift: translateY(-4px);
 }
 .dark {
-    --surface: #0b1323;
-    --surface-lowest: #060e1e;
-    --surface-low: #141b2c;
-    --surface-container: #1c2537;
-    --surface-high: #283145;
-    --on-surface: #f2f4f7;
-    --on-surface-variant: #98a2b3;
-    --primary: #2e90fa;
+    /* ⚡ ENGIE — modo oscuro anclado al Deep Midnight Navy (#0B2545 y derivados) */
+    --surface: #0A1B33;
+    --surface-lowest: #071326;
+    --surface-low: #0E2240;
+    --surface-container: #122A4A;
+    --surface-high: #1B3660;
+    --on-surface: #F2F4F7;
+    --on-surface-variant: #94A3B8;
+    --primary: #00A3E0;            /* Electric Cyan resalta sobre navy */
     --on-primary: #ffffff;
-    --border: #333c53;
+    --border: #24406B;
     --error: #f04438;
     --success: #12b76a;
     --warning: #f79009;
@@ -81,7 +85,18 @@ body { background-color: var(--surface); color: var(--on-surface); font-family: 
 }
 .theme-input:focus {
     border-color: var(--primary);
-    box-shadow: 0 0 0 2px rgba(46, 144, 250, 0.2);
+    box-shadow: 0 0 0 2px rgba(0, 163, 224, 0.25);
+}
+
+/* ⚡ Firma ENGIE: línea de energía bajo la barra superior */
+header.h-16::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0; bottom: -1px;
+    height: 2px;
+    background: linear-gradient(90deg, var(--engie-primary-cyan), var(--engie-action-blue) 45%, transparent 90%);
+    opacity: 0.85;
+    pointer-events: none;
 }
 
 @media print {
