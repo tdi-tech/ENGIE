@@ -20,6 +20,25 @@
     /* Nuevas variables para Scrollbar Light Mode */
     --scrollbar-thumb: #cbd5e1; /* Un gris más fuerte para que contraste bien */
     --scrollbar-thumb-hover: #94a3b8;
+
+    /* ⚡ ENGIE LOOK & FEEL — Design System (style guide) */
+    /* Paleta de colores */
+    --engie-primary-cyan: #00A3E0;
+    --engie-midnight-navy: #0B2545;
+    --engie-action-blue: #0072CE;
+    --engie-dark-blue: #00609C;
+    --engie-bg-light: #FFFFFF;
+    --engie-surface-gray: #F8FAFC;
+    --engie-text-primary: #0F172A;
+    --engie-text-muted: #64748B;
+    /* Tipografía */
+    --engie-font-family: 'Open Sans', system-ui, -apple-system, sans-serif;
+    /* UI tokens & geometría */
+    --engie-radius-pill: 9999px;
+    --engie-radius-card: 16px;
+    --engie-shadow-card: 0 10px 25px -5px rgba(11, 37, 69, 0.1);
+    --engie-transition: all 0.3s ease;
+    --engie-hover-lift: translateY(-4px);
 }
 .dark {
     --surface: #0b1323;
@@ -38,8 +57,13 @@
     /* Nuevas variables para Scrollbar Dark Mode */
     --scrollbar-thumb: #333c53; /* Gris azulado acorde a tu tema oscuro */
     --scrollbar-thumb-hover: #475467;
+
+    /* ⚡ ENGIE LOOK & FEEL — Design System (style guide) */
+    /* El fondo general en oscuro se mapea a la antigua paleta azul profunda.
+       Los accentos (cyan, action blue, dark blue) se conservan del :root. */
+    --engie-midnight-navy: #0B2545;
 }
-body { background-color: var(--surface); color: var(--on-surface); }
+body { background-color: var(--surface); color: var(--on-surface); font-family: var(--engie-font-family); }
 .theme-bg-surface { background-color: var(--surface); }
 .theme-bg-lowest { background-color: var(--surface-lowest); }
 .theme-bg-low { background-color: var(--surface-low); }
@@ -69,6 +93,191 @@ body { background-color: var(--surface); color: var(--on-surface); }
     .print-friendly { display: block !important; width: 100% !important; border: none !important; }
     #print-header { display: block !important; text-align: center; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px; }
 }
+
+/* ==== ENGIE LOOK & FEEL — Layered Style Guide ==== */
+/*
+  ⚡ Estas reglas aplican la "Style Guide & Design System" (ENGIE).
+  Se apoyan en las variables --engie-* definidas en :root/.dark, de modo que
+  próximos ajustes de color/diseño se hacen editando SOLO esas variables
+  (un único punto de control), sin tocar estas reglas ni el resto de la app.
+
+  NOTA: la plataforma usa clases tipo `theme-*`. Estas clases utilitarias se
+  añaden como refuerzo visual en la capa superior del style guide y del tema
+  oscuro por defecto, sin sustituir la base tailwind existente.
+*/
+
+/* 2. Tipografía */
+.theme-text-primary-engie { color: var(--engie-text-primary); }
+.theme-text-muted-engie { color: var(--engie-text-muted); }
+
+.engie-display-heading {
+    font-family: var(--engie-font-family);
+    font-weight: 800;
+    font-size: 2.5rem;
+    line-height: 1.1;
+    color: #FFFFFF; /* Sobre fondos azul oscuro */
+}
+.engie-section-title {
+    font-family: var(--engie-font-family);
+    font-weight: 700;
+    font-size: 1.5rem; /* 1.5 - 1.75 */
+    line-height: 1.3;
+}
+.engie-body {
+    font-family: var(--engie-font-family);
+    font-weight: 400;
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+/* 3. UI tokens & geometría */
+.engie-card {
+    background-color: var(--engie-surface-gray);
+    border-radius: var(--engie-radius-card);
+    box-shadow: var(--engie-shadow-card);
+    border: none;
+}
+.engie-card--dark {
+    background-color: var(--surface-container);
+    border: 1px solid var(--border);
+    border-radius: var(--engie-radius-card);
+    box-shadow: var(--engie-shadow-card);
+}
+.engie-pill {
+    border-radius: var(--engie-radius-pill);
+    background-color: var(--engie-action-blue);
+    color: #FFFFFF;
+    font-weight: 700;
+}
+.engie-pill--cyan {
+    background-color: var(--engie-primary-cyan);
+}
+.engie-card-header-badge {
+    background-color: var(--engie-primary-cyan);
+    color: #FFFFFF;
+    text-transform: uppercase;
+    border-radius: var(--engie-radius-pill);
+    font-weight: 700;
+    font-size: 0.75rem;
+    position: absolute;
+    top: 0;
+}
+.engie-shadow { box-shadow: var(--engie-shadow-card); }
+
+/* 4. Efectos & interacción */
+.engie-card:hover .engie-card-hover,
+.engie-card--dark:hover .engie-card-hover {
+    transform: var(--engie-hover-lift);
+    transition: var(--engie-transition);
+}
+/* Refuerzo de hover para contenedores existentes con clase theme-bg-container */
+.theme-bg-container:hover,
+.theme-bg-low:hover {
+    transform: var(--engie-hover-lift);
+    transition: var(--engie-transition);
+}
+
+/* ============================================================
+   ⚡ ENGIE SIGNATURE LAYER — atmósfera, profundidad y carácter
+   (frontend-design: evita el look genérico; commit a una
+   dirección "corporate-electric": navy profundo + energía cyan)
+   ============================================================ */
+
+/* 5. Atmósfera de fondo: malla de gradientes (grid eléctrico) + grano.
+   En claro: halos cyan/blue muy sutiles sobre blanco.
+   En oscuro: la malla cobra vida sobre el navy #0B2545. */
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+        radial-gradient(ellipse 60% 45% at 12% -5%, rgba(0, 163, 224, 0.10), transparent 60%),
+        radial-gradient(ellipse 50% 40% at 95% 8%, rgba(0, 114, 206, 0.08), transparent 65%),
+        radial-gradient(ellipse 45% 35% at 50% 110%, rgba(0, 96, 156, 0.07), transparent 60%);
+}
+.dark body::before {
+    background:
+        radial-gradient(ellipse 60% 45% at 12% -5%, rgba(0, 163, 224, 0.16), transparent 60%),
+        radial-gradient(ellipse 50% 40% at 95% 8%, rgba(11, 37, 69, 0.55), transparent 70%),
+        radial-gradient(ellipse 45% 35% at 50% 110%, rgba(0, 114, 206, 0.12), transparent 60%);
+}
+
+/* Grano fino (noise) para dar textura mate y evitar el "flat digital" */
+body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.35;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+}
+
+/* 6. Coreografía de entrada: reveal escalonado en la carga inicial.
+   Uso: añadir `engie-reveal` + style={{ animationDelay: 'Nms' }} a tarjetas/secciones. */
+@keyframes engie-rise {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.engie-reveal {
+    animation: engie-rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+    .engie-reveal { animation: none; }
+    .theme-bg-container:hover, .theme-bg-low:hover,
+    .engie-card-hover { transform: none; }
+}
+
+/* 7. Hover con carácter: elevación + filo de energía cyan (borde luminoso) */
+.engie-card-hover,
+.engie-card, .engie-card--dark {
+    transition: var(--engie-transition);
+}
+.engie-card-hover:hover {
+    transform: var(--engie-hover-lift);
+    box-shadow: var(--engie-shadow-card), 0 0 0 1px rgba(0, 163, 224, 0.35), 0 12px 30px -8px rgba(0, 163, 224, 0.25);
+}
+.engie-card:hover, .engie-card--dark:hover {
+    transform: var(--engie-hover-lift);
+    box-shadow: var(--engie-shadow-card), 0 0 0 1px rgba(0, 163, 224, 0.35);
+}
+
+/* 8. Foco accesible en cyan eléctrico (sustituye el outline default del navegador) */
+:focus-visible {
+    outline: 2px solid var(--engie-primary-cyan);
+    outline-offset: 2px;
+    border-radius: 6px;
+}
+
+/* 9. Firma superior: línea de energía (degrade cyan→blue) para headers/barras */
+.engie-energy-line {
+    height: 3px;
+    border: none;
+    border-radius: var(--engie-radius-pill);
+    background: linear-gradient(90deg, var(--engie-primary-cyan), var(--engie-action-blue), var(--engie-dark-blue));
+}
+
+/* 10. Botones primarios ENGIE (pill, Action Blue, con sheen al hover) */
+.engie-btn {
+    border-radius: var(--engie-radius-pill);
+    background-color: var(--engie-action-blue);
+    color: #FFFFFF;
+    font-weight: 700;
+    transition: var(--engie-transition);
+    position: relative;
+    overflow: hidden;
+}
+.engie-btn:hover {
+    background-color: var(--engie-dark-blue);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px -6px rgba(0, 114, 206, 0.5);
+}
+.engie-btn:active { transform: translateY(0); }
+
+/* 11. Scrollbar de marca en modo oscuro (thumb azulado con punta cyan) */
+.dark ::-webkit-scrollbar-thumb:active { background-color: var(--engie-primary-cyan); }
 
 /* ==== Estilos Personalizados del Scrollbar ==== */
 ::-webkit-scrollbar {

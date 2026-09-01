@@ -7,10 +7,13 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
+// El conmutador claro/oscuro se conserva. El valor por defecto de arranque
+// (cuando NO hay preferencia guardada en localStorage) es MODO OSCURO.
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     // 🚨 FIX REACT DOCTOR: Inicialización síncrona perezosa en lugar de useEffect para evitar salto de UI
     const [isDarkMode, setIsDarkMode] = useState(() => {
         const savedTheme = localStorage.getItem('theme');
+        // Por defecto (sin preferencia o valor desconocido) → oscuro.
         if (savedTheme === 'light') {
             document.documentElement.classList.remove('dark');
             return false;
