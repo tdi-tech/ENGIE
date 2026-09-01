@@ -115,7 +115,7 @@ export const SolicitudTicketsView = ({ showToast, navigate }: any) => {
                                 <p className="text-xs theme-text-muted">
                                     {isLocked 
                                         ? 'Has superado el límite de intentos en el servidor. Tu IP fue bloqueada por 30 min.'
-                                        : 'Ingresa tu PIN de seguridad asignado por Tierra de Ideas.'}
+                                        : 'Ingresa tu PIN de seguridad asignado por ENGIE.'}
                                 </p>
                             </div>
                         </div>
@@ -490,7 +490,7 @@ export const GestionTicketsView = ({ showToast, userRole, appUsers, user, update
     return (
         <div className="space-y-6 fade-in pb-24">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div><h2 className="text-2xl font-bold theme-text-main">Consola de Gestión de Tickets</h2><p className="theme-text-muted text-sm mt-1">Control de flujo, aprobación y tiempos de entrega para Innovaschools.</p></div>
+                <div><h2 className="text-2xl font-bold theme-text-main">Consola de Gestión de Tickets</h2><p className="theme-text-muted text-sm mt-1">Control de flujo, aprobación y tiempos de entrega para ENGIE.</p></div>
                 <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
                     
                     {canManageAdmin && tickets.length > 0 && (
@@ -680,7 +680,7 @@ export const GestionTicketsView = ({ showToast, userRole, appUsers, user, update
                 <div className="fixed inset-0 w-screen h-screen bg-black/70 backdrop-blur-md z-[50] flex items-center justify-center p-4 fade-in overflow-y-auto">
                     <div className="theme-bg-container rounded-2xl w-full max-w-2xl shadow-2xl border theme-border flex flex-col max-h-[90vh] overflow-hidden my-auto">
                         <div className="p-5 border-b theme-border flex justify-between items-center bg-purple-500/5">
-                            <div className="flex items-center gap-3"><div className="p-2 bg-purple-500/20 text-purple-500 rounded-lg"><Ticket className="w-5 h-5"/></div><div><h3 className="font-bold theme-text-main text-lg">{selectedTicket.tema}</h3><p className="text-xs theme-text-muted">Solicitado por Innovaschools</p></div></div>
+                            <div className="flex items-center gap-3"><div className="p-2 bg-purple-500/20 text-purple-500 rounded-lg"><Ticket className="w-5 h-5"/></div><div><h3 className="font-bold theme-text-main text-lg">{selectedTicket.tema}</h3><p className="text-xs theme-text-muted">Solicitado por ENGIE</p></div></div>
                             <div className="flex items-center gap-2">
                                 {canManageAdmin && <button onClick={() => handleDelete(selectedTicket.id)} className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg" title="Eliminar ticket"><Trash2 className="w-5 h-5"/></button>}
                                 <button onClick={() => setIsDetailOpen(false)} className="p-2 theme-text-muted hover:theme-text-main rounded-lg" title="Cerrar modal"><X className="w-5 h-5"/></button>

@@ -581,7 +581,7 @@ export const DashboardView = ({
                                         <h3 className="text-xs font-bold theme-text-muted uppercase tracking-wider mb-3 ml-1">Acciones Rápidas</h3>
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                             {!user ? (
-                                                <ActionBtn onClick={() => navigate('solicitud-tickets')} icon={<Send className="w-5 h-5 text-purple-500"/>} title="Solicitar Ticket" desc="Formulario para Innovaschools." bgIcon="bg-purple-500/10" />
+                                                <ActionBtn onClick={() => navigate('solicitud-tickets')} icon={<Send className="w-5 h-5 text-purple-500"/>} title="Solicitar Ticket" desc="Formulario para ENGIE." bgIcon="bg-purple-500/10" />
                                             ) : (
                                                 <ActionBtn onClick={() => navigate('gestion-tickets')} icon={<FileText className="w-5 h-5 text-purple-500"/>} title="Gestionar Tickets" desc="Tablero Kanban y tiempos real." bgIcon="bg-purple-500/10" />
                                             )}
@@ -682,7 +682,7 @@ export const DashboardView = ({
                 <div className="print-portal-root">
                     <div className="p-8 w-full max-w-5xl mx-auto text-black">
                         <div className="border-b-2 border-gray-800 pb-4 mb-8">
-                            <h1 className="text-3xl font-black text-gray-900 tracking-tight">INNOVA MANAGEMENT</h1>
+                            <h1 className="text-3xl font-black text-gray-900 tracking-tight">ENGIE MANAGEMENT</h1>
                             <h2 className="text-xl font-bold text-gray-600 mt-1 uppercase">Reporte Ejecutivo - {activeTab === 'seguridad' ? 'Seguridad y Accesos' : activeTab === 'rrss' ? 'Reputación RRSS' : activeTab === 'tickets' ? 'Solicitudes Emergentes (Tickets)' : 'Comentarios'}</h2>
                             <p className="text-sm text-gray-500 mt-2 font-medium">Generado el: {new Date().toLocaleDateString()} a las {new Date().toLocaleTimeString()}</p>
                         </div>

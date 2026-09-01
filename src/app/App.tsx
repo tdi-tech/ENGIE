@@ -103,7 +103,7 @@ const AppContent = () => {
                 setLoginModalOpen(false);
                 setCurrentView('dashboard');
                 localStorage.setItem('innova_current_view', 'dashboard');
-                showToast('¡Bienvenido de vuelta a Innova Management!');
+                showToast('¡Bienvenido de vuelta a ENGIE Management!');
             }
         } catch (error) {
             console.error("Inicio de sesión cancelado o fallido:", error);

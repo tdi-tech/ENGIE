@@ -26,7 +26,7 @@ export const LoginModal = ({
                     <Users className="w-8 h-8 text-blue-500" />
                 </div>
                 <h3 className="theme-text-main font-bold text-xl mb-2">Acceso Corporativo</h3>
-                <p className="text-sm theme-text-muted mb-6">Inicia sesión con tu cuenta de Workspace de Tierra de Ideas.</p>
+                <p className="text-sm theme-text-muted mb-6">Inicia sesión con tu cuenta de Workspace corporativo de ENGIE.</p>
                 
                 <button 
                     type="button" 

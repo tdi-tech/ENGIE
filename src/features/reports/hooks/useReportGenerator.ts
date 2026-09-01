@@ -337,7 +337,7 @@ export const useReportGenerator = () => {
         const drawHeader = () => {
             doc.setFillColor(NAVY[0], NAVY[1], NAVY[2]); doc.rect(0, 0, pageW, pageH, 'F'); 
             doc.setTextColor(255, 255, 255); doc.setFont('helvetica', 'bold'); doc.setFontSize(15);
-            doc.text('INNOVA MANAGEMENT', margin, 11);
+            doc.text('ENGIE MANAGEMENT', margin, 11);
             doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
             doc.text('Reporte Analítico · Comentarios', margin, 17.5);
             doc.setFontSize(7.5);
@@ -348,7 +348,7 @@ export const useReportGenerator = () => {
         const drawFooter = (pageNum: number) => {
             doc.setDrawColor(LINE[0], LINE[1], LINE[2]); doc.setLineWidth(0.2); doc.line(margin, pageH - 12, pageW - margin, pageH - 12);
             doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(TEXT_GRAY[0], TEXT_GRAY[1], TEXT_GRAY[2]);
-            doc.text('Innova Management · Reporte Ejecutivo Estructurado', margin, pageH - 8);
+            doc.text('ENGIE Management · Reporte Ejecutivo Estructurado', margin, pageH - 8);
             doc.text('Página ' + pageNum, pageW - margin, pageH - 8, { align: 'right' });
         };
         const checkPageBreak = (neededHeight: number, redrawFn?: () => void) => {
@@ -533,7 +533,7 @@ export const useReportGenerator = () => {
         drawFooter(page);
 
         const fileDate = new Date().toISOString().slice(0, 10);
-        const filename = `Innova-Management-Reporte-Comentarios-${fileDate}.pdf`;
+        const filename = `ENGIE-Reporte-Comentarios-${fileDate}.pdf`;
 
         const blob = doc.output('blob');
         const blobUrl = URL.createObjectURL(blob);

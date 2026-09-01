@@ -620,7 +620,7 @@ export const ChecklistView = ({ checklistState, setChecklistState, isAdmin, show
                     </div>
                 </div>
 
-                <h1 className="hidden print:block text-3xl font-bold text-black mb-8 border-b pb-4">Innova Management - Reporte de Mitigación de Crisis</h1>
+                <h1 className="hidden print:block text-3xl font-bold text-black mb-8 border-b pb-4">ENGIE Management - Reporte de Mitigación de Crisis</h1>
 
                 <div className="p-6 sm:p-8 bg-black/5 dark:bg-white/5 rounded-[1.5rem] border theme-border shadow-inner print:border-gray-300 print:bg-white">
                     <div className="flex justify-between items-end mb-3">

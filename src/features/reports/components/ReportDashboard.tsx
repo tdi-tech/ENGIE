@@ -514,7 +514,7 @@ export const ReportDashboard = ({ showToast, isAdmin, userRole }: any) => {
                         </ChartCard>
                     </div>
 
-                    {/* TABLA BITÁCORA PREMIUM INNOVA */}
+                    {/* TABLA BITÁCORA PREMIUM ENGIE */}
                     <div className="p-6 sm:p-8 theme-bg-container border theme-border rounded-[2rem] shadow-sm overflow-hidden">
                         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-5 mb-6">
                             <div>

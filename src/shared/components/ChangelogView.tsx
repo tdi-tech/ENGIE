@@ -334,7 +334,7 @@ export const ChangelogView = () => {
 
             <div className="text-center pt-8 pb-4">
                 <p className="text-xs font-bold theme-text-muted uppercase tracking-wider">
-                    Innova Management &copy; {currentYear}
+                    ENGIE Management &copy; {currentYear}
                 </p>
             </div>
         </div>

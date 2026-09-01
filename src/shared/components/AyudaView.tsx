@@ -16,7 +16,7 @@ const helpTopics = [
         content: (
             <div className="space-y-4 theme-text-main text-sm leading-relaxed">
                 <p>
-                    <strong>Innova Management</strong> es una plataforma de gestión de crisis y seguridad corporativa diseñada bajo una arquitectura <em>Zero-Trust</em> (Cero Confianza). 
+                    <strong>ENGIE Management</strong> es una plataforma de gestión de crisis y seguridad corporativa diseñada bajo una arquitectura <em>Zero-Trust</em> (Cero Confianza). 
                 </p>
                 <p className="theme-text-muted">
                     El sistema cuenta con módulos operativos para monitoreo (Hackeos, RRSS, Comentarios) y un ecosistema de Tickets para el flujo de producción de contenidos, protegido por firewalls en servidor y sincronización en tiempo real.

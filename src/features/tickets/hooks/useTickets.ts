@@ -81,7 +81,7 @@ export const useTickets = (showToast: any, openConfirmModal: any, logAction?: an
                 ...ticketData,
                 estado: 'Pendiente',
                 timestamp: new Date().toISOString(),
-                autor: userToUse?.email || 'Innova Cliente (Web)',
+                autor: userToUse?.email || 'ENGIE Cliente (Web)',
                 fechaEntregaReal: '',
                 linkArte: '',
                 notasInternas: '',

@@ -141,7 +141,7 @@ export const MainLayout = ({
                     {children}
                 </div>
             </main>
-            <div id="print-header" className="hidden text-black font-bold text-2xl">Reporte: Innova Management</div>
+            <div id="print-header" className="hidden text-black font-bold text-2xl">Reporte: ENGIE Management</div>
         </div>
     );
 };

@@ -231,7 +231,7 @@ export const StaticProtocoloView = () => (
         {/* ========================================================= */}
         <div className="hidden pdf-view w-full bg-white text-black font-sans">
             <div className="text-center border-b-4 border-blue-600 pb-6 mb-10 w-full">
-                <p className="text-sm font-bold text-blue-600 uppercase tracking-widest mb-2">Seguridad IT • Innova Management</p>
+                <p className="text-sm font-bold text-blue-600 uppercase tracking-widest mb-2">Seguridad IT • ENGIE Management</p>
                 <h1 className="text-4xl font-black text-gray-900 m-0">Protocolo de Respuesta a Incidentes</h1>
                 <p className="text-base text-gray-600 mt-3 max-w-3xl mx-auto">Lineamientos oficiales para prevenir, detectar, contener, erradicar y recuperar cuentas corporativas ante un incidente de ciberseguridad.</p>
             </div>
@@ -501,7 +501,7 @@ export const RolesView = () => {
             {/* VISTA PDF (DISEÑO EJECUTIVO FULL WIDTH VERTICAL) */}
             <div className="hidden pdf-view w-full bg-white text-black font-sans">
                 <div className="text-center border-b-4 border-purple-600 pb-6 mb-10 w-full">
-                    <p className="text-sm font-bold text-purple-600 uppercase tracking-widest mb-2">Comité Operativo • Innova Management</p>
+                    <p className="text-sm font-bold text-purple-600 uppercase tracking-widest mb-2">Comité Operativo • ENGIE Management</p>
                     <h1 className="text-4xl font-black text-gray-900 m-0">Roles y Responsabilidades</h1>
                     <p className="text-base text-gray-600 mt-3 max-w-3xl mx-auto">Flujo de escalamiento y responsabilidad operativa de cada área al enfrentar un hackeo, infección o pérdida de control en los activos digitales de la empresa.</p>
                 </div>
@@ -594,7 +594,7 @@ export const GlosarioView = () => (
         {/* VISTA PDF (DISEÑO EJECUTIVO FULL WIDTH VERTICAL) */}
         <div className="hidden pdf-view w-full bg-white text-black font-sans">
             <div className="text-center border-b-4 border-emerald-600 pb-6 mb-10 w-full">
-                <p className="text-sm font-bold text-emerald-600 uppercase tracking-widest mb-2">Centro de Conocimiento • Innova Management</p>
+                <p className="text-sm font-bold text-emerald-600 uppercase tracking-widest mb-2">Centro de Conocimiento • ENGIE Management</p>
                 <h1 className="text-4xl font-black text-gray-900 m-0">Glosario de Términos</h1>
                 <p className="text-base text-gray-600 mt-3 max-w-3xl mx-auto">Conceptos clave de ciberseguridad, amenazas digitales y terminología técnica para estandarizar el lenguaje del equipo y prevenir confusiones.</p>
             </div>
@@ -648,7 +648,7 @@ export const ProtocoloRRSSView = () => {
                             </p>
                             <h2 className="text-4xl font-black theme-text-main mb-4 tracking-tight">Protocolo de Atención en RRSS</h2>
                             <p className="theme-text-muted text-base max-w-2xl leading-relaxed">
-                                Procedimientos oficiales para gestionar crisis mediáticas y proteger el prestigio institucional de Innova Schools en canales sociales.
+                                Procedimientos oficiales para gestionar crisis mediáticas y proteger el prestigio institucional de ENGIE en canales sociales.
                             </p> 
                         </div>
                         <button type="button" onClick={() => window.print()} className="px-6 py-3 bg-[var(--primary)] hover:brightness-110 text-white rounded-xl text-sm font-bold transition-all shadow-sm flex items-center gap-2 no-print whitespace-nowrap hover:-translate-y-0.5">
@@ -672,7 +672,7 @@ export const ProtocoloRRSSView = () => {
                             ¿Qué es una incidencia?
                         </h3>
                         <p className="text-base theme-text-muted leading-relaxed">
-                            Situaciones que producen un pico de comentarios negativos hacia Innova durante un periodo específico. Las más comunes incluyen:
+                            Situaciones que producen un pico de comentarios negativos hacia ENGIE durante un periodo específico. Las más comunes incluyen:
                         </p>
                         <ul className="space-y-5 mt-6 pl-4 border-l-2 border-orange-500/30">
                             <li className="flex items-start gap-4 text-base theme-text-main">
@@ -771,7 +771,7 @@ export const ProtocoloRRSSView = () => {
                                 Debemos distinguir rigurosamente si estamos en una fase de prevención o si estamos reaccionando a una crisis ya desatada.
                             </p>
                             <ul className="space-y-6">
-                                <li className="flex gap-5"><span className="font-black text-2xl text-[var(--primary)]">A.</span> <span className="text-base theme-text-main opacity-90 leading-relaxed"><strong>Velocidad:</strong> Actuar con prontitud, escalando dudas al equipo Innova si no existe certeza sobre la estrategia.</span></li>
+                                <li className="flex gap-5"><span className="font-black text-2xl text-[var(--primary)]">A.</span> <span className="text-base theme-text-main opacity-90 leading-relaxed"><strong>Velocidad:</strong> Actuar con prontitud, escalando dudas al equipo ENGIE si no existe certeza sobre la estrategia.</span></li>
                                 <li className="flex gap-5"><span className="font-black text-2xl text-[var(--primary)]">B.</span> <span className="text-base theme-text-main opacity-90 leading-relaxed"><strong>Empatía:</strong> Mantener un tono institucional, empático y estrictamente profesional en todo momento.</span></li>
                                 <li className="flex gap-5"><span className="font-black text-2xl text-[var(--primary)]">C.</span> <span className="text-base theme-text-main opacity-90 leading-relaxed"><strong>Transparencia:</strong> Proveer soluciones concretas y viables ante quejas que estén debidamente fundamentadas.</span></li>
                                 <li className="flex gap-5"><span className="font-black text-2xl text-[var(--primary)]">D.</span> <span className="text-base theme-text-main opacity-90 leading-relaxed"><strong>Aislamiento:</strong> Migrar conversaciones complejas a bandejas privadas (DM) para despresurizar el muro público.</span></li>
@@ -802,9 +802,9 @@ export const ProtocoloRRSSView = () => {
             {/* VISTA PDF (DISEÑO EJECUTIVO FULL WIDTH VERTICAL) */}
             <div className="hidden pdf-view w-full bg-white text-black font-sans">
                 <div className="text-center border-b-4 border-orange-600 pb-6 mb-10 w-full">
-                    <p className="text-sm font-bold text-orange-600 uppercase tracking-widest mb-2">Reputación Digital • Innova Management</p>
+                    <p className="text-sm font-bold text-orange-600 uppercase tracking-widest mb-2">Reputación Digital • ENGIE Management</p>
                     <h1 className="text-4xl font-black text-gray-900 m-0">Protocolo de Atención en RRSS</h1>
-                    <p className="text-base text-gray-600 mt-3 max-w-3xl mx-auto">Procedimientos oficiales para gestionar crisis mediáticas y proteger el prestigio institucional de Innova Schools en canales sociales.</p>
+                    <p className="text-base text-gray-600 mt-3 max-w-3xl mx-auto">Procedimientos oficiales para gestionar crisis mediáticas y proteger el prestigio institucional de ENGIE en canales sociales.</p>
                 </div>
 
                 <div className="mb-10 break-inside-avoid w-full">
@@ -819,7 +819,7 @@ export const ProtocoloRRSSView = () => {
                 <div className="flex flex-col space-y-8 mb-10 w-full">
                     <div className="break-inside-avoid bg-slate-50 border border-slate-200 p-6 rounded-xl w-full">
                         <h2 className="text-xl font-bold text-slate-900 border-b border-slate-300 pb-2 mb-4">¿Qué es una incidencia?</h2>
-                        <p className="text-base text-gray-800 mb-4">Situaciones que producen un pico de comentarios negativos hacia Innova. Las más comunes incluyen:</p>
+                        <p className="text-base text-gray-800 mb-4">Situaciones que producen un pico de comentarios negativos hacia ENGIE. Las más comunes incluyen:</p>
                         <ul className="list-disc pl-5 space-y-3 text-base text-gray-800 m-0">
                             <li><strong>Críticas de padres o estudiantes:</strong> Sobre la calidad, el trato del personal o instalaciones.</li>
                             <li><strong>Ataques en plataformas:</strong> Reseñas maliciosas o bombardeos en Google My Business.</li>
@@ -878,7 +878,7 @@ export const ProtocoloRRSSView = () => {
                         <div className="w-full bg-white border border-gray-200 p-6 rounded-xl">
                             <h3 className="text-xl font-bold text-slate-900 border-b border-slate-300 pb-2 mb-4">Principios de Actuación</h3>
                             <ul className="space-y-4 text-base text-gray-800 m-0">
-                                <li className="flex gap-3"><strong>A. Velocidad:</strong> Actuar con prontitud, escalando dudas al equipo Innova si no existe certeza.</li>
+                                <li className="flex gap-3"><strong>A. Velocidad:</strong> Actuar con prontitud, escalando dudas al equipo ENGIE si no existe certeza.</li>
                                 <li className="flex gap-3"><strong>B. Empatía:</strong> Mantener un tono institucional, empático y estrictamente profesional en todo momento.</li>
                                 <li className="flex gap-3"><strong>C. Transparencia:</strong> Proveer soluciones concretas y viables ante quejas bien fundamentadas.</li>
                                 <li className="flex gap-3"><strong>D. Aislamiento:</strong> Migrar conversaciones complejas a bandejas privadas (DM) para despresurizar lo público.</li>

@@ -175,7 +175,7 @@ export const BackupView = ({ showToast }: any) => {
                     setEncryptedFileContent(null);
                 } else {
                     await logAuditEvent("Alerta de Integridad: Formato inválido");
-                    showToast('El archivo no corresponde a un formato válido de Innova', true);
+                    showToast('El archivo no corresponde a un formato válido de ENGIE', true);
                 }
             } catch (err) {
                 await logAuditEvent("Fallo de Integridad: Archivo corrupto o manipulado");
@@ -422,7 +422,7 @@ export const BackupView = ({ showToast }: any) => {
                                     <FileJson className="w-8 h-8 text-gray-400 group-hover:text-emerald-500 transition-colors" />
                                 </div>
                                 <p className="text-sm font-bold theme-text-main">Arrastra o haz clic para subir</p>
-                                <p className="text-xs theme-text-muted mt-1">Solo archivos .json cifrados (Innova Management)</p>
+                                <p className="text-xs theme-text-muted mt-1">Solo archivos .json cifrados (ENGIE Management)</p>
                             </div>
                         </div>
                     ) : (
