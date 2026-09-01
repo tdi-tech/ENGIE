@@ -62,7 +62,7 @@
     --success: #0CA5A4;          /* Teal ENGIE */
     --warning: #D97706;          /* Amber ENERGY */
     --info: #00A3E0;             /* Electric Cyan */
-    --accent-purple: #7C3AED;    /* Violet Signal */
+    --accent-purple: #C084FC;    /* Violet Lavender — WCAG AA 4.5:1+ sobre fondos navy */
     --icon-muted: #64748B;       /* Slate Muted — más tenue sobre navy */
     /* Nuevas variables para Scrollbar Dark Mode */
     --scrollbar-thumb: #333c53; /* Gris azulado acorde a tu tema oscuro */
