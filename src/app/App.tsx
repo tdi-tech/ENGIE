@@ -10,10 +10,8 @@ import { useModals } from './providers/ModalProvider';
 import { useAuthSession } from '../features/auth/hooks/useAuthSession';
 import { useGlobalEvents } from '../features/notifications/hooks/useGlobalEvents';
 import { useUsersManager } from '../features/users/hooks/useUsersManager';
-import { useIncidents } from '../features/incidents/hooks/useIncidents';
 import { useRRSS } from '../features/rrss/hooks/useRRSS';
 import { useComments } from '../features/comments/hooks/useComments';
-import { useTickets } from '../features/tickets/hooks/useTickets';
 
 import { AppRouter, ROUTES } from './routes';
 import { MainLayout } from '../shared/components/Layout/MainLayout';
@@ -36,26 +34,10 @@ const AppContent = () => {
     const { checklistState, setChecklistState, notifications, logAction, markAsRead, hideNotification } = useGlobalEvents(user, prefsRef, showToast);
     const { appUsers, updateUserRole, toggleUserStatus, deleteUserRecord, addManualUser } = useUsersManager(user, userRole, showToast, openConfirmModal);
     
-    const dummySetDetailModalOpen = () => {}; 
-    const { toggleIncidentStatus, updateIncident, deleteIncident } = useIncidents(showToast, openConfirmModal, dummySetDetailModalOpen, logAction);
-    
-    // 🔥 FIX: Se extrajeron los Batch Deletes para que no se pierdan
     const { updateRrssIncident, deleteRrssIncident, deleteRrssBatch } = useRRSS(showToast, openConfirmModal, logAction);
     
     // 🔥 FIX: Uso de la versión plural correcta que viene del hook
     const { updateComment, deleteComment, deleteCommentsBatch } = useComments(showToast, openConfirmModal, logAction);
-    
-    // 🔥 FIX DE TICKETS: Se extrajo todo el arsenal completo del hook
-    const { 
-        updateTicketStatus, 
-        updateTicketInternals, 
-        deleteTicket,
-        deleteMultipleTickets,
-        exportTicketsCSV,
-        isExportingCSV,
-        ticketRemainingAttempts,
-        ticketLockoutUntil
-    } = useTickets(showToast, openConfirmModal, logAction);
 
     const navigate = useCallback(async (view: string) => {
         const route = ROUTES[view] || ROUTES['dashboard'];
@@ -67,12 +49,12 @@ const AppContent = () => {
         }
 
         if (access === 'GUEST_ONLY' && user) {
-            showToast('Ya tienes sesión activa. Redirigiendo a tu consola de gestión.', true);
-            return navigate('gestion-tickets');
+            showToast('Ya tienes sesión activa. Redirigiendo a tu consola.', true);
+            return navigate('dashboard');
         }
 
         if ((userRole as string) === 'EDITOR_CONTENT') {
-            const allowedViews = ['dashboard', 'gestion-tickets', 'roles', 'ayuda', 'config', 'historial-comentario'];
+            const allowedViews = ['dashboard', 'roles', 'ayuda', 'config', 'historial-comentario'];
             if (!allowedViews.includes(view)) {
                 showToast('Acceso denegado. Tu rol (Editor Content) no tiene permisos para esta área.', true);
                 return navigate('dashboard');
@@ -132,9 +114,9 @@ const AppContent = () => {
         if (access !== 'PUBLIC' && access !== 'GUEST_ONLY' && !user) {
             finalView = 'dashboard';
         } else if (access === 'GUEST_ONLY' && user) {
-            finalView = 'gestion-tickets';
+            finalView = 'dashboard';
         } else if ((userRole as string) === 'EDITOR_CONTENT') {
-            const allowedViews = ['dashboard', 'gestion-tickets', 'roles', 'ayuda', 'config', 'historial-comentario'];
+            const allowedViews = ['dashboard', 'roles', 'ayuda', 'config', 'historial-comentario'];
             if (!allowedViews.includes(currentView)) finalView = 'dashboard';
         } else if (access === 'ADMIN_IT' && userRole !== 'ADMIN_IT') {
             finalView = 'dashboard';
@@ -163,7 +145,7 @@ const AppContent = () => {
         if (n.userId === user?.uid || (n.deletedBy && n.deletedBy.includes(user?.uid))) return false;
         
         if ((userRole as string) === 'EDITOR_CONTENT') {
-            if (n.type !== 'ticket_assign' && n.type !== 'ticket_status' && n.module !== 'Comentarios') return false;
+            if (n.module !== 'Comentarios') return false;
         }
         
         return true;
@@ -175,15 +157,13 @@ const AppContent = () => {
     const handleViewIncident = async (n: any) => {
         setNotifMenuOpen(false);
         try {
-            let colName: any = n.module === 'Hackeos' ? 'incidents' : n.module === 'Incidencia RRSS' ? 'rrss_incidents' : n.module === 'Comentarios' ? 'comments' : n.module === 'Tickets' ? 'tickets' : '';
+            let colName: any = n.module === 'Incidencia RRSS' ? 'rrss_incidents' : n.module === 'Comentarios' ? 'comments' : '';
             if (!colName) return;
             const docSnap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', colName, n.incidentId));
             
             if (docSnap.exists()) {
                 const data = { id: docSnap.id, ...docSnap.data() };
-                if (colName === 'incidents') { navigate('historial'); showToast('Apertura rápida. Busca en la lista.'); } 
-                else if (colName === 'rrss_incidents') openPreviewModal('rrss', data);
-                else if (colName === 'tickets') { navigate('gestion-tickets'); showToast('Abriendo consola de gestión.'); }
+                if (colName === 'rrss_incidents') openPreviewModal('rrss', data);
                 else openPreviewModal('comment', data);
             } else showToast('El registro fue eliminado', true);
         } catch(e) { showToast('Error al conectar con servidor', true); }
@@ -199,11 +179,8 @@ const AppContent = () => {
     const viewProps = {
         isAdmin, user, userRole, showToast, navigate, logAction, appUsers, checklistState, setChecklistState,
         updateUserRole, toggleUserStatus, deleteUserRecord, addManualUser, isDarkMode, toggleTheme, userPrefs, updateUserPrefs,
-        toggleIncidentStatus, updateIncident, deleteIncident, 
         updateRrssIncident, deleteRrssIncident, deleteRrssBatch, 
         updateComment, deleteComment, deleteCommentsBatch,
-        updateTicketStatus, updateTicketInternals, deleteTicket,
-        deleteMultipleTickets, exportTicketsCSV, isExportingCSV, ticketRemainingAttempts, ticketLockoutUntil,
         openConfirmModal
     };
 

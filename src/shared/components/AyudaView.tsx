@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { 
     HelpCircle, ShieldAlert, Database, Users, FileText, 
-    AlertTriangle, MessageSquareWarning, Info, Lock, Settings,
-    Ticket, Zap, ShieldCheck
+    MessageSquareWarning, Info, Lock, Settings,
+    Zap, ShieldCheck
 } from 'lucide-react';
 
 const helpTopics = [
@@ -19,7 +19,7 @@ const helpTopics = [
                     <strong>ENGIE Management</strong> es una plataforma de gestión de crisis y seguridad corporativa diseñada bajo una arquitectura <em>Zero-Trust</em> (Cero Confianza). 
                 </p>
                 <p className="theme-text-muted">
-                    El sistema cuenta con módulos operativos para monitoreo (Hackeos, RRSS, Comentarios) y un ecosistema de Tickets para el flujo de producción de contenidos, protegido por firewalls en servidor y sincronización en tiempo real.
+                    El sistema cuenta con módulos operativos para monitoreo (Incidencias y Menciones), protegido por firewalls en servidor y sincronización en tiempo real.
                 </p>
             </div>
         )
@@ -35,11 +35,11 @@ const helpTopics = [
             <ul className="space-y-4 theme-text-main text-sm leading-relaxed">
                 <li className="flex items-start gap-3 p-4 theme-bg-low rounded-xl border theme-border">
                     <span className="w-2 h-2 rounded-full bg-purple-500 mt-1.5 flex-shrink-0 shadow-sm"></span>
-                    <p><strong className="theme-text-main block mb-1">ADMIN_IT:</strong> Control absoluto. Gestión de Backups, Auditoría SIEM forense, automatización de purga mediante Microservicio (Notificaciones y Auditoría), administración total de usuarios y borrado de tickets por lotes.</p>
+                    <p><strong className="theme-text-main block mb-1">ADMIN_IT:</strong> Control absoluto. Gestión de Backups, Auditoría SIEM forense, automatización de purga mediante Microservicio (Notificaciones y Auditoría) y administración total de usuarios.</p>
                 </li>
                 <li className="flex items-start gap-3 p-4 theme-bg-low rounded-xl border theme-border">
                     <span className="w-2 h-2 rounded-full bg-purple-500 mt-1.5 flex-shrink-0 shadow-sm"></span>
-                    <p><strong className="theme-text-main block mb-1">ADMIN_CM:</strong> Control operativo. Acceso a Reportes Analíticos, generación de Backups Core, privilegios directivos para pre-registrar usuarios, borrado masivo de tickets y asignación de semáforos de riesgo en RRSS.</p>
+                    <p><strong className="theme-text-main block mb-1">ADMIN_CM:</strong> Control operativo. Acceso a Reportes Analíticos, generación de Backups Core, privilegios directivos para pre-registrar usuarios y asignación de semáforos de riesgo en Incidencias.</p>
                 </li>
             </ul>
         )
@@ -55,15 +55,15 @@ const helpTopics = [
             <ul className="space-y-3 theme-text-main text-sm leading-relaxed">
                 <li className="flex items-start gap-3">
                     <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent-purple)] mt-1.5 flex-shrink-0"></span>
-                    <p><strong className="theme-text-main">EDITOR_CM:</strong> Nivel operativo. Capacidad de crear/editar incidentes en Hackeos y RRSS. Documentación de avances en tickets y acceso visual a los Reportes Analíticos de Comentarios.</p>
+                    <p><strong className="theme-text-main">EDITOR_CM:</strong> Nivel operativo. Capacidad de crear/editar registros en Incidencias y Menciones. Acceso a los Reportes Analíticos de Menciones.</p>
                 </li>
                 <li className="flex items-start gap-3">
                     <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent-purple)] mt-1.5 flex-shrink-0"></span>
-                    <p><strong className="theme-text-main">EDITOR_CONTENT:</strong> Perfil especializado en la consola de Tickets Emergentes. Gestiona estados y metadatos de tickets. Acceso de lectura al historial de Comentarios para descarga CSV.</p>
+                    <p><strong className="theme-text-main">EDITOR_CONTENT:</strong> Perfil operativo de soporte. Acceso de lectura al historial de Menciones para descarga CSV.</p>
                 </li>
                 <li className="flex items-start gap-3">
                     <span className="w-1.5 h-1.5 rounded-full bg-gray-400 mt-1.5 flex-shrink-0"></span>
-                    <p><strong className="theme-text-main">Lector / Externo:</strong> Visualización de Dashboard analítico y protocolos. Acceso al formulario de Solicitud de Tickets mediante PIN corporativo (restringido en nivel <em>GUEST_ONLY</em>).</p>
+                    <p><strong className="theme-text-main">Lector / Externo:</strong> Visualización del Dashboard analítico y protocolos de actuación.</p>
                 </li>
             </ul>
         )
@@ -71,38 +71,24 @@ const helpTopics = [
     {
         id: 'modulos',
         category: 'Operación y Gestión',
-        title: 'Gestión de Reportes & Tickets',
+        title: 'Gestión de Reportes',
         icon: <FileText className="w-5 h-5 text-emerald-500" />,
         badge: 'Operativo',
         badgeColor: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20',
         content: (
             <div className="space-y-5 theme-text-main text-sm leading-relaxed">
                 <div className="flex gap-4 items-start">
-                    <div className="p-2 bg-red-500/10 rounded-lg"><AlertTriangle className="w-5 h-5 text-red-500" /></div>
-                    <div>
-                        <p className="font-bold text-sm uppercase tracking-wider mb-1 theme-text-main">Hackeos</p>
-                        <p className="theme-text-muted text-xs">Vulnerabilidades, malware y robo de cuentas oficiales. Incluye checklist de contención técnica inmediata.</p>
-                    </div>
-                </div>
-                <div className="flex gap-4 items-start">
                     <div className="p-2 bg-orange-500/10 rounded-lg"><ShieldAlert className="w-5 h-5 text-orange-500" /></div>
                     <div>
-                        <p className="font-bold text-sm uppercase tracking-wider mb-1 theme-text-main">Incidencias RRSS</p>
+                        <p className="font-bold text-sm uppercase tracking-wider mb-1 theme-text-main">Incidencias</p>
                         <p className="theme-text-muted text-xs">Registro y gestión de quejas críticas o crisis reputacionales. Los administradores cuentan con la capacidad de asignar un estado visual (semáforo) a cada registro en el historial para priorizar su atención.</p>
                     </div>
                 </div>
                 <div className="flex gap-4 items-start">
                     <div className="p-2 bg-blue-500/10 rounded-lg"><MessageSquareWarning className="w-5 h-5 text-blue-500" /></div>
                     <div>
-                        <p className="font-bold text-sm uppercase tracking-wider mb-1 theme-text-main">Comentarios</p>
+                        <p className="font-bold text-sm uppercase tracking-wider mb-1 theme-text-main">Menciones</p>
                         <p className="theme-text-muted text-xs">Reportes unificados de interacción comunitaria. Incluye módulo de Reportes Analíticos (visible para Admins y Editor CM) con exportación PDF.</p>
-                    </div>
-                </div>
-                <div className="flex gap-4 items-start pt-3 border-t theme-border/40">
-                    <div className="p-2 bg-purple-500/10 rounded-lg"><Ticket className="w-5 h-5 text-purple-500" /></div>
-                    <div>
-                        <p className="font-bold text-sm uppercase tracking-wider mb-1 theme-text-main">Tickets Emergentes & Consola</p>
-                        <p className="theme-text-muted text-xs">Canal de solicitud protegido con PIN corporativo. La consola interna permite asignar responsables directos vinculados a Google Workspace, registrar fechas y ligas de arte en la nube con alertas dirigidas.</p>
                     </div>
                 </div>
             </div>
@@ -156,7 +142,7 @@ const helpTopics = [
                         <div className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 flex-shrink-0"></div>
                         <div>
                             <strong className="theme-text-main block">Bloqueo por Fuerza Bruta (30 min)</strong>
-                            <span className="text-xs theme-text-muted">Suspensión automática e inmutable al acumular 5 intentos fallidos en el PIN de Tickets o Login.</span>
+                            <span className="text-xs theme-text-muted">Suspensión automática e inmutable al acumular 5 intentos fallidos en el Login.</span>
                         </div>
                     </div>
                     <div className="p-4 theme-bg-low rounded-xl border theme-border flex gap-3 items-start">

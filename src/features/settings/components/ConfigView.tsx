@@ -120,30 +120,24 @@ export const ConfigView = ({
         setIsFetchingLocal(true);
         
         try {
-            const [hackeos, rrss, coms, tickets, notifs, logsAudit] = await Promise.all([
-                getCountFromServer(collection(db, 'artifacts', appId, 'public', 'data', 'incidents')),
+            const [rrss, coms, notifs, logsAudit] = await Promise.all([
                 getCountFromServer(collection(db, 'artifacts', appId, 'public', 'data', 'rrss_incidents')),
                 getCountFromServer(collection(db, 'artifacts', appId, 'public', 'data', 'comments')),
-                getCountFromServer(collection(db, 'artifacts', appId, 'public', 'data', 'tickets')),
                 getCountFromServer(collection(db, 'artifacts', appId, 'public', 'data', 'notifications')),
                 getCountFromServer(collection(db, 'artifacts', appId, 'public', 'data', 'auditLogs'))
             ]);
             
-            const cHackeos = hackeos.data().count;
             const cRrss = rrss.data().count;
             const cComs = coms.data().count;
-            const cTickets = tickets.data().count;
             const cNotifs = notifs.data().count;
             const cLogs = logsAudit.data().count;
 
-            const opCount = cHackeos + cRrss + cComs + cTickets;
+            const opCount = cRrss + cComs;
             const trCount = cNotifs + cLogs;
 
             const estimatedSize = 
-                (cHackeos * 1800) + 
                 (cRrss * 2200) + 
                 (cComs * 800) + 
-                (cTickets * 2800) + 
                 (cNotifs * 400) + 
                 (cLogs * 600);
 
@@ -290,10 +284,6 @@ export const ConfigView = ({
                                     <>
                                         <div className="h-px w-full bg-gray-200 dark:bg-gray-800"></div>
                                         <div className="flex items-center justify-between gap-4">
-                                            <div className="flex items-center gap-3"><ShieldCheck className="w-4 h-4 text-red-500" /><div><p className="text-sm font-bold theme-text-main">Security Core</p><p className="text-xs theme-text-muted">Alertas de Hackeos</p></div></div>
-                                            <ToggleSwitch checked={prefs.security} onChange={() => handleTogglePref('security')} />
-                                        </div>
-                                        <div className="flex items-center justify-between gap-4">
                                             <div className="flex items-center gap-3"><Megaphone className="w-4 h-4 text-orange-500" /><div><p className="text-sm font-bold theme-text-main">Crisis RRSS</p><p className="text-xs theme-text-muted">Incidencias de Reputación</p></div></div>
                                             <ToggleSwitch checked={prefs.rrss} onChange={() => handleTogglePref('rrss')} />
                                         </div>
@@ -342,7 +332,7 @@ export const ConfigView = ({
                                 <HeuristicCard 
                                     title="Doc. Operativos" 
                                     value={stats.operativeCount !== null ? stats.operativeCount.toLocaleString() : null} 
-                                    subtitle="Hackeos, Incidencias RRSS, Comentarios y Tickets"
+                                    subtitle="Incidencias y Menciones"
                                     icon={<Database className="w-5 h-5"/>} 
                                     colorClass="bg-blue-500" 
                                 />
@@ -443,7 +433,7 @@ export const ConfigView = ({
                         <div className="p-6 space-y-4">
                             <div className="p-3 bg-orange-500/10 border border-orange-500/20 rounded-xl flex items-start gap-3">
                                 <AlertTriangle className="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5" />
-                                <p className="text-xs text-orange-600 dark:text-orange-400 font-medium leading-relaxed">¿Estás seguro de que deseas vaciar por completo las notificaciones operativas y todos los registros forenses del **Radar de Intrusos**? Los expedientes e historiales de tickets permanecerán intactos.</p>
+                                <p className="text-xs text-orange-600 dark:text-orange-400 font-medium leading-relaxed">¿Estás seguro de que deseas vaciar por completo las notificaciones operativas y todos los registros forenses del sistema? Esta acción no se puede deshacer.</p>
                             </div>
                         </div>
                         <div className="p-4 border-t theme-border bg-black/5 dark:bg-white/5 flex gap-3 justify-end">

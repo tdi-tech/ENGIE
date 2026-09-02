@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Database, Download, UploadCloud, ShieldAlert, CheckCircle2, AlertCircle, Key, Lock, Eye, EyeOff, FileJson, Server, Ticket, Calendar, Filter } from 'lucide-react';
+import { Database, Download, UploadCloud, ShieldAlert, CheckCircle2, AlertCircle, Key, Lock, Eye, EyeOff, FileJson, Server, Calendar, Filter } from 'lucide-react';
 import CryptoJS from 'crypto-js';
 import { collection, onSnapshot, setDoc, doc } from 'firebase/firestore';
 import { db, appId, IS_MOCK } from '../../../services/firebase/config';
@@ -25,32 +25,23 @@ export const BackupView = ({ showToast }: any) => {
     
     const [encryptedFileContent, setEncryptedFileContent] = useState<string | null>(null);
 
-    const [incidents, setIncidents] = useState<any[]>([]);
     const [rrssIncidents, setRrssIncidents] = useState<any[]>([]);
     const [comments, setComments] = useState<any[]>([]);
-    const [tickets, setTickets] = useState<any[]>([]);
 
     useEffect(() => {
         if (IS_MOCK) return;
-        const unsubIncidents = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'incidents'), (snap) => {
-            const data: any[] = []; snap.forEach(doc => data.push({ id: doc.id, ...doc.data() })); setIncidents(data);
-        });
         const unsubRrss = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'rrss_incidents'), (snap) => {
             const data: any[] = []; snap.forEach(doc => data.push({ id: doc.id, ...doc.data() })); setRrssIncidents(data);
         });
         const unsubComments = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'comments'), (snap) => {
             const data: any[] = []; snap.forEach(doc => data.push({ id: doc.id, ...doc.data() })); setComments(data);
         });
-        const unsubTickets = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'tickets'), (snap) => {
-            const data: any[] = []; snap.forEach(doc => data.push({ id: doc.id, ...doc.data() })); setTickets(data);
-        });
-        return () => { unsubIncidents(); unsubRrss(); unsubComments(); unsubTickets(); };
+        return () => { unsubRrss(); unsubComments(); };
     }, []);
 
     const getNormalizedDate = (item: any, type: string) => {
         let rawDate = '';
         if (type === 'comments') rawDate = item.fechaInicio || '';
-        else if (type === 'tickets') rawDate = item.timestamp ? new Date(item.timestamp).toISOString().split('T')[0] : '';
         else rawDate = item.fecha || '';
         return rawDate; 
     };
@@ -63,13 +54,11 @@ export const BackupView = ({ showToast }: any) => {
                 if (d) years.add(d.split('-')[0]);
             });
         };
-        extractYear(incidents, 'incidents');
         extractYear(rrssIncidents, 'rrss');
         extractYear(comments, 'comments');
-        extractYear(tickets, 'tickets');
         
         return Array.from(years).sort((a, b) => b.localeCompare(a));
-    }, [incidents, rrssIncidents, comments, tickets]);
+    }, [rrssIncidents, comments]);
 
     const availableMonths = useMemo(() => {
         if (!exportYear) return [];
@@ -80,13 +69,11 @@ export const BackupView = ({ showToast }: any) => {
                 if (d && d.startsWith(exportYear)) months.add(d.split('-')[1]);
             });
         };
-        extractMonth(incidents, 'incidents');
         extractMonth(rrssIncidents, 'rrss');
         extractMonth(comments, 'comments');
-        extractMonth(tickets, 'tickets');
         
         return Array.from(months).sort();
-    }, [incidents, rrssIncidents, comments, tickets, exportYear]);
+    }, [rrssIncidents, comments, exportYear]);
 
     useEffect(() => { setExportMonth(''); }, [exportYear]);
 
@@ -99,20 +86,16 @@ export const BackupView = ({ showToast }: any) => {
         }
 
         try {
-            let hackeosExport = incidents;
             let rrssExport = rrssIncidents;
             let commentsExport = comments;
-            let ticketsExport = tickets;
 
             if (exportType === 'filtered' && exportYear) {
                 const prefix = exportMonth ? `${exportYear}-${exportMonth}` : exportYear;
-                hackeosExport = incidents.filter(i => getNormalizedDate(i, 'incidents').startsWith(prefix));
                 rrssExport = rrssIncidents.filter(i => getNormalizedDate(i, 'rrss').startsWith(prefix));
                 commentsExport = comments.filter(i => getNormalizedDate(i, 'comments').startsWith(prefix));
-                ticketsExport = tickets.filter(i => getNormalizedDate(i, 'tickets').startsWith(prefix));
             }
 
-            const totalRecords = hackeosExport.length + rrssExport.length + commentsExport.length + ticketsExport.length;
+            const totalRecords = rrssExport.length + commentsExport.length;
             if (totalRecords === 0) {
                 return showToast('No hay datos registrados en el rango de fecha seleccionado.', true);
             }
@@ -122,10 +105,8 @@ export const BackupView = ({ showToast }: any) => {
                 exportDate: new Date().toISOString(),
                 temporalFilter: exportType === 'filtered' ? (exportMonth ? `${exportYear}-${exportMonth}` : exportYear) : 'ALL',
                 modules: {
-                    hackeos: hackeosExport || [],
                     rrss: rrssExport || [],
-                    comentarios: commentsExport || [],
-                    tickets: ticketsExport || []
+                    comentarios: commentsExport || []
                 }
             };
 
@@ -216,15 +197,8 @@ export const BackupView = ({ showToast }: any) => {
         showToast('Iniciando restauración en la nube...');
 
         try {
-            let restoredHackeos = 0; let restoredRrss = 0; let restoredComments = 0; let restoredTickets = 0;
-            const { hackeos, rrss, comentarios, tickets: backupTickets } = backupInfo.modules;
-
-            if (hackeos && Array.isArray(hackeos)) {
-                for (const item of hackeos) {
-                    const exists = incidents.some((i: any) => i.id === item.id);
-                    if (!exists) { await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'incidents', item.id), item); restoredHackeos++; }
-                }
-            }
+            let restoredRrss = 0; let restoredComments = 0;
+            const { rrss, comentarios } = backupInfo.modules;
 
             if (rrss && Array.isArray(rrss)) {
                 for (const item of rrss) {
@@ -240,14 +214,7 @@ export const BackupView = ({ showToast }: any) => {
                 }
             }
 
-            if (backupTickets && Array.isArray(backupTickets)) {
-                for (const item of backupTickets) {
-                    const exists = tickets.some((i: any) => i.id === item.id);
-                    if (!exists) { await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tickets', item.id), item); restoredTickets++; }
-                }
-            }
-
-            showToast(`Restauración exitosa: +${restoredHackeos} Hackeos, +${restoredRrss} RRSS, +${restoredComments} Comentarios, +${restoredTickets} Tickets`);
+            showToast(`Restauración exitosa: +${restoredRrss} Incidencias, +${restoredComments} Menciones`);
             setBackupInfo(null);
             
             setTimeout(() => window.location.reload(), 1500);
@@ -482,11 +449,9 @@ export const BackupView = ({ showToast }: any) => {
                                 </p>
                             </div>
                             
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 py-6 border-y theme-border text-center">
-                                <div><span className="block text-3xl font-black theme-text-main">{backupInfo.modules?.hackeos?.length || 0}</span><span className="text-xs uppercase font-bold text-[var(--error)] tracking-wider">Hackeos</span></div>
-                                <div><span className="block text-3xl font-black theme-text-main">{backupInfo.modules?.rrss?.length || 0}</span><span className="text-xs uppercase font-bold text-[var(--warning)] tracking-wider">Crisis RRSS</span></div>
-                                <div><span className="block text-3xl font-black theme-text-main">{backupInfo.modules?.comentarios?.length || 0}</span><span className="text-xs uppercase font-bold text-[var(--primary)] tracking-wider">Comentarios</span></div>
-                                <div><span className="block text-3xl font-black theme-text-main">{backupInfo.modules?.tickets?.length || 0}</span><span className="text-xs uppercase font-bold text-[var(--accent-purple)] tracking-wider">Tickets</span></div>
+                            <div className="grid grid-cols-2 gap-4 py-6 border-y theme-border text-center">
+                                <div><span className="block text-3xl font-black theme-text-main">{backupInfo.modules?.rrss?.length || 0}</span><span className="text-xs uppercase font-bold text-[var(--warning)] tracking-wider">Incidencias</span></div>
+                                <div><span className="block text-3xl font-black theme-text-main">{backupInfo.modules?.comentarios?.length || 0}</span><span className="text-xs uppercase font-bold text-[var(--primary)] tracking-wider">Menciones</span></div>
                             </div>
                             
                             <div className="space-y-4">

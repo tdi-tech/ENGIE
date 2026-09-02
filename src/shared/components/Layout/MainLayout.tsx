@@ -22,16 +22,11 @@ export const MainLayout = ({
         switch (currentView) {
             case 'dashboard': return <h1 className="text-base sm:text-xl font-bold theme-text-main tracking-tight">Dashboard</h1>;
             case 'gestion-usuarios': return <h1 className="text-base sm:text-xl font-bold theme-text-main tracking-tight">Gestión de Usuarios</h1>;
-            case 'protocolo': return <div className={baseClass}><span className={parentClass}>Hackeos</span><span className={separatorClass}>/</span><span className={childClass}>Protocolo</span></div>;
-            case 'nuevo': return <div className={baseClass}><span className={parentClass}>Hackeos</span><span className={separatorClass}>/</span><span className={childClass}>Crear incidente</span></div>;
-            case 'checklist': return <div className={baseClass}><span className={parentClass}>Hackeos</span><span className={separatorClass}>/</span><span className={childClass}>Checklist Rápido</span></div>;
-            case 'historial': return <div className={baseClass}><span className={parentClass}>Hackeos</span><span className={separatorClass}>/</span><span className={childClass}>Historial</span></div>;
-            case 'glosario': return <div className={baseClass}><span className={parentClass}>Hackeos</span><span className={separatorClass}>/</span><span className={childClass}>Glosario</span></div>;
-            case 'protocolo-rss': return <div className={baseClass}><span className={parentClass}>Incidencias RRSS</span><span className={separatorClass}>/</span><span className={childClass}>Protocolo</span></div>;
-            case 'nuevo-rss': return <div className={baseClass}><span className={parentClass}>Incidencias RRSS</span><span className={separatorClass}>/</span><span className={childClass}>Crear incidente</span></div>;
-            case 'historial-rss': return <div className={baseClass}><span className={parentClass}>Incidencias RRSS</span><span className={separatorClass}>/</span><span className={childClass}>Historial</span></div>;
-            case 'nuevo-comentario': return <div className={baseClass}><span className={parentClass}>Comentarios</span><span className={separatorClass}>/</span><span className={childClass}>Capturar comentarios</span></div>;
-            case 'historial-comentario': return <div className={baseClass}><span className={parentClass}>Comentarios</span><span className={separatorClass}>/</span><span className={childClass}>Historial</span></div>;
+            case 'protocolo-rss': return <div className={baseClass}><span className={parentClass}>Incidencias</span><span className={separatorClass}>/</span><span className={childClass}>Protocolo</span></div>;
+            case 'nuevo-rss': return <div className={baseClass}><span className={parentClass}>Incidencias</span><span className={separatorClass}>/</span><span className={childClass}>Crear incidente</span></div>;
+            case 'historial-rss': return <div className={baseClass}><span className={parentClass}>Incidencias</span><span className={separatorClass}>/</span><span className={childClass}>Historial</span></div>;
+            case 'nuevo-comentario': return <div className={baseClass}><span className={parentClass}>Menciones</span><span className={separatorClass}>/</span><span className={childClass}>Capturar menciones</span></div>;
+            case 'historial-comentario': return <div className={baseClass}><span className={parentClass}>Menciones</span><span className={separatorClass}>/</span><span className={childClass}>Historial</span></div>;
             case 'roles': return <h1 className="text-base sm:text-xl font-bold theme-text-main tracking-tight">Roles</h1>;
             case 'changelog': return <h1 className="text-base sm:text-xl font-bold theme-text-main tracking-tight">Changelog</h1>;
             case 'backups': return <h1 className="text-base sm:text-xl font-bold theme-text-main tracking-tight">Copias de Seguridad Core</h1>;

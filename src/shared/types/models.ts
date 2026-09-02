@@ -1,7 +1,7 @@
 export type UserRole = 'ADMIN_IT' | 'ADMIN_CM' | 'EDITOR_CM' | 'READER' | '';
 
 // 🔒 TIPADO ESTRICTO DE INFRAESTRUCTURA
-export type CollectionName = 'incidents' | 'rrss_incidents' | 'comments' | 'notifications' | 'auditLogs' | 'users' | 'appState';
+export type CollectionName = 'rrss_incidents' | 'comments' | 'notifications' | 'auditLogs' | 'users' | 'appState';
 
 // 🛡️ TIPADOS GLOBALES DE UI
 export interface ToastState {
@@ -29,22 +29,6 @@ export interface UserSession {
     displayName: string | null;
     photoURL: string | null;
     isAnonymous: boolean;
-}
-
-export interface Incident {
-    id: string;
-    fecha: string;
-    autor: string;
-    plataforma: string;
-    vector: string;
-    descripcion: string;
-    vistas: number;
-    interacciones: number;
-    impacto: 'Bajo' | 'Medio' | 'Alto' | 'Crítico';
-    contencion: string;
-    erradicacion: string;
-    lecciones: string;
-    estado: 'Abierto' | 'Resuelto';
 }
 
 export interface AuditLog {

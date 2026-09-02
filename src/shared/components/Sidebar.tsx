@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import {
-    LayoutDashboard, ShieldAlert, FileText, ListChecks, Users, BookOpen,
+    LayoutDashboard, ShieldAlert, FileText, Users, BookOpen,
     AlertTriangle, Settings, HelpCircle, Smartphone, MessageSquareWarning,
-    ChevronDown, ChevronRight, History, Cloud, CloudOff, Database, Ticket, BarChart3
+    ChevronDown, ChevronRight, History, Cloud, CloudOff, Database, BarChart3
 } from 'lucide-react';
-import { collection, onSnapshot } from 'firebase/firestore';
-import { db, appId, auth, IS_MOCK } from '../../services/firebase/config';
 
 const NavBtn = ({ id, icon: Icon, label, currentView, navigate }: any) => (
     <button
@@ -103,16 +101,12 @@ export const Sidebar = ({ sidebarOpen, setSidebarOpen, currentView, navigate, is
     // 🔥 FIX: Ahora el menú "Comentarios" se abre por defecto al cargar
     const [openGroup, setOpenGroup] = useState<string>(() => {
         const view = currentView || localStorage.getItem('innova_current_view') || '';
-        if (['nuevo-comentario', 'historial-comentario', 'reportes'].includes(view)) return 'comentarios';
-        if (['protocolo', 'nuevo', 'checklist', 'historial', 'glosario'].includes(view)) return 'hackeos';
-        if (['protocolo-rss', 'nuevo-rss', 'historial-rss'].includes(view)) return 'rss';
-        if (['solicitud-tickets', 'gestion-tickets'].includes(view)) return 'tickets';
-        return 'comentarios';
+        if (['nuevo-comentario', 'historial-comentario', 'reportes'].includes(view)) return 'menciones';
+        if (['protocolo-rss', 'nuevo-rss', 'historial-rss'].includes(view)) return 'incidencias';
+        return 'menciones';
     });
 
-    const [newTicketsCount, setNewTicketsCount] = useState(0);
 
-    const isInternalUser = ['ADMIN_IT', 'ADMIN_CM', 'EDITOR_CM', 'EDITOR_CONTENT'].includes(userRole);
     const isEditorContent = userRole === 'EDITOR_CONTENT';
     const isITAdmin = userRole === 'ADMIN_IT';
     
@@ -120,36 +114,6 @@ export const Sidebar = ({ sidebarOpen, setSidebarOpen, currentView, navigate, is
     const isTrueAdmin = ['ADMIN_IT', 'ADMIN_CM'].includes(userRole);
 
     const canViewReports = ['ADMIN_IT', 'ADMIN_CM', 'EDITOR_CM'].includes(userRole);
-
-    useEffect(() => {
-        if (IS_MOCK) {
-            setNewTicketsCount(0);
-            return;
-        }
-
-        if (!isInternalUser) {
-            setNewTicketsCount(0);
-            return;
-        }
-
-        const unsub = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'tickets'), (snap) => {
-            let count = 0;
-            const currentUser = user || auth.currentUser;
-
-            snap.forEach((doc) => {
-                const data = doc.data();
-                const isReadByCurrentUser = currentUser && (data.readBy || []).some((id: string) =>
-                    (currentUser.uid && id === currentUser.uid) || (currentUser.email && id === currentUser.email)
-                );
-
-                if (data.estado === 'Pendiente' && !isReadByCurrentUser) {
-                    count++;
-                }
-            });
-            setNewTicketsCount(count);
-        });
-        return () => unsub();
-    }, [isInternalUser, user]);
 
     const toggleGroup = (group: string) => {
         setOpenGroup(openGroup === group ? '' : group);
@@ -172,8 +136,8 @@ export const Sidebar = ({ sidebarOpen, setSidebarOpen, currentView, navigate, is
 
                     <div className="my-2 border-t theme-border opacity-50"></div>
 
-                    {/* 🔥 FIX REACOMODO: Comentarios ahora es el primero de la lista */}
-                    <DropdownGroup id="comentarios" icon={MessageSquareWarning} label="Comentarios" openGroup={openGroup} toggleGroup={toggleGroup} currentView={currentView}>
+                    {/* Menciones (antes Comentarios) */}
+                    <DropdownGroup id="menciones" icon={MessageSquareWarning} label="Menciones" openGroup={openGroup} toggleGroup={toggleGroup} currentView={currentView}>
                         {!isEditorContent && (
                             <SubNavBtn id="nuevo-comentario" icon={AlertTriangle} label="Crear reporte" requireAdmin={true} isAdmin={isAdmin} currentView={currentView} navigate={navigate} />
                         )}
@@ -185,27 +149,13 @@ export const Sidebar = ({ sidebarOpen, setSidebarOpen, currentView, navigate, is
 
                     {!isEditorContent && (
                         <>
-                            {/* Hackeos pasa a segundo lugar */}
-                            <DropdownGroup id="hackeos" icon={ShieldAlert} label="Hackeos" openGroup={openGroup} toggleGroup={toggleGroup} currentView={currentView}>
-                                <SubNavBtn id="protocolo" icon={BookOpen} label="Protocolo" currentView={currentView} navigate={navigate} />
-                                <SubNavBtn id="nuevo" icon={AlertTriangle} label="Crear incidente" requireAdmin={true} isAdmin={isAdmin} currentView={currentView} navigate={navigate} />
-                                <SubNavBtn id="checklist" icon={ListChecks} label="Checklist Rápido" requireAdmin={true} isAdmin={isAdmin} currentView={currentView} navigate={navigate} />
-                                <SubNavBtn id="historial" icon={FileText} label="Historial" currentView={currentView} navigate={navigate} />
-                                <SubNavBtn id="glosario" icon={BookOpen} label="Glosario" currentView={currentView} navigate={navigate} />
-                            </DropdownGroup>
-
-                            <DropdownGroup id="rss" icon={Smartphone} label="Incidencias RRSS" openGroup={openGroup} toggleGroup={toggleGroup} currentView={currentView}>
+                            <DropdownGroup id="incidencias" icon={Smartphone} label="Incidencias" openGroup={openGroup} toggleGroup={toggleGroup} currentView={currentView}>
                                 <SubNavBtn id="protocolo-rss" icon={BookOpen} label="Protocolo" currentView={currentView} navigate={navigate} />
-                                <SubNavBtn id="nuevo-rss" icon={AlertTriangle} label="Crear incidente" requireAdmin={true} isAdmin={isAdmin} currentView={currentView} navigate={navigate} />
+                                <SubNavBtn id="nuevo-rss" icon={AlertTriangle} label="Crear incidencia" requireAdmin={true} isAdmin={isAdmin} currentView={currentView} navigate={navigate} />
                                 <SubNavBtn id="historial-rss" icon={FileText} label="Historial" currentView={currentView} navigate={navigate} />
                             </DropdownGroup>
                         </>
                     )}
-
-                    <DropdownGroup id="tickets" icon={Ticket} label="Emergentes" openGroup={openGroup} toggleGroup={toggleGroup} currentView={currentView} badgeCount={newTicketsCount}>
-                        {!isInternalUser && <SubNavBtn id="solicitud-tickets" icon={AlertTriangle} label="Solicitar Ticket" currentView={currentView} navigate={navigate} />}
-                        {isInternalUser && <SubNavBtn id="gestion-tickets" icon={FileText} label="Gestionar Tickets" currentView={currentView} navigate={navigate} badgeCount={newTicketsCount} />}
-                    </DropdownGroup>
 
                     <div className="my-2 border-t theme-border opacity-50"></div>
 
