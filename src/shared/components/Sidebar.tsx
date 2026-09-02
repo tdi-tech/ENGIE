@@ -27,7 +27,7 @@ const SubNavBtn = ({ id, icon: Icon, label, currentView, navigate, requireAdmin,
         <button
             onClick={() => navigate(id)}
             className={`w-full flex items-center justify-between px-4 py-2 rounded-lg text-sm font-medium transition-all pl-8 ${currentView === id
-                ? 'bg-[var(--primary)]/10 text-[var(--primary)] font-bold'
+                ? 'bg-[var(--primary)] text-white shadow-sm font-bold'
                 : 'theme-text-muted hover:theme-bg-low hover:theme-text-main'
                 }`}
         >
@@ -60,7 +60,7 @@ const DropdownGroup = ({ id, icon: Icon, label, children, openGroup, toggleGroup
         <div className="space-y-1">
             <button
                 onClick={() => toggleGroup(id)}
-                className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${isActive && !isOpen ? 'text-[var(--primary)] font-bold bg-[var(--primary)]/5' : 'theme-text-muted hover:theme-bg-low hover:theme-text-main'
+                className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${isActive && !isOpen ? 'bg-[var(--primary)]/15 text-[var(--primary)] font-bold shadow-sm' : 'theme-text-muted hover:theme-bg-low hover:theme-text-main'
                     }`}
             >
                 <div className="flex items-center gap-3">
