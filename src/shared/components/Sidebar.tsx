@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
     LayoutDashboard, ShieldAlert, FileText, Users, BookOpen,
-    AlertTriangle, Settings, HelpCircle, Smartphone, MessageSquareWarning,
+    AlertTriangle, Settings, HelpCircle, Smartphone, Eye,
     ChevronDown, ChevronRight, History, Cloud, CloudOff, Database, BarChart3
 } from 'lucide-react';
 
@@ -137,7 +137,7 @@ export const Sidebar = ({ sidebarOpen, setSidebarOpen, currentView, navigate, is
                     <div className="my-2 border-t theme-border opacity-50"></div>
 
                     {/* Menciones (antes Comentarios) */}
-                    <DropdownGroup id="menciones" icon={MessageSquareWarning} label="Menciones" openGroup={openGroup} toggleGroup={toggleGroup} currentView={currentView}>
+                    <DropdownGroup id="menciones" icon={Eye} label="Menciones" openGroup={openGroup} toggleGroup={toggleGroup} currentView={currentView}>
                         {!isEditorContent && (
                             <SubNavBtn id="nuevo-comentario" icon={AlertTriangle} label="Crear reporte" requireAdmin={true} isAdmin={isAdmin} currentView={currentView} navigate={navigate} />
                         )}

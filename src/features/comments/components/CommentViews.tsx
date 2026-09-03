@@ -9,6 +9,7 @@ import {
 import { collection, addDoc, onSnapshot } from 'firebase/firestore';
 import { db, appId, IS_MOCK } from '../../../services/firebase/config';
 import { getMonthName } from '../../../shared/utils/date';
+import { normalizeMenciones, isRegistroVacio } from '../../../shared/utils/menciones';
 
 const inputStyles = "w-full p-3 rounded-xl theme-bg-low border theme-border theme-text-main focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all text-sm";
 const radioLabelStyles = "flex items-center gap-2 text-sm font-medium theme-text-main cursor-pointer";
@@ -49,6 +50,19 @@ export const NewCommentView = ({ isAdmin, showToast, navigate, user, logAction }
             reacciones: '',
             comentarios: '',
             compartidos: '',
+            hallazgoReputacional: '',
+            linkPublicacion: ''
+        }],
+        registrosDigitalesList: [{
+            id: Date.now().toString(),
+            sitioWeb: '',
+            tipoActor: '',
+            tipoActorOtro: '',
+            sentimiento: '',
+            narrativa: '',
+            narrativaOtro: '',
+            nivelRiesgo: '',
+            estatus: '',
             hallazgoReputacional: '',
             linkPublicacion: ''
         }]
@@ -92,13 +106,50 @@ export const NewCommentView = ({ isAdmin, showToast, navigate, user, logAction }
         setFormData({ ...formData, registrosList: newList });
     };
 
+    const addRegistroDigital = () => {
+        const last = formData.registrosDigitalesList[formData.registrosDigitalesList.length - 1];
+        setFormData({
+            ...formData,
+            registrosDigitalesList: [...formData.registrosDigitalesList, {
+                id: Date.now().toString(),
+                sitioWeb: '',
+                tipoActor: last.tipoActor,
+                tipoActorOtro: '',
+                sentimiento: '',
+                narrativa: last.narrativa,
+                narrativaOtro: '',
+                nivelRiesgo: '',
+                estatus: '',
+                hallazgoReputacional: '',
+                linkPublicacion: ''
+            }]
+        });
+    };
+
+    const updateRegistroDigital = (index: number, field: string, value: string) => {
+        const newList = [...formData.registrosDigitalesList];
+        newList[index] = { ...newList[index], [field]: value };
+        setFormData({ ...formData, registrosDigitalesList: newList });
+    };
+
+    const removeRegistroDigital = (index: number) => {
+        const newList = formData.registrosDigitalesList.filter((_: any, i: number) => i !== index);
+        setFormData({ ...formData, registrosDigitalesList: newList });
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!isAdmin) return showToast('Permisos insuficientes.', true);
         setIsSubmitting(true);
         try {
-            const docRef = await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'comments'), { 
-                ...formData, autor: user?.displayName || 'Administrador', timestamp: new Date().toISOString() 
+            // 🧹 Solo persistimos la lista activa y descartamos registros vacíos
+            const { registrosList, registrosDigitalesList, ...rest } = formData;
+            const payload = formData.fuenteMonitoreo === 'Medios digitales'
+                ? { ...rest, registrosDigitalesList: registrosDigitalesList.filter((r: any) => !isRegistroVacio(r, 'md')) }
+                : { ...rest, registrosList: registrosList.filter((r: any) => !isRegistroVacio(r, 'rs')) };
+
+            const docRef = await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'comments'), {
+                ...payload, autor: user?.displayName || 'Administrador', timestamp: new Date().toISOString()
             });
 
             if (logAction) await logAction('Creó un nuevo reporte de comentarios', 'Comentarios', 'create', docRef.id);
@@ -264,11 +315,95 @@ export const NewCommentView = ({ isAdmin, showToast, navigate, user, logAction }
                             ))}
                         </div>
                     ) : (
-                        <div className="p-12 theme-bg-container border-2 border-dashed theme-border rounded-[1.5rem] text-center">
-                            <MessageSquare className="w-16 h-16 theme-text-muted mx-auto mb-4 opacity-30" />
-                            <h4 className="text-lg font-bold theme-text-main mb-2">Formulario de Medios Digitales</h4>
-                            <p className="theme-text-muted text-sm">Este formulario estará disponible próximamente. Actualmente solo se encuentra disponible el formulario de Redes Sociales.</p>
-                            <span className="inline-block mt-4 px-4 py-2 bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-xl text-xs font-bold">Próximamente</span>
+                        <div className="space-y-6">
+                            {formData.fuenteMonitoreo === 'Medios digitales' && (
+                                <div className="flex justify-end">
+                                    <button type="button" onClick={addRegistroDigital} className="flex items-center gap-2 text-sm font-bold text-blue-600 bg-blue-500/10 hover:bg-blue-500/20 px-4 py-2 rounded-xl transition-colors">
+                                        <PlusCircle className="w-4 h-4"/> Agregar nuevo registro
+                                    </button>
+                                </div>
+                            )}
+                            {formData.registrosDigitalesList.map((registro: any, idx: number) => (
+                                <div key={registro.id || idx} className="p-6 sm:p-8 theme-bg-container border theme-border rounded-[1.5rem] relative fade-in shadow-sm group border-l-[6px] border-l-blue-500 hover:border-l-blue-600 transition-all">
+                                    {formData.registrosDigitalesList.length > 1 && (
+                                        <button type="button" onClick={() => removeRegistroDigital(idx)} className="absolute top-4 right-4 p-2 bg-red-100 text-red-600 rounded-xl hover:bg-red-500 hover:text-white transition-colors opacity-0 group-hover:opacity-100 shadow-sm" title="Eliminar este registro">
+                                            <Trash2 className="w-4 h-4"/>
+                                        </button>
+                                    )}
+                                    <div className="flex items-center gap-3 mb-6">
+                                        <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-400 flex items-center justify-center text-xs font-black">{idx + 1}</span>
+                                        <h4 className="font-bold theme-text-main text-lg">Detalle del Registro - Medio Digital</h4>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="space-y-1.5 md:col-span-2">
+                                            <label htmlFor={`md-sitioWeb-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Sitio Web</label>
+                                            <input id={`md-sitioWeb-${idx}`} type="url" required placeholder="https://ejemplo.com" value={registro.sitioWeb} onChange={(e) => updateRegistroDigital(idx, 'sitioWeb', e.target.value)} className={inputStyles} />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label htmlFor={`md-tipoActor-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Tipo de Actor</label>
+                                            <select id={`md-tipoActor-${idx}`} value={registro.tipoActor} onChange={(e) => updateRegistroDigital(idx, 'tipoActor', e.target.value)} className={`${inputStyles} ${!registro.tipoActor ? 'text-gray-400' : ''}`}>
+                                                <option value="" disabled>Seleccionar tipo de actor...</option>
+                                                {['Gobierno', 'Creadores de contenido', 'Detractor', 'Portales de noticias', 'Periódicos digitales', 'Medios especializados', 'Sitios institucionales', 'Medios Locales', 'Otro'].map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                            </select>
+                                        </div>
+                                        {registro.tipoActor === 'Otro' && (
+                                            <div className="space-y-1.5">
+                                                <label htmlFor={`md-tipoActorOtro-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Especificar Tipo de Actor</label>
+                                                <input id={`md-tipoActorOtro-${idx}`} type="text" required placeholder="Describe el tipo de actor..." value={registro.tipoActorOtro} onChange={(e) => updateRegistroDigital(idx, 'tipoActorOtro', e.target.value)} className={inputStyles} />
+                                            </div>
+                                        )}
+                                        <div className="space-y-1.5">
+                                            <label htmlFor={`md-sentimiento-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Sentimiento de la Mención</label>
+                                            <select id={`md-sentimiento-${idx}`} required value={registro.sentimiento} onChange={(e) => updateRegistroDigital(idx, 'sentimiento', e.target.value)} className={`${inputStyles} ${!registro.sentimiento ? 'text-gray-400' : ''}`}>
+                                                <option value="" disabled>Seleccionar sentimiento...</option>
+                                                <option value="Positivo" className="text-green-600 dark:text-green-400">🟢 Positivo</option>
+                                                <option value="Neutral" className="text-yellow-600 dark:text-yellow-400">🟡 Neutral</option>
+                                                <option value="Negativo" className="text-red-600 dark:text-red-400">🔴 Negativo</option>
+                                            </select>
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label htmlFor={`md-narrativa-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Narrativa</label>
+                                            <select id={`md-narrativa-${idx}`} value={registro.narrativa} onChange={(e) => updateRegistroDigital(idx, 'narrativa', e.target.value)} className={`${inputStyles} ${!registro.narrativa ? 'text-gray-400' : ''}`}>
+                                                <option value="" disabled>Seleccionar narrativa...</option>
+                                                {['Seguridad y regulación', 'Inversión y desarrollo regional', 'Avances de obra e infraestructura', 'Legal y derechos humanos', 'Medio ambiente', 'Difusión informativa', 'Otro'].map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                            </select>
+                                        </div>
+                                        {registro.narrativa === 'Otro' && (
+                                            <div className="space-y-1.5">
+                                                <label htmlFor={`md-narrativaOtro-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Especificar Narrativa</label>
+                                                <input id={`md-narrativaOtro-${idx}`} type="text" required placeholder="Describe la narrativa..." value={registro.narrativaOtro} onChange={(e) => updateRegistroDigital(idx, 'narrativaOtro', e.target.value)} className={inputStyles} />
+                                            </div>
+                                        )}
+                                        <div className="space-y-1.5">
+                                            <label htmlFor={`md-nivelRiesgo-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Nivel de Riesgo</label>
+                                            <select id={`md-nivelRiesgo-${idx}`} value={registro.nivelRiesgo} onChange={(e) => updateRegistroDigital(idx, 'nivelRiesgo', e.target.value)} className={`${inputStyles} ${!registro.nivelRiesgo ? 'text-gray-400' : ''}`}>
+                                                <option value="" disabled>Seleccionar nivel...</option>
+                                                <option value="Bajo" className="text-green-600 dark:text-green-400">🟢 Bajo</option>
+                                                <option value="Medio" className="text-orange-600 dark:text-orange-400">🟠 Medio</option>
+                                                <option value="Alto" className="text-yellow-600 dark:text-yellow-400">🟡 Alto</option>
+                                                <option value="Crítico" className="text-red-600 dark:text-red-400">🔴 Crítico</option>
+                                            </select>
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label htmlFor={`md-estatus-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Estatus</label>
+                                            <select id={`md-estatus-${idx}`} value={registro.estatus} onChange={(e) => updateRegistroDigital(idx, 'estatus', e.target.value)} className={`${inputStyles} ${!registro.estatus ? 'text-gray-400' : ''}`}>
+                                                <option value="" disabled>Seleccionar estatus...</option>
+                                                <option value="Monitoreando" className="text-yellow-600 dark:text-yellow-400">🟡 Monitoreando</option>
+                                                <option value="Escalado" className="text-red-600 dark:text-red-400">🔴 Escalado</option>
+                                                <option value="Cerrado" className="text-green-600 dark:text-green-400">🟢 Cerrado</option>
+                                            </select>
+                                        </div>
+                                        <div className="space-y-1.5 md:col-span-2">
+                                            <label htmlFor={`md-hallazgoReputacional-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Hallazgo reputacional</label>
+                                            <textarea id={`md-hallazgoReputacional-${idx}`} rows={3} placeholder="Describe los hallazgos clave de la publicación, qué conversación puede activar y si requiere seguimiento..." value={registro.hallazgoReputacional} onChange={(e) => updateRegistroDigital(idx, 'hallazgoReputacional', e.target.value)} className={`${inputStyles} resize-none leading-relaxed`}></textarea>
+                                        </div>
+                                        <div className="space-y-1.5 md:col-span-2">
+                                            <label htmlFor={`md-linkPublicacion-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Link de la publicación original</label>
+                                            <input id={`md-linkPublicacion-${idx}`} type="url" placeholder="Link de la publicación original" value={registro.linkPublicacion} onChange={(e) => updateRegistroDigital(idx, 'linkPublicacion', e.target.value)} className={inputStyles} />
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     )}
                 </div>
@@ -297,8 +432,18 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [editData, setEditData] = useState<any>(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const [campoBusqueda, setCampoBusqueda] = useState('usuario');
     const [filterYear, setFilterYear] = useState('Todos');
     const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
+
+    const camposFiltro = [
+        { value: 'usuario', label: 'Actor' },
+        { value: 'redSocial', label: 'Canal' },
+        { value: 'comentario', label: 'Narrativa' },
+        { value: 'sentiment', label: 'Sentimiento' },
+        { value: 'estatus', label: 'Estatus' },
+        { value: 'nivelRiesgo', label: 'Nivel de riesgo' },
+    ];
     const [pagePerMonth, setPagePerMonth] = useState<Record<string, number>>({});
     const itemsPerPage = 30;
     
@@ -339,10 +484,7 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
         setExportCampus('');
     }, [exportType, exportYear, exportMonth]);
 
-    const getNormalizedComments = (com: any) => {
-        if (com.comentariosList && com.comentariosList.length > 0) return com.comentariosList.map((c: any) => ({ ...c, redSocial: c.redSocial || com.redSocial || 'Facebook comentario', campus: c.campus || com.campus || 'Sin especificar', sentiment: c.sentiment || com.sentiment || '', posteoTipo: c.posteoTipo || com.posteoTipo || 'url', posteoUrl: c.posteoUrl || com.posteoUrl || '', posteoTexto: c.posteoTexto || com.posteoTexto || '' }));
-        return [{ id: com.id, usuario: com.usuario || 'N/A', comentario: com.descripcion || 'Sin comentario', redSocial: com.redSocial || 'Facebook comentario', campus: com.campus || 'Sin especificar', sentiment: com.sentiment || '', posteoTipo: com.posteoTipo || 'url', posteoUrl: com.posteoUrl || '', posteoTexto: com.posteoTexto || '' }];
-    };
+    const getNormalizedComments = (com: any) => normalizeMenciones(com);
 
     const availableYears = useMemo(() => {
         const years = new Set(comments.map((c: any) => c.fechaPublicacion ? c.fechaPublicacion.split('-')[0] : null).filter(Boolean));
@@ -385,19 +527,13 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
             const term = searchTerm.toLowerCase();
             const list = getNormalizedComments(com);
             
-            const matchSearch = term === '' || 
-                (isAdmin && com.autor && com.autor.toLowerCase().includes(term)) ||
-                (com.contenido && com.contenido.toLowerCase().includes(term)) ||
-                list.some((c: any) => 
-                    (c.usuario && c.usuario.toLowerCase().includes(term)) ||
-                    (c.comentario && c.comentario.toLowerCase().includes(term)) ||
-                    (c.redSocial && c.redSocial.toLowerCase().includes(term)) ||
-                    (c.campus && c.campus.toLowerCase().includes(term)) ||
-                    (c.sentiment && c.sentiment.toLowerCase().includes(term))
-                );
+            const matchSearch = term === '' || list.some((c: any) => {
+                const valor = c[campoBusqueda];
+                return valor && String(valor).toLowerCase().includes(term);
+            });
             return matchYear && matchSearch;
         });
-    }, [comments, searchTerm, filterYear, isAdmin]);
+    }, [comments, searchTerm, campoBusqueda, filterYear]);
 
     const groupedData = useMemo(() => {
         const groups: Record<string, Record<string, any[]>> = {};
@@ -551,10 +687,15 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
                     </div>
 
                     <div className="p-4 theme-bg-container border theme-border rounded-xl shadow-sm mb-6 flex flex-col md:flex-row gap-4 items-center justify-between">
-                        <div className="relative w-full md:w-2/3 flex items-center">
-                            <Search className="absolute left-3 text-gray-400 w-4 h-4 pointer-events-none" />
-                            <input type="text" aria-label="Buscar" placeholder="Buscar por usuario, campus, red, contenido..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className={`${inputStyles} pl-10 pr-10`} />
-                            {searchTerm && <button type="button" aria-label="Limpiar búsqueda" onClick={() => setSearchTerm('')} className="absolute right-3 p-1 rounded-md text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-800 dark:hover:text-white transition-colors" title="Limpiar búsqueda"><X className="w-4 h-4" /></button>}
+                        <div className="w-full md:w-2/3 flex items-center gap-2">
+                            <select aria-label="Campo de búsqueda" value={campoBusqueda} onChange={(e) => setCampoBusqueda(e.target.value)} className={`${inputStyles} py-2 px-3 min-w-[140px]`}>
+                                {camposFiltro.map((c: any) => <option key={c.value} value={c.value}>{c.label}</option>)}
+                            </select>
+                            <div className="relative flex-1 flex items-center">
+                                <Search className="absolute left-3 text-gray-400 w-4 h-4 pointer-events-none" />
+                                <input type="text" aria-label="Buscar" placeholder={`Buscar por ${camposFiltro.find((c: any) => c.value === campoBusqueda)?.label || '...'}...`} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className={`${inputStyles} pl-10 pr-10`} />
+                                {searchTerm && <button type="button" aria-label="Limpiar búsqueda" onClick={() => setSearchTerm('')} className="absolute right-3 p-1 rounded-md text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-800 dark:hover:text-white transition-colors" title="Limpiar búsqueda"><X className="w-4 h-4" /></button>}
+                            </div>
                         </div>
                         <div className="flex w-full md:w-auto items-center justify-between md:justify-end gap-4">
                             <div className="flex items-center gap-2"><label htmlFor="hc-filter-year" className="text-xs font-bold theme-text-muted whitespace-nowrap">Año</label><select id="hc-filter-year" value={filterYear} onChange={(e) => setFilterYear(e.target.value)} className={`${inputStyles} py-2 px-3 min-w-[100px]`}><option value="Todos">Todos</option>{availableYears.map((y: any) => <option key={y} value={y}>{y}</option>)}</select></div>
