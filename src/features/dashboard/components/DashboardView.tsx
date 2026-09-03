@@ -10,11 +10,11 @@ export const DashboardView = ({ showToast, user }: any) => {
     const [comments, setComments] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isExportingPDF, setIsExportingPDF] = useState(false);
-    const [activeTab, setActiveTab] = useState('incidencias');
+    const [activeTab, setActiveTab] = useState('menciones');
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
-        if (IS_MOCK) { setActiveTab('incidencias'); setIsLoading(false); return; }
+        if (IS_MOCK) { setActiveTab('menciones'); setIsLoading(false); return; }
         setIsLoading(true);
 
         const u = auth.currentUser;
@@ -114,8 +114,8 @@ return (
         <div className="fade-in pb-20 relative">
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
                 <div className="flex flex-col sm:flex-row items-center gap-2 p-1.5 bg-black/5 dark:bg-white/5 border theme-border rounded-xl w-full md:w-fit shadow-inner overflow-x-auto">
-                    <button type="button" onClick={() => setActiveTab('incidencias')} className={`w-full sm:w-auto px-5 py-2.5 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-all whitespace-nowrap ${activeTab === 'incidencias' ? 'bg-[var(--surface)] shadow-md theme-text-main scale-100' : 'theme-text-muted hover:theme-text-main scale-95'}`}><Megaphone className="w-4 h-4 text-orange-500" /> Incidencias</button>
                     <button type="button" onClick={() => setActiveTab('menciones')} className={`w-full sm:w-auto px-5 py-2.5 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-all whitespace-nowrap ${activeTab === 'menciones' ? 'bg-[var(--surface)] shadow-md theme-text-main scale-100' : 'theme-text-muted hover:theme-text-main scale-95'}`}><MessageSquare className="w-4 h-4 text-blue-500" /> Menciones</button>
+                    <button type="button" onClick={() => setActiveTab('incidencias')} className={`w-full sm:w-auto px-5 py-2.5 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-all whitespace-nowrap ${activeTab === 'incidencias' ? 'bg-[var(--surface)] shadow-md theme-text-main scale-100' : 'theme-text-muted hover:theme-text-main scale-95'}`}><Megaphone className="w-4 h-4 text-orange-500" /> Incidencias</button>
                 </div>
                 <button type="button" onClick={handleDownloadReport} disabled={isExportingPDF} className="w-full md:w-auto flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-bold bg-[var(--primary)] text-white hover:brightness-110 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
                     {isExportingPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
@@ -124,6 +124,34 @@ return (
             </div>
 
             <div className="space-y-6">
+                {activeTab === 'menciones' && (
+                    <div className="fade-in space-y-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                            <StatCard title="Reportes de Menciones" value={commentsStats.totalReportes} color="blue" icon={<MessageSquare className="w-12 h-12 opacity-10 absolute -right-2 -bottom-2" />} />
+                            <StatCard title="Menciones Individuales" value={commentsStats.totalIndividuales} color="purple" icon={<MessageSquare className="w-12 h-12 opacity-10 absolute -right-2 -bottom-2" />} />
+                            <StatCard title="Negativas" value={commentsStats.negativo} color="red" icon={<TrendingUp className="w-12 h-12 opacity-10 absolute -right-2 -bottom-2" />} />
+                            <StatCard title="Orgánico / Pautado" value={`${commentsStats.organic} / ${commentsStats.paid}`} color="emerald" icon={<Activity className="w-12 h-12 opacity-10 absolute -right-2 -bottom-2" />} />
+                        </div>
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <div className="lg:col-span-2 space-y-6">
+                                {comments.slice(0, 5).map((com: any) => (
+                                    <div key={com.id} className="theme-bg-container border theme-border rounded-xl p-4 shadow-sm">
+                                        <div className="flex justify-between items-start mb-1">
+                                            <p className="text-sm font-bold theme-text-main">Reporte del {com.fechaInicio}</p>
+                                            <span className="text-[9px] font-bold px-2 py-0.5 rounded-md uppercase bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">{com.contenido}</span>
+                                        </div>
+                                        <p className="text-xs theme-text-muted">Finaliza: {com.fechaFin}</p>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="p-5 theme-bg-container border theme-border rounded-xl shadow-sm flex flex-col justify-center items-center text-center gap-2">
+                                <Clock className="w-6 h-6" />
+                                <p className="text-xs font-bold theme-text-muted uppercase tracking-wider">Campus con más Alertas</p>
+                                <p className="text-2xl font-black theme-text-main">{commentsStats.topCampus}</p>
+                            </div>
+                        </div>
+                    </div>
+                )}
                 {activeTab === 'incidencias' && (
                     <div className="fade-in space-y-6">
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
@@ -153,34 +181,6 @@ return (
                                 <p className="text-xs font-bold theme-text-muted uppercase tracking-wider">Índice de Criticidad</p>
                                 <p className="text-3xl font-black text-red-500">{rrssStats.criticidadRate}%</p>
                                 <span className="text-[11px] font-bold bg-red-500/10 text-red-500 rounded-md px-2 py-0.5">Canal: {rrssStats.topNetwork}</span>
-                            </div>
-                        </div>
-                    </div>
-                )}
-{activeTab === 'menciones' && (
-                    <div className="fade-in space-y-6">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                            <StatCard title="Reportes de Menciones" value={commentsStats.totalReportes} color="blue" icon={<MessageSquare className="w-12 h-12 opacity-10 absolute -right-2 -bottom-2" />} />
-                            <StatCard title="Menciones Individuales" value={commentsStats.totalIndividuales} color="purple" icon={<MessageSquare className="w-12 h-12 opacity-10 absolute -right-2 -bottom-2" />} />
-                            <StatCard title="Negativas" value={commentsStats.negativo} color="red" icon={<TrendingUp className="w-12 h-12 opacity-10 absolute -right-2 -bottom-2" />} />
-                            <StatCard title="Orgánico / Pautado" value={`${commentsStats.organic} / ${commentsStats.paid}`} color="emerald" icon={<Activity className="w-12 h-12 opacity-10 absolute -right-2 -bottom-2" />} />
-                        </div>
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                            <div className="lg:col-span-2 space-y-6">
-                                {comments.slice(0, 5).map((com: any) => (
-                                    <div key={com.id} className="theme-bg-container border theme-border rounded-xl p-4 shadow-sm">
-                                        <div className="flex justify-between items-start mb-1">
-                                            <p className="text-sm font-bold theme-text-main">Reporte del {com.fechaInicio}</p>
-                                            <span className="text-[9px] font-bold px-2 py-0.5 rounded-md uppercase bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">{com.contenido}</span>
-                                        </div>
-                                        <p className="text-xs theme-text-muted">Finaliza: {com.fechaFin}</p>
-                                    </div>
-                                ))}
-                            </div>
-                            <div className="p-5 theme-bg-container border theme-border rounded-xl shadow-sm flex flex-col justify-center items-center text-center gap-2">
-                                <Clock className="w-6 h-6" />
-                                <p className="text-xs font-bold theme-text-muted uppercase tracking-wider">Campus con más Alertas</p>
-                                <p className="text-2xl font-black theme-text-main">{commentsStats.topCampus}</p>
                             </div>
                         </div>
                     </div>
