@@ -432,7 +432,6 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [editData, setEditData] = useState<any>(null);
     const [searchTerm, setSearchTerm] = useState('');
-    const [campoBusqueda, setCampoBusqueda] = useState('usuario');
     const [filterYear, setFilterYear] = useState('Todos');
     const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
 
@@ -528,12 +527,14 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
             const list = getNormalizedComments(com);
             
             const matchSearch = term === '' || list.some((c: any) => {
-                const valor = c[campoBusqueda];
-                return valor && String(valor).toLowerCase().includes(term);
+                return camposFiltro.some((cf: any) => {
+                    const valor = c[cf.value];
+                    return valor && String(valor).toLowerCase().includes(term);
+                });
             });
             return matchYear && matchSearch;
         });
-    }, [comments, searchTerm, campoBusqueda, filterYear]);
+    }, [comments, searchTerm, filterYear]);
 
     const groupedData = useMemo(() => {
         const groups: Record<string, Record<string, any[]>> = {};
@@ -687,15 +688,10 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
                     </div>
 
                     <div className="p-4 theme-bg-container border theme-border rounded-xl shadow-sm mb-6 flex flex-col md:flex-row gap-4 items-center justify-between">
-                        <div className="w-full md:w-2/3 flex items-center gap-2">
-                            <select aria-label="Campo de búsqueda" value={campoBusqueda} onChange={(e) => setCampoBusqueda(e.target.value)} className={`${inputStyles} py-2 px-3 min-w-[140px]`}>
-                                {camposFiltro.map((c: any) => <option key={c.value} value={c.value}>{c.label}</option>)}
-                            </select>
-                            <div className="relative flex-1 flex items-center">
-                                <Search className="absolute left-3 text-gray-400 w-4 h-4 pointer-events-none" />
-                                <input type="text" aria-label="Buscar" placeholder={`Buscar por ${camposFiltro.find((c: any) => c.value === campoBusqueda)?.label || '...'}...`} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className={`${inputStyles} pl-10 pr-10`} />
-                                {searchTerm && <button type="button" aria-label="Limpiar búsqueda" onClick={() => setSearchTerm('')} className="absolute right-3 p-1 rounded-md text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-800 dark:hover:text-white transition-colors" title="Limpiar búsqueda"><X className="w-4 h-4" /></button>}
-                            </div>
+                        <div className="relative w-full md:w-2/3 flex items-center">
+                            <Search className="absolute left-3 text-gray-400 w-4 h-4 pointer-events-none" />
+                            <input type="text" aria-label="Buscar" placeholder="Busca por Actor, canal, narrativa, sentimiento, estatus o nivel de riesgo..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className={`${inputStyles} pl-10 pr-10`} />
+                            {searchTerm && <button type="button" aria-label="Limpiar búsqueda" onClick={() => setSearchTerm('')} className="absolute right-3 p-1 rounded-md text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-800 dark:hover:text-white transition-colors" title="Limpiar búsqueda"><X className="w-4 h-4" /></button>}
                         </div>
                         <div className="flex w-full md:w-auto items-center justify-between md:justify-end gap-4">
                             <div className="flex items-center gap-2"><label htmlFor="hc-filter-year" className="text-xs font-bold theme-text-muted whitespace-nowrap">Año</label><select id="hc-filter-year" value={filterYear} onChange={(e) => setFilterYear(e.target.value)} className={`${inputStyles} py-2 px-3 min-w-[100px]`}><option value="Todos">Todos</option>{availableYears.map((y: any) => <option key={y} value={y}>{y}</option>)}</select></div>
