@@ -33,25 +33,63 @@ const SentimentBadge = ({ sentiment }: { sentiment: string }) => {
 
 export const NewCommentView = ({ isAdmin, showToast, navigate, user, logAction }: any) => {
     const [formData, setFormData] = useState<any>({
-        fechaInicio: '', fechaFin: '', contenido: 'Orgánico', evidencia: '',
-        comentariosList: [{ id: Date.now().toString(), usuario: '', comentario: '', redSocial: 'Facebook comentario', campus: 'Sin especificar', sentiment: '', posteoTipo: 'url', posteoUrl: '', posteoTexto: '' }]
+        fechaPublicacion: '', horaDeteccion: '', fuenteMonitoreo: 'Redes sociales', evidencia: '',
+        registrosList: [{
+            id: Date.now().toString(),
+            canal: 'Facebook',
+            tipoActor: '',
+            usuarioSitioWeb: '',
+            sentiment: '',
+            narrativa: '',
+            narrativaOtro: '',
+            tipoActorOtro: '',
+            nivelRiesgo: '',
+            estatus: '',
+            visualizaciones: '',
+            reacciones: '',
+            comentarios: '',
+            compartidos: '',
+            hallazgoReputacional: '',
+            linkPublicacion: ''
+        }]
     });
 
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const addComentario = () => {
-        const last = formData.comentariosList[formData.comentariosList.length - 1];
-        setFormData({ ...formData, comentariosList: [...formData.comentariosList, { id: Date.now().toString(), usuario: '', comentario: '', redSocial: last.redSocial, campus: last.campus, sentiment: '', posteoTipo: last.posteoTipo, posteoUrl: last.posteoUrl, posteoTexto: last.posteoTexto }] });
+    const addRegistro = () => {
+        const last = formData.registrosList[formData.registrosList.length - 1];
+        setFormData({
+            ...formData,
+            registrosList: [...formData.registrosList, {
+                id: Date.now().toString(),
+                canal: last.canal,
+                tipoActor: last.tipoActor,
+                usuarioSitioWeb: '',
+                sentiment: '',
+                narrativa: last.narrativa,
+                narrativaOtro: '',
+                tipoActorOtro: '',
+                nivelRiesgo: '',
+                estatus: '',
+                visualizaciones: '',
+                reacciones: '',
+                comentarios: '',
+                compartidos: '',
+                hallazgoReputacional: '',
+                linkPublicacion: ''
+            }]
+        });
     };
 
-    const updateComentario = (index: number, field: string, value: string) => {
-        const newList = [...formData.comentariosList]; newList[index][field] = value;
-        setFormData({ ...formData, comentariosList: newList });
+    const updateRegistro = (index: number, field: string, value: string) => {
+        const newList = [...formData.registrosList];
+        newList[index] = { ...newList[index], [field]: value };
+        setFormData({ ...formData, registrosList: newList });
     };
 
-    const removeComentario = (index: number) => {
-        const newList = formData.comentariosList.filter((_: any, i: number) => i !== index);
-        setFormData({ ...formData, comentariosList: newList });
+    const removeRegistro = (index: number) => {
+        const newList = formData.registrosList.filter((_: any, i: number) => i !== index);
+        setFormData({ ...formData, registrosList: newList });
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -81,9 +119,9 @@ export const NewCommentView = ({ isAdmin, showToast, navigate, user, logAction }
                     <p className="text-xs font-bold text-blue-500 uppercase tracking-widest mb-3 flex items-center gap-2">
                         <MessageSquare className="w-4 h-4" /> Trazabilidad Comunitaria
                     </p>
-                    <h2 className="text-4xl font-black theme-text-main mb-4 tracking-tight">Crear Reporte de Comentarios</h2>
+                    <h2 className="text-4xl font-black theme-text-main mb-4 tracking-tight">Crear Reporte de Menciones</h2>
                     <p className="theme-text-muted text-base max-w-2xl leading-relaxed">
-                        Registra interacciones, quejas independientes o discusiones grupales durante un periodo específico. Categoriza por red social, canal y evalúa el sentimiento (Sentiment) de la audiencia.
+                        Registro de menciones detectadas en medios digitales y redes sociales durante un periodo específico. Analizar su origen, alcance, tono, narrativa y nivel de riesgo para generar un reporte reputacional.
                     </p>
                 </div>
             </div>
@@ -96,17 +134,17 @@ export const NewCommentView = ({ isAdmin, showToast, navigate, user, logAction }
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-6 bg-black/5 dark:bg-white/5 rounded-2xl border theme-border">
                         <div className="space-y-4">
-                            <label className="text-sm font-bold theme-text-main block">Periodo del reporte</label>
+                            <label className="text-sm font-bold theme-text-main block">Parámetros del Reporte</label>
                             <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-1.5"><label htmlFor="n-fechaInicio" className="text-xs font-bold theme-text-muted uppercase tracking-wider">Inicio</label><input id="n-fechaInicio" type="date" required value={formData.fechaInicio} onChange={(e) => setFormData({...formData, fechaInicio: e.target.value})} className={`${inputStyles} [color-scheme:light] dark:[color-scheme:dark]`} /></div>
-                                <div className="space-y-1.5"><label htmlFor="n-fechaFin" className="text-xs font-bold theme-text-muted uppercase tracking-wider">Fin</label><input id="n-fechaFin" type="date" required value={formData.fechaFin} onChange={(e) => setFormData({...formData, fechaFin: e.target.value})} className={`${inputStyles} [color-scheme:light] dark:[color-scheme:dark]`} /></div>
+                                <div className="space-y-1.5"><label htmlFor="n-fechaPublicacion" className="text-xs font-bold theme-text-muted uppercase tracking-wider">Fecha de publicación</label><input id="n-fechaPublicacion" type="date" required value={formData.fechaPublicacion} onChange={(e) => setFormData({...formData, fechaPublicacion: e.target.value})} className={`${inputStyles} [color-scheme:light] dark:[color-scheme:dark]`} /></div>
+                                <div className="space-y-1.5"><label htmlFor="n-horaDeteccion" className="text-xs font-bold theme-text-muted uppercase tracking-wider">Hora de detección</label><input id="n-horaDeteccion" type="time" required value={formData.horaDeteccion} onChange={(e) => setFormData({...formData, horaDeteccion: e.target.value})} className={`${inputStyles} [color-scheme:light] dark:[color-scheme:dark]`} /></div>
                             </div>
                         </div>
                         <div className="space-y-4 flex flex-col justify-center border-t md:border-t-0 md:border-l theme-border pt-6 md:pt-0 md:pl-8">
-                            <label className="text-sm font-bold theme-text-main block">Tipo de Contenido Asociado</label>
+                            <label className="text-sm font-bold theme-text-main block">Fuente de Monitoreo</label>
                             <div className="flex flex-wrap items-center gap-8 mt-1">
-                                <label className={radioLabelStyles}><input type="radio" name="contenido" value="Orgánico" checked={formData.contenido === 'Orgánico'} onChange={(e) => setFormData({...formData, contenido: e.target.value})} className="w-5 h-5 text-blue-500 focus:ring-blue-500" /> <span className="text-base">Orgánico</span></label>
-                                <label className={radioLabelStyles}><input type="radio" name="contenido" value="Pautado" checked={formData.contenido === 'Pautado'} onChange={(e) => setFormData({...formData, contenido: e.target.value})} className="w-5 h-5 text-blue-500 focus:ring-blue-500" /> <span className="text-base">Pautado (Ads)</span></label>
+                                <label className={radioLabelStyles}><input type="radio" name="fuenteMonitoreo" value="Redes sociales" checked={formData.fuenteMonitoreo === 'Redes sociales'} onChange={(e) => setFormData({...formData, fuenteMonitoreo: e.target.value})} className="w-5 h-5 text-blue-500 focus:ring-blue-500" /> <span className="text-base">Redes sociales</span></label>
+                                <label className={radioLabelStyles}><input type="radio" name="fuenteMonitoreo" value="Medios digitales" checked={formData.fuenteMonitoreo === 'Medios digitales'} onChange={(e) => setFormData({...formData, fuenteMonitoreo: e.target.value})} className="w-5 h-5 text-blue-500 focus:ring-blue-500" /> <span className="text-base">Medios digitales</span></label>
                             </div>
                         </div>
                     </div>
@@ -115,43 +153,124 @@ export const NewCommentView = ({ isAdmin, showToast, navigate, user, logAction }
                 <div className="space-y-6 pt-4">
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b-2 border-gray-200 dark:border-gray-800 pb-3">
                         <h3 className="text-xl font-black theme-text-main flex items-center gap-2">
-                            <Share2 className="w-5 h-5 text-blue-500" /> Desglose de Comentarios
+                            <Share2 className="w-5 h-5 text-blue-500" /> {formData.fuenteMonitoreo === 'Redes sociales' ? 'Desglose de Menciones - Redes Sociales' : 'Desglose de Menciones - Medios Digitales'}
                         </h3>
-                        <button type="button" onClick={addComentario} className="flex items-center gap-2 text-sm font-bold text-blue-600 bg-blue-500/10 hover:bg-blue-500/20 px-4 py-2 rounded-xl transition-colors">
-                            <PlusCircle className="w-4 h-4"/> Agregar nuevo registro
-                        </button>
+                        {formData.fuenteMonitoreo === 'Redes sociales' && (
+                            <button type="button" onClick={addRegistro} className="flex items-center gap-2 text-sm font-bold text-blue-600 bg-blue-500/10 hover:bg-blue-500/20 px-4 py-2 rounded-xl transition-colors">
+                                <PlusCircle className="w-4 h-4"/> Agregar nuevo registro
+                            </button>
+                        )}
                     </div>
-                    
-                    <div className="space-y-6">
-                        {formData.comentariosList.map((c: any, idx: number) => (
-                            <div key={c.id || idx} className="p-6 sm:p-8 theme-bg-container border theme-border rounded-[1.5rem] relative fade-in shadow-sm group border-l-[6px] border-l-blue-500 hover:border-l-blue-600 transition-all">
-                                {formData.comentariosList.length > 1 && (
-                                    <button type="button" onClick={() => removeComentario(idx)} className="absolute top-4 right-4 p-2 bg-red-100 text-red-600 rounded-xl hover:bg-red-500 hover:text-white transition-colors opacity-0 group-hover:opacity-100 shadow-sm" title="Eliminar este comentario">
-                                        <Trash2 className="w-4 h-4"/>
-                                    </button>
-                                )}
-                                <div className="flex items-center gap-3 mb-6">
-                                    <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-400 flex items-center justify-center text-xs font-black">{idx + 1}</span>
-                                    <h4 className="font-bold theme-text-main text-lg">Detalle del Registro</h4>
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="space-y-1.5"><label htmlFor={`red-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Red Social / Canal</label>
-                                        <select id={`red-${idx}`} value={c.redSocial} onChange={(e) => updateComentario(idx, 'redSocial', e.target.value)} className={inputStyles}>
-                                            {redesSocialesOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                                        </select>
+
+                    {formData.fuenteMonitoreo === 'Redes sociales' ? (
+                        <div className="space-y-6">
+                            {formData.registrosList.map((registro: any, idx: number) => (
+                                <div key={registro.id || idx} className="p-6 sm:p-8 theme-bg-container border theme-border rounded-[1.5rem] relative fade-in shadow-sm group border-l-[6px] border-l-blue-500 hover:border-l-blue-600 transition-all">
+                                    {formData.registrosList.length > 1 && (
+                                        <button type="button" onClick={() => removeRegistro(idx)} className="absolute top-4 right-4 p-2 bg-red-100 text-red-600 rounded-xl hover:bg-red-500 hover:text-white transition-colors opacity-0 group-hover:opacity-100 shadow-sm" title="Eliminar este registro">
+                                            <Trash2 className="w-4 h-4"/>
+                                        </button>
+                                    )}
+                                    <div className="flex items-center gap-3 mb-6">
+                                        <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-400 flex items-center justify-center text-xs font-black">{idx + 1}</span>
+                                        <h4 className="font-bold theme-text-main text-lg">Detalle del Registro</h4>
                                     </div>
-                                    <div className="space-y-1.5"><label htmlFor={`usr-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Identidad (Usuario)</label><input id={`usr-${idx}`} type="text" required placeholder="@usuario o Nombre público" value={c.usuario} onChange={(e) => updateComentario(idx, 'usuario', e.target.value)} className={inputStyles} /></div>
-                                    <div className="space-y-1.5"><label htmlFor={`cam-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Campus Implicado</label><select id={`cam-${idx}`} value={c.campus} onChange={(e) => updateComentario(idx, 'campus', e.target.value)} className={inputStyles}>{['Sin especificar', ...CAMPUS_OPTIONS].map(camp => <option key={camp}>{camp}</option>)}</select></div>
-                                    <div className="space-y-1.5"><label htmlFor={`sen-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Sentimiento (Sentiment)</label><select id={`sen-${idx}`} required value={c.sentiment} onChange={(e) => updateComentario(idx, 'sentiment', e.target.value)} className={`${inputStyles} ${!c.sentiment ? 'text-gray-400' : ''}`}><option value="" disabled>Seleccionar evaluación...</option><option value="Neutral" className="text-gray-700 dark:text-gray-300">Neutral</option><option value="Negativo" className="text-red-600 dark:text-red-400">Negativo</option></select></div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="space-y-1.5">
+                                            <label htmlFor={`canal-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Canal</label>
+                                            <select id={`canal-${idx}`} value={registro.canal} onChange={(e) => updateRegistro(idx, 'canal', e.target.value)} className={inputStyles}>
+                                                {['Facebook', 'Instagram', 'TikTok', 'LinkedIn', 'YouTube', 'X'].map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                            </select>
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label htmlFor={`tipoActor-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Tipo de Actor</label>
+                                            <select id={`tipoActor-${idx}`} value={registro.tipoActor} onChange={(e) => updateRegistro(idx, 'tipoActor', e.target.value)} className={`${inputStyles} ${!registro.tipoActor ? 'text-gray-400' : ''}`}>
+                                                <option value="" disabled>Seleccionar tipo de actor...</option>
+                                                {['Gobierno', 'Creadores de contenido', 'Detractor', 'Portales de noticias', 'Periódicos digitales', 'Medios especializados', 'Sitios institucionales', 'Medios Locales', 'Otro'].map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                            </select>
+                                        </div>
+                                        {registro.tipoActor === 'Otro' && (
+                                            <div className="space-y-1.5 md:col-span-2">
+                                                <label htmlFor={`tipoActorOtro-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Especificar Tipo de Actor</label>
+                                                <input id={`tipoActorOtro-${idx}`} type="text" required placeholder="Describe el tipo de actor..." value={registro.tipoActorOtro} onChange={(e) => updateRegistro(idx, 'tipoActorOtro', e.target.value)} className={inputStyles} />
+                                            </div>
+                                        )}
+                                        <div className="space-y-1.5 md:col-span-2">
+                                            <label htmlFor={`usuario-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Usuario o Sitio Web</label>
+                                            <input id={`usuario-${idx}`} type="url" required placeholder="Ej: https://twitter.com/usuario o https://sitio-web.com" value={registro.usuarioSitioWeb} onChange={(e) => updateRegistro(idx, 'usuarioSitioWeb', e.target.value)} className={inputStyles} />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label htmlFor={`sentimiento-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Sentimiento de la Mención</label>
+                                            <select id={`sentimiento-${idx}`} required value={registro.sentiment} onChange={(e) => updateRegistro(idx, 'sentiment', e.target.value)} className={`${inputStyles} ${!registro.sentiment ? 'text-gray-400' : ''}`}>
+                                                <option value="" disabled>Seleccionar sentimiento...</option>
+                                                <option value="Positivo" className="text-green-600 dark:text-green-400">🟢 Positivo</option>
+                                                <option value="Neutral" className="text-yellow-600 dark:text-yellow-400">🟡 Neutral</option>
+                                                <option value="Negativo" className="text-red-600 dark:text-red-400">🔴 Negativo</option>
+                                            </select>
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label htmlFor={`narrativa-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Narrativa</label>
+                                            <select id={`narrativa-${idx}`} value={registro.narrativa} onChange={(e) => updateRegistro(idx, 'narrativa', e.target.value)} className={`${inputStyles} ${!registro.narrativa ? 'text-gray-400' : ''}`}>
+                                                <option value="" disabled>Seleccionar narrativa...</option>
+                                                {['Seguridad y regulación', 'Inversión y desarrollo regional', 'Avances de obra e infraestructura', 'Legal y derechos humanos', 'Medio ambiente', 'Difusión informativa', 'Otro'].map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                            </select>
+                                        </div>
+                                        {registro.narrativa === 'Otro' && (
+                                            <div className="space-y-1.5 md:col-span-2">
+                                                <label htmlFor={`narrativaOtro-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Especificar Narrativa</label>
+                                                <input id={`narrativaOtro-${idx}`} type="text" required placeholder="Describe la narrativa..." value={registro.narrativaOtro} onChange={(e) => updateRegistro(idx, 'narrativaOtro', e.target.value)} className={inputStyles} />
+                                            </div>
+                                        )}
+                                        <div className="space-y-1.5">
+                                            <label htmlFor={`nivelRiesgo-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Nivel de Riesgo</label>
+                                            <select id={`nivelRiesgo-${idx}`} value={registro.nivelRiesgo} onChange={(e) => updateRegistro(idx, 'nivelRiesgo', e.target.value)} className={`${inputStyles} ${!registro.nivelRiesgo ? 'text-gray-400' : ''}`}>
+                                                <option value="" disabled>Seleccionar nivel...</option>
+                                                {['Bajo', 'Medio', 'Alto', 'Crítico'].map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                            </select>
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label htmlFor={`estatus-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Estatus</label>
+                                            <select id={`estatus-${idx}`} value={registro.estatus} onChange={(e) => updateRegistro(idx, 'estatus', e.target.value)} className={`${inputStyles} ${!registro.estatus ? 'text-gray-400' : ''}`}>
+                                                <option value="" disabled>Seleccionar estatus...</option>
+                                                {['Monitoreando', 'Escalado', 'Cerrado'].map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                            </select>
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label htmlFor={`visualizaciones-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Visualizaciones</label>
+                                            <input id={`visualizaciones-${idx}`} type="text" placeholder="Ej: 1,250" value={registro.visualizaciones} onChange={(e) => updateRegistro(idx, 'visualizaciones', e.target.value)} className={inputStyles} />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label htmlFor={`reacciones-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Reacciones</label>
+                                            <input id={`reacciones-${idx}`} type="text" placeholder="Ej: 340" value={registro.reacciones} onChange={(e) => updateRegistro(idx, 'reacciones', e.target.value)} className={inputStyles} />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label htmlFor={`comentarios-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Comentarios</label>
+                                            <input id={`comentarios-${idx}`} type="text" placeholder="Ej: 85" value={registro.comentarios} onChange={(e) => updateRegistro(idx, 'comentarios', e.target.value)} className={inputStyles} />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label htmlFor={`compartidos-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Compartidos</label>
+                                            <input id={`compartidos-${idx}`} type="text" placeholder="Ej: 42" value={registro.compartidos} onChange={(e) => updateRegistro(idx, 'compartidos', e.target.value)} className={inputStyles} />
+                                        </div>
+                                        <div className="space-y-1.5 md:col-span-2">
+                                            <label htmlFor={`hallazgoReputacional-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Hallazgo reputacional</label>
+                                            <textarea id={`hallazgoReputacional-${idx}`} rows={3} placeholder="Describe los hallazgos clave de la publicación, qué conversación puede activar y si requiere seguimiento..." value={registro.hallazgoReputacional} onChange={(e) => updateRegistro(idx, 'hallazgoReputacional', e.target.value)} className={`${inputStyles} resize-none leading-relaxed`}></textarea>
+                                        </div>
+                                        <div className="space-y-1.5 md:col-span-2">
+                                            <label htmlFor={`linkPublicacion-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Link de la publicación original</label>
+                                            <input id={`linkPublicacion-${idx}`} type="url" placeholder="https://..." value={registro.linkPublicacion} onChange={(e) => updateRegistro(idx, 'linkPublicacion', e.target.value)} className={inputStyles} />
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="space-y-1.5 mt-6"><label htmlFor={`com-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Transcripción del comentario</label><textarea id={`com-${idx}`} required rows={3} placeholder="Copia y pega el comentario exacto del usuario..." value={c.comentario} onChange={(e) => updateComentario(idx, 'comentario', e.target.value)} className={`${inputStyles} resize-none leading-relaxed`}></textarea></div>
-                                <div className="mt-6 pt-6 border-t theme-border border-dashed">
-                                    <div className="flex flex-col sm:flex-row sm:items-center gap-6 mb-4"><label className="text-sm font-bold theme-text-main">Referencia a Publicación Original:</label><div className="flex items-center gap-6"><label className={radioLabelStyles}><input type="radio" value="url" checked={c.posteoTipo === 'url'} onChange={() => { updateComentario(idx, 'posteoTipo', 'url'); updateComentario(idx, 'posteoTexto', ''); }} className="w-4 h-4 text-blue-500 focus:ring-blue-500" /> Ingresar Enlace (URL)</label><label className={radioLabelStyles}><input type="radio" value="texto" checked={c.posteoTipo === 'texto'} onChange={() => { updateComentario(idx, 'posteoTipo', 'texto'); updateComentario(idx, 'posteoUrl', ''); }} className="w-4 h-4 text-blue-500 focus:ring-blue-500" /> Ingresar Texto Libre</label></div></div>
-                                    {c.posteoTipo === 'url' ? (<input type="url" aria-label="URL del post original" placeholder="Ej: https://facebook.com/post/..." value={c.posteoUrl} onChange={(e) => updateComentario(idx, 'posteoUrl', e.target.value)} required className={inputStyles} />) : (<input type="text" aria-label="Texto del post original" placeholder="Describe brevemente de qué trataba el post original..." value={c.posteoTexto} onChange={(e) => updateComentario(idx, 'posteoTexto', e.target.value)} required className={inputStyles} />)}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="p-12 theme-bg-container border-2 border-dashed theme-border rounded-[1.5rem] text-center">
+                            <MessageSquare className="w-16 h-16 theme-text-muted mx-auto mb-4 opacity-30" />
+                            <h4 className="text-lg font-bold theme-text-main mb-2">Formulario de Medios Digitales</h4>
+                            <p className="theme-text-muted text-sm">Este formulario estará disponible próximamente. Actualmente solo se encuentra disponible el formulario de Redes Sociales.</p>
+                            <span className="inline-block mt-4 px-4 py-2 bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-xl text-xs font-bold">Próximamente</span>
+                        </div>
+                    )}
                 </div>
 
                 <div className="pt-8 space-y-8">
@@ -226,7 +345,7 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
     };
 
     const availableYears = useMemo(() => {
-        const years = new Set(comments.map((c: any) => c.fechaInicio ? c.fechaInicio.split('-')[0] : null).filter(Boolean));
+        const years = new Set(comments.map((c: any) => c.fechaPublicacion ? c.fechaPublicacion.split('-')[0] : null).filter(Boolean));
         return Array.from(years).sort((a: any, b: any) => b.localeCompare(a));
     }, [comments]);
 
@@ -234,8 +353,8 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
         if (!exportYear) return [];
         const months = new Set(
             comments
-                .filter((c: any) => c.fechaInicio && c.fechaInicio.split('-')[0] === exportYear)
-                .map((c: any) => c.fechaInicio.split('-')[1])
+                .filter((c: any) => c.fechaPublicacion && c.fechaPublicacion.split('-')[0] === exportYear)
+                .map((c: any) => c.fechaPublicacion.split('-')[1])
         );
         return Array.from(months).sort((a: any, b: any) => b.localeCompare(a));
     }, [comments, exportYear]);
@@ -243,9 +362,9 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
     const availableCampusesForExport = useMemo(() => {
         let filtered = comments;
         if (exportType === 'year' && exportYear) {
-            filtered = comments.filter((i: any) => i.fechaInicio && i.fechaInicio.split('-')[0] === exportYear);
+            filtered = comments.filter((i: any) => i.fechaPublicacion && i.fechaPublicacion.split('-')[0] === exportYear);
         } else if (exportType === 'month' && exportYear && exportMonth) {
-            filtered = comments.filter((i: any) => i.fechaInicio && i.fechaInicio.startsWith(`${exportYear}-${exportMonth}`));
+            filtered = comments.filter((i: any) => i.fechaPublicacion && i.fechaPublicacion.startsWith(`${exportYear}-${exportMonth}`));
         }
         
         const campuses = new Set<string>();
@@ -261,7 +380,7 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
 
     const filteredComments = useMemo(() => {
         return comments.filter((com: any) => {
-            const year = com.fechaInicio ? com.fechaInicio.split('-')[0] : '';
+            const year = com.fechaPublicacion ? com.fechaPublicacion.split('-')[0] : '';
             const matchYear = filterYear === 'Todos' || year === filterYear;
             const term = searchTerm.toLowerCase();
             const list = getNormalizedComments(com);
@@ -283,8 +402,8 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
     const groupedData = useMemo(() => {
         const groups: Record<string, Record<string, any[]>> = {};
         filteredComments.forEach((com: any) => {
-            const year = com.fechaInicio ? com.fechaInicio.split('-')[0] : 'Sin Fecha';
-            const month = com.fechaInicio ? com.fechaInicio.split('-')[1] : '00';
+            const year = com.fechaPublicacion ? com.fechaPublicacion.split('-')[0] : 'Sin Fecha';
+            const month = com.fechaPublicacion ? com.fechaPublicacion.split('-')[1] : '00';
             if (!groups[year]) groups[year] = {};
             if (!groups[year][month]) groups[year][month] = [];
             groups[year][month].push(com);
@@ -349,13 +468,13 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
 
         if (exportType === 'year') {
             if (!exportYear) return showToast('Selecciona un año para exportar', true);
-            dataToExport = comments.filter((i: any) => i.fechaInicio && i.fechaInicio.split('-')[0] === exportYear);
+            dataToExport = comments.filter((i: any) => i.fechaPublicacion && i.fechaPublicacion.split('-')[0] === exportYear);
             if (exportCampus) dataToExport = dataToExport.filter((i: any) => getNormalizedComments(i).some((c:any) => c.campus === exportCampus));
             filenameSuffix = exportCampus ? `${exportYear}_${exportCampus}` : exportYear;
 
         } else if (exportType === 'month') {
             if (!exportYear || !exportMonth) return showToast('Selecciona año y mes para exportar', true);
-            dataToExport = comments.filter((i: any) => i.fechaInicio && i.fechaInicio.startsWith(`${exportYear}-${exportMonth}`));
+            dataToExport = comments.filter((i: any) => i.fechaPublicacion && i.fechaPublicacion.startsWith(`${exportYear}-${exportMonth}`));
             if (exportCampus) dataToExport = dataToExport.filter((i: any) => getNormalizedComments(i).some((c:any) => c.campus === exportCampus));
             filenameSuffix = exportCampus ? `${exportYear}_${exportMonth}_${exportCampus}` : `${exportYear}_${exportMonth}`;
         }
@@ -366,8 +485,8 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
 
         setTimeout(() => {
             const headers = isAdmin 
-                ? ['Fecha Inicio,Fecha Fin,Contenido Global,Evidencias,Red Social,Campus,Sentiment,Usuario,Tipo Posteo,Posteo Original,Comentario,Autor'] 
-                : ['Fecha Inicio,Fecha Fin,Contenido Global,Evidencias,Red Social,Campus,Sentiment,Usuario,Tipo Posteo,Posteo Original,Comentario'];
+                ? ['Fecha Publicación,Hora Detección,Fuente Monitoreo,Evidencias,Red Social,Campus,Sentiment,Usuario,Tipo Posteo,Posteo Original,Comentario,Autor'] 
+                : ['Fecha Publicación,Hora Detección,Fuente Monitoreo,Evidencias,Red Social,Campus,Sentiment,Usuario,Tipo Posteo,Posteo Original,Comentario'];
             
             const rows = dataToExport.flatMap((i: any) => {
                 let list = getNormalizedComments(i);
@@ -379,7 +498,7 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
                     const escape = (text: string) => `"${(text || '').toString().replace(/"/g, '""')}"`;
                     const posteoOriginal = c.posteoTipo === 'url' ? c.posteoUrl : c.posteoTexto;
                     const baseData = [
-                        escape(i.fechaInicio), escape(i.fechaFin), escape(i.contenido), escape(i.evidencia),
+                        escape(i.fechaPublicacion), escape(i.horaDeteccion), escape(i.fuenteMonitoreo), escape(i.evidencia),
                         escape(c.redSocial), escape(c.campus), escape(c.sentiment || 'N/A'), escape(c.usuario),
                         escape(c.posteoTipo), escape(posteoOriginal), escape(c.comentario)
                     ].join(',');
@@ -562,8 +681,8 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
                                                                                             <MessageSquare className={`w-4 h-4 transition-colors ${isSelectionMode && isSelected ? 'text-white' : 'theme-text-muted group-hover:text-white'}`} />
                                                                                         </div>
                                                                                         <div className="flex-1 min-w-0">
-                                                                                            <h3 className={`font-bold truncate text-sm transition-colors ${isSelectionMode && isSelected ? 'text-red-500' : 'theme-text-main'}`}>Reporte del {com.fechaInicio}</h3>
-                                                                                            <p className="text-[10px] font-semibold theme-text-muted mt-0.5 truncate flex items-center gap-1">al {com.fechaFin}{isAdmin && <><span className="mx-1">|</span> Por: <span className="text-blue-500 truncate">{com.autor || 'Administrador'}</span></>}</p>
+                                                                                             <h3 className={`font-bold truncate text-sm transition-colors ${isSelectionMode && isSelected ? 'text-red-500' : 'theme-text-main'}`}>Publicación: {com.fechaPublicacion}</h3>
+                                                                                             <p className="text-[10px] font-semibold theme-text-muted mt-0.5 truncate flex items-center gap-1">Detección: {com.horaDeteccion}{isAdmin && <><span className="mx-1">|</span> Por: <span className="text-blue-500 truncate">{com.autor || 'Administrador'}</span></>}</p>
                                                                                         </div>
                                                                                     </div>
                                                                                     <div className="text-sm theme-text-main line-clamp-2 min-h-[40px] opacity-90 mb-1 w-full"><span className="font-bold mr-1">{firstComment.usuario}:</span>{firstComment.comentario}</div>
@@ -698,7 +817,7 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 fade-in print:static print:block print:p-0 print:bg-transparent">
                     <div className="theme-bg-container rounded-2xl w-full max-w-2xl shadow-2xl border theme-border overflow-hidden flex flex-col max-h-[90vh] print:max-h-none print:shadow-none print:border-none print:w-full print:max-w-full">
                         <div className="p-5 border-b theme-border flex justify-between items-center bg-blue-500/5 no-print">
-                            <div className="flex items-center gap-3"><div className="p-2 bg-blue-500/20 rounded-lg"><MessageSquare className="w-5 h-5 text-blue-500" /></div><div><h3 className="font-bold theme-text-main text-lg">Reporte de Comentarios</h3><p className="text-xs theme-text-muted font-medium">Periodo: {selectedComment.fechaInicio} al {selectedComment.fechaFin}</p></div></div>
+                            <div className="flex items-center gap-3"><div className="p-2 bg-blue-500/20 rounded-lg"><MessageSquare className="w-5 h-5 text-blue-500" /></div><div><h3 className="font-bold theme-text-main text-lg">Reporte de Comentarios</h3><p className="text-xs theme-text-muted font-medium">Publicación: {selectedComment.fechaPublicacion} | Detección: {selectedComment.horaDeteccion}</p></div></div>
                             <div className="flex items-center gap-2">
                                 <button type="button" onClick={() => window.print()} className="p-2 theme-text-muted hover:theme-text-main hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors"><Printer className="w-5 h-5"/></button>
                                 {isAdmin && (
@@ -742,9 +861,9 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
                         <div className="p-6 overflow-y-auto custom-scrollbar flex-1">
                             <form id="editCommentForm" onSubmit={handleEditUpdate} className="space-y-6">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 theme-bg-lowest border theme-border rounded-xl">
-                                    <div><label htmlFor="ec-fechaInicio" className="text-xs font-bold theme-text-muted uppercase tracking-wider">Fecha Inicio</label><input id="ec-fechaInicio" type="date" required value={editData.fechaInicio} onChange={e => setEditData({...editData, fechaInicio: e.target.value})} className={`${inputStyles} [color-scheme:light] dark:[color-scheme:dark]`} /></div>
-                                    <div><label htmlFor="ec-fechaFin" className="text-xs font-bold theme-text-muted uppercase tracking-wider">Fecha Fin</label><input id="ec-fechaFin" type="date" required value={editData.fechaFin} onChange={e => setEditData({...editData, fechaFin: e.target.value})} className={`${inputStyles} [color-scheme:light] dark:[color-scheme:dark]`} /></div>
-                                    <div><label htmlFor="ec-contenido" className="text-xs font-bold theme-text-muted uppercase tracking-wider">Contenido Global</label><select id="ec-contenido" value={editData.contenido} onChange={e => setEditData({...editData, contenido: e.target.value})} className={inputStyles}><option value="Orgánico">Orgánico</option><option value="Pautado">Pautado</option></select></div>
+                                    <div><label htmlFor="ec-fechaPublicacion" className="text-xs font-bold theme-text-muted uppercase tracking-wider">Fecha de publicación</label><input id="ec-fechaPublicacion" type="date" required value={editData.fechaPublicacion} onChange={e => setEditData({...editData, fechaPublicacion: e.target.value})} className={`${inputStyles} [color-scheme:light] dark:[color-scheme:dark]`} /></div>
+                                    <div><label htmlFor="ec-horaDeteccion" className="text-xs font-bold theme-text-muted uppercase tracking-wider">Hora de detección</label><input id="ec-horaDeteccion" type="time" required value={editData.horaDeteccion} onChange={e => setEditData({...editData, horaDeteccion: e.target.value})} className={`${inputStyles} [color-scheme:light] dark:[color-scheme:dark]`} /></div>
+                                    <div><label htmlFor="ec-fuenteMonitoreo" className="text-xs font-bold theme-text-muted uppercase tracking-wider">Fuente de Monitoreo</label><select id="ec-fuenteMonitoreo" value={editData.fuenteMonitoreo} onChange={e => setEditData({...editData, fuenteMonitoreo: e.target.value})} className={inputStyles}><option value="Redes sociales">Redes sociales</option><option value="Medios digitales">Medios digitales</option></select></div>
                                     <div><label htmlFor="ec-evidencia" className="text-xs font-bold theme-text-muted uppercase tracking-wider">Evidencia (Opcional)</label><input id="ec-evidencia" type="url" value={editData.evidencia} onChange={e => setEditData({...editData, evidencia: e.target.value})} className={inputStyles} /></div>
                                 </div>
                                 <div className="space-y-4">

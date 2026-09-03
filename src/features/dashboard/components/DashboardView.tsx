@@ -73,8 +73,8 @@ export const DashboardView = ({ showToast, user }: any) => {
         const campusCounts: Record<string, number> = {};
 
         comments.forEach((com: any) => {
-            if (com.contenido === 'Orgánico') organic++;
-            if (com.contenido === 'Pautado') paid++;
+            if (com.fuenteMonitoreo === 'Redes sociales') organic++;
+            if (com.fuenteMonitoreo === 'Medios digitales') paid++;
             const cList = com.comentariosList || [];
             totalIndividuales += cList.length;
             cList.forEach((c: any) => {
@@ -137,10 +137,10 @@ return (
                                 {comments.slice(0, 5).map((com: any) => (
                                     <div key={com.id} className="theme-bg-container border theme-border rounded-xl p-4 shadow-sm">
                                         <div className="flex justify-between items-start mb-1">
-                                            <p className="text-sm font-bold theme-text-main">Reporte del {com.fechaInicio}</p>
-                                            <span className="text-[9px] font-bold px-2 py-0.5 rounded-md uppercase bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">{com.contenido}</span>
+                                            <p className="text-sm font-bold theme-text-main">Publicación: {com.fechaPublicacion}</p>
+                                            <span className="text-[9px] font-bold px-2 py-0.5 rounded-md uppercase bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">{com.fuenteMonitoreo}</span>
                                         </div>
-                                        <p className="text-xs theme-text-muted">Finaliza: {com.fechaFin}</p>
+                                        <p className="text-xs theme-text-muted">Detección: {com.horaDeteccion}</p>
                                     </div>
                                 ))}
                             </div>
