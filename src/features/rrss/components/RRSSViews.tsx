@@ -8,6 +8,7 @@ import {
 import { collection, addDoc, onSnapshot } from 'firebase/firestore';
 import { db, appId, IS_MOCK } from '../../../services/firebase/config';
 import { getMonthName } from '../../../shared/utils/date';
+import { normalizeIncidencia, riesgoValue } from '../../../shared/utils/incidencias';
 import DOMPurify from 'dompurify'; 
 
 const inputStyles = "w-full p-3 rounded-xl theme-bg-low border theme-border theme-text-main focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none transition-all text-sm";
@@ -38,8 +39,12 @@ const EditorToolbar = ({ onCommand }: { onCommand: (cmd: string, val?: string) =
 
 export const NewRRSSIncidentView = ({ isAdmin, showToast, navigate, user, logAction }: any) => {
     const [formData, setFormData] = useState({
-        totalIncidencias: 1, fecha: new Date().toISOString().split('T')[0], usuario: '', medio: 'Facebook Comentario',
-        campus: 'Atizapán', riesgo: 'Bajo', descripcion: '', area: 'Operaciones', comentarios: '', enlacePublicacion: '', enlaceDrive: '', reporteTexto: '', estado: 'Monitoreo activo'
+        totalIncidencias: 1, fecha: new Date().toISOString().split('T')[0],
+        actorFuente: '', fuenteDeteccion: 'Facebook', tipoFuente: 'Queja',
+        temaPrincipal: 'Seguridad y regulación', nivelRiesgoReputacional: 'Bajo',
+        alcanceActual: 'Aislado', tendencia: 'Estable',
+        campus: 'Atizapán', resumenIncidente: '', hallazgosClave: '',
+        enlacePublicacion: '', enlaceDrive: '', reporteTexto: '', estado: 'Monitoreo activo'
     });
 
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -86,9 +91,9 @@ export const NewRRSSIncidentView = ({ isAdmin, showToast, navigate, user, logAct
                         <p className="text-xs font-bold text-orange-500 uppercase tracking-widest mb-3 flex items-center gap-2">
                             <Smartphone className="w-4 h-4" /> Reputación Digital
                         </p>
-                        <h2 className="text-4xl font-black theme-text-main mb-4 tracking-tight">Crear Incidente RRSS</h2>
+                        <h2 className="text-4xl font-black theme-text-main mb-4 tracking-tight">Crear Incidente Reputacional</h2>
                         <p className="theme-text-muted text-base max-w-2xl leading-relaxed">
-                            Registra nuevas incidencias, quejas críticas o crisis detectadas en redes sociales. Clasifica el nivel de riesgo y genera un reporte oficial estructurado.
+                            Registra y evalúa una situación con potencial de afectar la reputación de la marca. Vincula las menciones relacionadas y da seguimiento a su evolución.
                         </p>
                     </div>
                 </div>
@@ -100,30 +105,62 @@ export const NewRRSSIncidentView = ({ isAdmin, showToast, navigate, user, logAct
                             <AlertTriangle className="w-5 h-5 text-orange-500" /> Parámetros Generales
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6 sm:p-8 theme-bg-container rounded-[1.5rem] border theme-border shadow-sm border-l-[6px] border-l-orange-500">
-                            <div className="space-y-1.5"><label htmlFor="nri-fecha" className="text-xs font-bold theme-text-muted uppercase tracking-wider">Fecha de Recepción</label><input id="nri-fecha" type="date" required value={formData.fecha} onChange={(e) => setFormData({...formData, fecha: e.target.value})} className={`${inputStyles} [color-scheme:light] dark:[color-scheme:dark]`} /></div>
-                            <div className="space-y-1.5"><label htmlFor="nri-total" className="text-xs font-bold theme-text-muted uppercase tracking-wider">Volumen (Total Incidencias)</label><input id="nri-total" type="number" min="1" required value={formData.totalIncidencias} onChange={(e) => setFormData({...formData, totalIncidencias: parseInt(e.target.value)})} className={inputStyles} /></div>
-                            <div className="space-y-1.5"><label htmlFor="nri-usuario" className="text-xs font-bold theme-text-muted uppercase tracking-wider">Identidad (Usuario)</label><input id="nri-usuario" type="text" required placeholder="@usuario o Nombre público" value={formData.usuario} onChange={(e) => setFormData({...formData, usuario: e.target.value})} className={inputStyles} /></div>
-                            <div className="space-y-1.5"><label htmlFor="nri-medio" className="text-xs font-bold theme-text-muted uppercase tracking-wider">Medio / Red Social</label><select id="nri-medio" value={formData.medio} onChange={(e) => setFormData({...formData, medio: e.target.value})} className={inputStyles}><option className={optionStyles} value="Facebook Comentario">Facebook Comentario</option><option className={optionStyles} value="TikTok">TikTok</option><option className={optionStyles} value="FB Grupos">FB Grupos</option><option className={optionStyles} value="LinkedIn">LinkedIn</option><option className={optionStyles} value="Facebook DM">Facebook DM</option><option className={optionStyles} value="Instagram DM">Instagram DM</option></select></div>
-                            <div className="space-y-1.5"><label htmlFor="nri-campus" className="text-xs font-bold theme-text-muted uppercase tracking-wider">Campus Implicado</label><select id="nri-campus" value={formData.campus} onChange={(e) => setFormData({...formData, campus: e.target.value})} className={inputStyles}>{CAMPUS_OPTIONS.map(c => <option className={optionStyles} key={c}>{c}</option>)}</select></div>
-                            <div className="space-y-1.5"><label htmlFor="nri-area" className="text-xs font-bold theme-text-muted uppercase tracking-wider">Área Responsable</label><select id="nri-area" value={formData.area} onChange={(e) => setFormData({...formData, area: e.target.value})} className={inputStyles}><option className={optionStyles} value="Operaciones">Operaciones</option><option className={optionStyles} value="Legal">Legal</option><option className={optionStyles} value="Comercial - Call Center">Comercial - Call Center</option></select></div>
-                            
-                            <div className="lg:col-span-3 border-t theme-border pt-4 mt-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-1.5">
+                                <label htmlFor="nri-fecha" className="text-xs font-bold theme-text-muted uppercase tracking-wider">Fecha de Recepción</label>
+                                <input id="nri-fecha" type="date" required value={formData.fecha} onChange={(e) => setFormData({...formData, fecha: e.target.value})} className={`${inputStyles} [color-scheme:light] dark:[color-scheme:dark]`} />
+                            </div>
+                            <div className="space-y-1.5">
+                                <label htmlFor="nri-total" className="text-xs font-bold theme-text-muted uppercase tracking-wider">Volumen (Total Incidencias)</label>
+                                <input id="nri-total" type="number" min="1" required value={formData.totalIncidencias} onChange={(e) => setFormData({...formData, totalIncidencias: parseInt(e.target.value)})} className={inputStyles} />
+                            </div>
+                            <div className="space-y-1.5">
+                                <label htmlFor="nri-actorFuente" className="text-xs font-bold theme-text-muted uppercase tracking-wider">Actor o Fuente</label>
+                                <input id="nri-actorFuente" type="url" required placeholder="@usuario o sitio web" value={formData.actorFuente} onChange={(e) => setFormData({...formData, actorFuente: e.target.value})} className={inputStyles} />
+                            </div>
+                            <div className="space-y-1.5">
+                                <label htmlFor="nri-fuenteDeteccion" className="text-xs font-bold theme-text-muted uppercase tracking-wider">Fuente de Detección</label>
+                                <select id="nri-fuenteDeteccion" value={formData.fuenteDeteccion} onChange={(e) => setFormData({...formData, fuenteDeteccion: e.target.value})} className={inputStyles}>
+                                    {['Facebook', 'Instagram', 'TikTok', 'LinkedIn', 'YouTube', 'X', 'Medios Digitales'].map(opt => <option className={optionStyles} key={opt} value={opt}>{opt}</option>)}
+                                </select>
+                            </div>
+                            <div className="space-y-1.5">
+                                <label htmlFor="nri-tipoFuente" className="text-xs font-bold theme-text-muted uppercase tracking-wider">Tipo de Fuente</label>
+                                <select id="nri-tipoFuente" value={formData.tipoFuente} onChange={(e) => setFormData({...formData, tipoFuente: e.target.value})} className={inputStyles}>
+                                    {['Queja', 'Desinformación', 'Acusación', 'Denuncia', 'Cuestionamiento', 'Riesgo de seguridad', 'Conflicto comunitario', 'Tema legal', 'Cobertura negativa', 'Crisis activa'].map(opt => <option className={optionStyles} key={opt} value={opt}>{opt}</option>)}
+                                </select>
+                            </div>
+                            <div className="space-y-1.5">
+                                <label htmlFor="nri-temaPrincipal" className="text-xs font-bold theme-text-muted uppercase tracking-wider">Tema Principal</label>
+                                <select id="nri-temaPrincipal" value={formData.temaPrincipal} onChange={(e) => setFormData({...formData, temaPrincipal: e.target.value})} className={inputStyles}>
+                                    {['Seguridad y regulación', 'Comunidades e impacto social', 'Legal y derechos humanos', 'Medio ambiente', 'Afectaciones o riesgos', 'Avances de obra e infraestructura', 'Reputación corporativa'].map(opt => <option className={optionStyles} key={opt} value={opt}>{opt}</option>)}
+                                </select>
+                            </div>
+
+                            <div className="lg:col-span-3 border-t theme-border pt-4 mt-2 grid grid-cols-1 md:grid-cols-3 gap-6">
                                 <div className="space-y-1.5">
-                                    <label htmlFor="nri-riesgo" className="text-xs font-bold theme-text-muted uppercase tracking-wider">Nivel de Riesgo Operativo</label>
-                                    <select id="nri-riesgo" value={formData.riesgo} onChange={(e) => setFormData({...formData, riesgo: e.target.value})} className={`${inputStyles} font-bold`}>
-                                        <option className={optionStyles} value="Bajo">Bajo 🟢</option>
-                                        <option className={optionStyles} value="Medio">Medio 🟡</option>
-                                        <option className={optionStyles} value="Alto">Alto 🟠</option>
-                                        <option className={optionStyles} value="Critico">Crítico 🔴</option>
+                                    <label htmlFor="nri-nivelRiesgo" className="text-xs font-bold theme-text-muted uppercase tracking-wider">Nivel de Riesgo Reputacional</label>
+                                    <select id="nri-nivelRiesgo" value={formData.nivelRiesgoReputacional} onChange={(e) => setFormData({...formData, nivelRiesgoReputacional: e.target.value})} className={`${inputStyles} font-bold`}>
+                                        <option className={optionStyles} value="Bajo">🟢 Bajo</option>
+                                        <option className={optionStyles} value="Medio">🟠 Medio</option>
+                                        <option className={optionStyles} value="Alto">🟡 Alto</option>
+                                        <option className={optionStyles} value="Crítico">🔴 Crítico</option>
                                     </select>
                                 </div>
                                 <div className="space-y-1.5">
-                                    <label htmlFor="nri-estado" className="text-xs font-bold theme-text-muted uppercase tracking-wider">Estatus Inicial</label>
-                                    <select id="nri-estado" value={formData.estado} onChange={(e) => setFormData({...formData, estado: e.target.value})} className={`${inputStyles} font-bold`}>
-                                        <option className={optionStyles} value="Monitoreo activo">🔴 MONITOREO ACTIVO</option>
-                                        <option className={optionStyles} value="En revisión">🟡 EN REVISIÓN</option>
-                                        <option className={optionStyles} value="Seguimiento activo">🟠 SEGUIMIENTO ACTIVO</option>
-                                        <option className={optionStyles} value="Resuelto / solucionado">🟢 RESUELTO</option>
+                                    <label htmlFor="nri-alcance" className="text-xs font-bold theme-text-muted uppercase tracking-wider">Alcance Actual</label>
+                                    <select id="nri-alcance" value={formData.alcanceActual} onChange={(e) => setFormData({...formData, alcanceActual: e.target.value})} className={`${inputStyles} font-bold`}>
+                                        <option className={optionStyles} value="Aislado">🟢 Aislado</option>
+                                        <option className={optionStyles} value="Limitado">🟠 Limitado</option>
+                                        <option className={optionStyles} value="Extendido">🟡 Extendido</option>
+                                        <option className={optionStyles} value="Viral">🔴 Viral</option>
+                                    </select>
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label htmlFor="nri-tendencia" className="text-xs font-bold theme-text-muted uppercase tracking-wider">Tendencia</label>
+                                    <select id="nri-tendencia" value={formData.tendencia} onChange={(e) => setFormData({...formData, tendencia: e.target.value})} className={`${inputStyles} font-bold`}>
+                                        <option className={optionStyles} value="Disminuyendo">🟢 Disminuyendo</option>
+                                        <option className={optionStyles} value="Estable">🟡 Estable</option>
+                                        <option className={optionStyles} value="Creciendo rápidamente">🔴 Creciendo rápidamente</option>
                                     </select>
                                 </div>
                             </div>
@@ -135,17 +172,23 @@ export const NewRRSSIncidentView = ({ isAdmin, showToast, navigate, user, logAct
                             <FileText className="w-5 h-5 text-orange-500" /> Detalles del Incidente
                         </h3>
                         <div className="space-y-6 p-6 sm:p-8 theme-bg-container rounded-[1.5rem] border theme-border shadow-sm">
-                            <div className="space-y-1.5"><label htmlFor="nri-descripcion" className="text-xs font-bold theme-text-muted uppercase tracking-wider">Descripción Breve</label><textarea id="nri-descripcion" required rows={3} placeholder="Resuma el evento en un párrafo..." value={formData.descripcion} onChange={(e) => setFormData({...formData, descripcion: e.target.value})} className={`${inputStyles} resize-none leading-relaxed`}></textarea></div>
-                            <div className="space-y-1.5"><label htmlFor="nri-comentarios" className="text-xs font-bold theme-text-muted uppercase tracking-wider">Comentarios Adicionales <span className="text-[10px] bg-gray-200 dark:bg-gray-800 text-gray-500 px-2 py-0.5 rounded ml-2">Opcional</span></label><textarea id="nri-comentarios" rows={2} placeholder="Notas internas o contexto adicional..." value={formData.comentarios} onChange={(e) => setFormData({...formData, comentarios: e.target.value})} className={`${inputStyles} resize-none leading-relaxed`}></textarea></div>
-                            
+                            <div className="space-y-1.5">
+                                <label htmlFor="nri-resumen" className="text-xs font-bold theme-text-muted uppercase tracking-wider">Resumen del Incidente</label>
+                                <textarea id="nri-resumen" rows={3} placeholder="Describe qué ocurrió, quién está involucrado y por qué representa un riesgo reputacional." value={formData.resumenIncidente} onChange={(e) => setFormData({...formData, resumenIncidente: e.target.value})} className={`${inputStyles} resize-none leading-relaxed`}></textarea>
+                            </div>
+                            <div className="space-y-1.5">
+                                <label htmlFor="nri-hallazgos" className="text-xs font-bold theme-text-muted uppercase tracking-wider">Hallazgos Clave <span className="text-[10px] bg-orange-100 dark:bg-orange-900/30 text-orange-600 px-2 py-0.5 rounded ml-2 font-bold">Requerido</span></label>
+                                <textarea id="nri-hallazgos" required rows={3} placeholder="Resume el incidente en un máximo de 500 caracteres." maxLength={500} value={formData.hallazgosClave} onChange={(e) => setFormData({...formData, hallazgosClave: e.target.value})} className={`${inputStyles} resize-none leading-relaxed`}></textarea>
+                                <p className="text-[10px] theme-text-muted text-right">{formData.hallazgosClave.length}/500</p>
+                            </div>
                             <div className="space-y-1.5 pt-4">
                                 <label className="text-xs font-bold theme-text-muted uppercase tracking-wider flex justify-between items-center">
-                                    Reporte Oficial (Texto Enriquecido)
+                                    Análisis Interno
                                     <span className="font-normal text-orange-500 flex items-center gap-1"><Smartphone className="w-3 h-3"/> WYSIWYG Editor</span>
                                 </label>
                                 <div className="border theme-border rounded-xl overflow-hidden theme-bg-container focus-within:border-orange-500 focus-within:ring-1 focus-within:ring-orange-500 transition-all shadow-inner">
                                     <EditorToolbar onCommand={execCommand} />
-                                    <div ref={editorRef} contentEditable onBlur={handleEditorBlur} className="w-full p-6 theme-text-main theme-bg-low outline-none min-h-[250px] overflow-y-auto max-h-[500px] text-sm leading-relaxed custom-scrollbar wysiwyg-content" data-placeholder="Redacte la bitácora formal del evento aquí. Puede utilizar listas, negritas y colores para estructurar la información..." style={{ whiteSpace: 'pre-wrap' }}></div>
+                                    <div ref={editorRef} contentEditable onBlur={handleEditorBlur} className="w-full p-6 theme-text-main theme-bg-low outline-none min-h-[250px] overflow-y-auto max-h-[500px] text-sm leading-relaxed custom-scrollbar wysiwyg-content" data-placeholder="Redacte el análisis interno del evento aquí. Puede utilizar listas, negritas y colores para estructurar la información..." style={{ whiteSpace: 'pre-wrap' }}></div>
                                 </div>
                             </div>
                         </div>
@@ -267,13 +310,19 @@ export const HistorialRRSSView = ({ showToast, isAdmin, updateRrssIncident, dele
             const matchStatus = filterStatus === 'Todos' || currentStatus === filterStatus;
             
             const term = searchTerm.toLowerCase();
-            const matchSearch = term === '' || 
-                (isAdmin && inc.autor && inc.autor.toLowerCase().includes(term)) ||
-                (inc.medio && inc.medio.toLowerCase().includes(term)) ||
-                (inc.usuario && inc.usuario.toLowerCase().includes(term)) ||
-                (inc.campus && inc.campus.toLowerCase().includes(term)) ||
-                (inc.area && inc.area.toLowerCase().includes(term)) ||
-                (inc.descripcion && inc.descripcion.toLowerCase().includes(term));
+            const n = normalizeIncidencia(inc);
+            const matchSearch = term === '' ||
+                (isAdmin && n.autor && n.autor.toLowerCase().includes(term)) ||
+                (n.fuenteDeteccion && n.fuenteDeteccion.toLowerCase().includes(term)) ||
+                (n.actorFuente && n.actorFuente.toLowerCase().includes(term)) ||
+                (n.campus && n.campus.toLowerCase().includes(term)) ||
+                (n.tipoFuente && n.tipoFuente.toLowerCase().includes(term)) ||
+                (n.temaPrincipal && n.temaPrincipal.toLowerCase().includes(term)) ||
+                (n.resumen && n.resumen.toLowerCase().includes(term)) ||
+                (n.hallazgosClave && n.hallazgosClave.toLowerCase().includes(term)) ||
+                (String(n.nivelRiesgo) && String(n.nivelRiesgo).toLowerCase().includes(term)) ||
+                (n.alcanceActual && n.alcanceActual.toLowerCase().includes(term)) ||
+                (n.tendencia && n.tendencia.toLowerCase().includes(term));
             
             return matchYear && matchStatus && matchSearch;
         });

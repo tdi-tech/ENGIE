@@ -433,6 +433,7 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
     const [editData, setEditData] = useState<any>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [filterYear, setFilterYear] = useState('Todos');
+    const [filterFuente, setFilterFuente] = useState('Todas');
     const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
 
     const camposFiltro = [
@@ -526,15 +527,18 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
             const term = searchTerm.toLowerCase();
             const list = getNormalizedComments(com);
             
+            // Filtro por fuente de monitoreo
+            const matchFuente = filterFuente === 'Todas' || list.some((c: any) => c.fuenteMonitoreo === filterFuente);
+            
             const matchSearch = term === '' || list.some((c: any) => {
                 return camposFiltro.some((cf: any) => {
                     const valor = c[cf.value];
                     return valor && String(valor).toLowerCase().includes(term);
                 });
             });
-            return matchYear && matchSearch;
+            return matchYear && matchSearch && matchFuente;
         });
-    }, [comments, searchTerm, filterYear]);
+    }, [comments, searchTerm, filterYear, filterFuente]);
 
     const groupedData = useMemo(() => {
         const groups: Record<string, Record<string, any[]>> = {};
@@ -662,8 +666,8 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
                     {/* ENCABEZADO CON BOTONES */}
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
                         <div>
-                            <h2 className="text-2xl font-bold theme-text-main">Historial de Comentarios</h2>
-                            <p className="theme-text-muted text-sm mt-1">Registro organizado de incidencias y reputación.</p>
+                            <h2 className="text-2xl font-bold theme-text-main">Historial de Menciones</h2>
+                            <p className="theme-text-muted text-sm mt-1">Registro organizado de menciones.</p>
                         </div>
                         <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
                             
@@ -695,6 +699,7 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
                         </div>
                         <div className="flex w-full md:w-auto items-center justify-between md:justify-end gap-4">
                             <div className="flex items-center gap-2"><label htmlFor="hc-filter-year" className="text-xs font-bold theme-text-muted whitespace-nowrap">Año</label><select id="hc-filter-year" value={filterYear} onChange={(e) => setFilterYear(e.target.value)} className={`${inputStyles} py-2 px-3 min-w-[100px]`}><option value="Todos">Todos</option>{availableYears.map((y: any) => <option key={y} value={y}>{y}</option>)}</select></div>
+                            <div className="flex items-center gap-2"><label htmlFor="hc-filter-fuente" className="text-xs font-bold theme-text-muted whitespace-nowrap">Fuente</label><select id="hc-filter-fuente" value={filterFuente} onChange={(e) => setFilterFuente(e.target.value)} className={`${inputStyles} py-2 px-3 min-w-[160px]`}><option value="Todas">Todas</option><option value="Redes sociales">Redes sociales</option><option value="Medios digitales">Medios digitales</option></select></div>
                             <div className="bg-black/5 dark:bg-white/5 border theme-border px-3 py-2 rounded-lg whitespace-nowrap"><span className="text-xs font-bold theme-text-main">{filteredComments.length}</span><span className="text-[10px] theme-text-muted font-medium ml-1">de {comments.length}</span></div>
                         </div>
                     </div>

@@ -145,7 +145,7 @@ const AppContent = () => {
         if (n.userId === user?.uid || (n.deletedBy && n.deletedBy.includes(user?.uid))) return false;
         
         if ((userRole as string) === 'EDITOR_CONTENT') {
-            if (n.module !== 'Comentarios') return false;
+            if (n.module !== 'Menciones') return false;
         }
         
         return true;
@@ -157,7 +157,7 @@ const AppContent = () => {
     const handleViewIncident = async (n: any) => {
         setNotifMenuOpen(false);
         try {
-            let colName: any = n.module === 'Incidencia RRSS' ? 'rrss_incidents' : n.module === 'Comentarios' ? 'comments' : '';
+            let colName: any = n.module === 'Incidencia RRSS' ? 'rrss_incidents' : n.module === 'Menciones' ? 'comments' : '';
             if (!colName) return;
             const docSnap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', colName, n.incidentId));
             

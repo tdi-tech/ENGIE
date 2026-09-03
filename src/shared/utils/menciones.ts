@@ -48,7 +48,8 @@ export const normalizeMenciones = (com: any): NormalizedMencion[] => {
                 reacciones: r.reacciones || '',
                 comentarios: r.comentarios || '',
                 compartidos: r.compartidos || ''
-            }
+            },
+            fuenteMonitoreo: 'Redes sociales'
         }));
     }
 
@@ -69,7 +70,8 @@ export const normalizeMenciones = (com: any): NormalizedMencion[] => {
             posteoTexto: '',
             linkPublicacion: r.linkPublicacion || '',
             hallazgo: r.hallazgoReputacional || '',
-            metricas: { visualizaciones: '', reacciones: '', comentarios: '', compartidos: '' }
+            metricas: { visualizaciones: '', reacciones: '', comentarios: '', compartidos: '' },
+            fuenteMonitoreo: 'Medios digitales'
         }));
     }
 
@@ -103,6 +105,7 @@ export const normalizeMenciones = (com: any): NormalizedMencion[] => {
         posteoTexto: c.posteoTexto || '',
         linkPublicacion: c.posteoUrl || '',
         hallazgo: '',
+        fuenteMonitoreo: 'Redes sociales',
         metricas: { visualizaciones: '', reacciones: '', comentarios: '', compartidos: '' }
     }));
 };

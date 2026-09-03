@@ -3,6 +3,7 @@ import { Clock, Activity, AlertTriangle, Megaphone, MessageSquare, TrendingUp, M
 import { collection, onSnapshot } from 'firebase/firestore';
 import { db, appId, auth, IS_MOCK, ALLOWED_EMAIL_DOMAIN_MAIL } from '../../../services/firebase/config';
 import { StatCard } from '../../../shared/components/UIComponents';
+import { normalizeIncidencia, riesgoValue } from '../../../shared/utils/incidencias';
 
 // ── Panel de control ENGIE: Menciones + Incidencias ───────────────────────
 export const DashboardView = ({ showToast, user }: any) => {
@@ -51,15 +52,15 @@ export const DashboardView = ({ showToast, user }: any) => {
         const estatusCounts: Record<string, number> = { 'Monitoreo activo': 0, 'En revisión': 0, 'Seguimiento activo': 0, 'Resuelto / solucionado': 0 };
 
         rrssIncidents.forEach((inc: any) => {
-            totalIncidenciasSum += (Number(inc.totalIncidencias) || 0);
-            let r = inc.riesgo || 'Bajo';
-            if (r === 'Critico') r = 'Crítico';
+            const n = normalizeIncidencia(inc);
+            totalIncidenciasSum += (Number(n.totalIncidencias) || 0);
+            let r = n.nivelRiesgo ? riesgoValue(n.nivelRiesgo) : 'Bajo';
             if (r === 'Crítico') criticalRisk++;
             if (r in riesgoCounts) riesgoCounts[r]++;
-            let est = inc.estado || 'Monitoreo activo';
+            let est = n.estado || 'Monitoreo activo';
             if (est in estatusCounts) estatusCounts[est]++;
-            if (inc.medio) networkCounts[inc.medio] = (networkCounts[inc.medio] || 0) + 1;
-            if (inc.campus && inc.campus !== 'Sin especificar') uniqueCampus.add(inc.campus);
+            if (n.fuenteDeteccion && n.fuenteDeteccion !== 'N/A') networkCounts[n.fuenteDeteccion] = (networkCounts[n.fuenteDeteccion] || 0) + 1;
+            if (n.campus && n.campus !== 'Sin especificar') uniqueCampus.add(n.campus);
         });
 
         const topNetwork = Object.keys(networkCounts).sort((a, b) => networkCounts[b] - networkCounts[a])[0] || 'N/A';
