@@ -303,13 +303,13 @@ export const HistorialRRSSView = ({ showToast, isAdmin, updateRrssIncident, dele
     const availableTemas = TEMAS_PRINCIPALES;
 
     const availableMonthsForExport = useMemo(() => {
-        if (!exportYear) return [];
         const months = new Set(
             rrssIncidents
-                .filter((i: any) => i.fecha && i.fecha.split('-')[0] === exportYear)
-                .map((i: any) => i.fecha.split('-')[1])
+                .filter((i: any) => !exportYear || (i.fecha && i.fecha.split('-')[0] === exportYear))
+                .map((i: any) => i.fecha && i.fecha.split('-')[1])
+                .filter(Boolean)
         );
-        return Array.from(months).sort((a: any, b: any) => b.localeCompare(a));
+        return Array.from(months).sort((a: any, b: any) => a.localeCompare(b));
     }, [rrssIncidents, exportYear]);
 
     const filteredIncidents = useMemo(() => {
@@ -465,9 +465,15 @@ const handleDownloadDocx = (inc: any) => {
         let filenameSuffix = 'Todo';
 
         if (exportType === 'month') {
-            if (!exportYear || !exportMonth) return showToast('Selecciona año y mes para exportar', true);
-            dataToExport = rrssIncidents.filter((i: any) => i.fecha && i.fecha.startsWith(`${exportYear}-${exportMonth}`));
-            filenameSuffix = `${exportYear}_${exportMonth}`;
+            if (!exportYear && !exportMonth) return showToast('Selecciona al menos un año o un mes para exportar', true);
+            if (exportYear) {
+                dataToExport = dataToExport.filter((i: any) => i.fecha && i.fecha.split('-')[0] === exportYear);
+                filenameSuffix = exportYear;
+            }
+            if (exportMonth) {
+                dataToExport = dataToExport.filter((i: any) => i.fecha && i.fecha.split('-')[1] === exportMonth);
+                filenameSuffix = filenameSuffix === 'Todo' ? exportMonth : `${filenameSuffix}_${exportMonth}`;
+            }
         } else if (exportType === 'custom') {
             if (!exportYear && !exportMonth && !exportFuente && !exportTema && !exportRiesgo && !exportEstatus && !exportAlcance && !exportTendencia) {
                 return showToast('Configura al menos un criterio para la combinación personalizada', true);
@@ -802,18 +808,18 @@ const handleDownloadDocx = (inc: any) => {
 
                                 <label className={`flex flex-col gap-3 p-4 rounded-xl border cursor-pointer transition-colors ${exportType === 'month' ? 'border-orange-500 bg-orange-500/5' : 'theme-border theme-bg-low hover:border-gray-400'}`}>
                                     <div className="flex items-center gap-3">
-                                        <input type="radio" name="exportType" checked={exportType === 'month'} onChange={() => { setExportType('month'); if(!exportYear && availableYears.length) setExportYear(String(availableYears[0])); }} className="w-4 h-4 text-orange-500" />
-                                        <div><p className="text-sm font-bold theme-text-main">Filtrar por Mes y Campus</p><p className="text-xs theme-text-muted">Descarga un mes, año y campus específico.</p></div>
+                                        <input type="radio" name="exportType" checked={exportType === 'month'} onChange={() => setExportType('month')} className="w-4 h-4 text-orange-500" />
+                                        <div><p className="text-sm font-bold theme-text-main">Filtrar por Año y/o Mes</p></div>
                                     </div>
                                     {exportType === 'month' && (
                                         <div className="ml-7 flex flex-col gap-3 fade-in mt-2">
                                             <div className="flex gap-3">
                                                 <select aria-label="Seleccionar año" value={exportYear} onChange={(e) => setExportYear(e.target.value)} className={`${inputStyles} w-1/2`}>
-                                                    <option className={optionStyles} value="" disabled>Año</option>
+                                                    <option className={optionStyles} value="">Todos los años</option>
                                                     {availableYears.map((y: any) => <option className={optionStyles} key={y} value={y}>{y}</option>)}
                                                 </select>
                                                 <select aria-label="Seleccionar mes" value={exportMonth} onChange={(e) => setExportMonth(e.target.value)} className={`${inputStyles} w-1/2`}>
-                                                    <option className={optionStyles} value="" disabled>Mes</option>
+                                                    <option className={optionStyles} value="">Todos los meses</option>
                                                     {availableMonthsForExport.map((m: any) => <option className={optionStyles} key={m} value={m}>{getMonthName(m)}</option>)}
                                                 </select>
                                             </div>
