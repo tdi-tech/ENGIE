@@ -502,9 +502,9 @@ export const RolesView = () => {
             {/* VISTA PDF (DISEÑO EJECUTIVO FULL WIDTH VERTICAL) */}
             <div className="hidden pdf-view w-full bg-white text-black font-sans">
                 <div className="text-center border-b-4 border-purple-600 pb-6 mb-10 w-full">
-                    <p className="text-sm font-bold text-purple-600 uppercase tracking-widest mb-2">Comité Operativo • ENGIE Management</p>
+                    <p className="text-sm font-bold text-purple-600 uppercase tracking-widest mb-2">Gestión de Reputación Digital • ENGIE Management</p>
                     <h1 className="text-4xl font-black text-gray-900 m-0">Roles y Responsabilidades</h1>
-                    <p className="text-base text-gray-600 mt-3 max-w-3xl mx-auto">Flujo de escalamiento y responsabilidad operativa de cada área al enfrentar un hackeo, infección o pérdida de control en los activos digitales de la empresa.</p>
+                    <p className="text-base text-gray-600 mt-3 max-w-3xl mx-auto">Funciones de las áreas que participan en la identificación, evaluación y atención de menciones e incidentes reputacionales relacionados con ENGIE y el proyecto Mayakan.</p>
                 </div>
 
                 <div className="flex flex-col space-y-8 w-full">
