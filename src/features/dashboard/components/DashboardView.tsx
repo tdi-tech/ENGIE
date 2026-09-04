@@ -1,11 +1,12 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { Activity, AlertTriangle, Megaphone, MessageSquare, TrendingUp, TrendingDown, Minus, Loader2, Globe } from 'lucide-react';
+import { Activity, AlertTriangle, Megaphone, MessageSquare, TrendingUp, TrendingDown, Minus, Loader2, Globe, Download } from 'lucide-react';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { db, appId, auth, IS_MOCK, ALLOWED_EMAIL_DOMAIN_MAIL } from '../../../services/firebase/config';
 import { StatCard } from '../../../shared/components/UIComponents';
 import { normalizeIncidencia, riesgoValue } from '../../../shared/utils/incidencias';
 import { normalizeMenciones } from '../../../shared/utils/menciones';
 import { MOCK_RRSS_INCIDENTS, MOCK_COMMENTS } from '../../../shared/utils/mockData';
+import { jsPDF } from 'jspdf';
 
 // ── Panel de control ENGIE: Menciones + Incidencias ───────────────────────
 export const DashboardView = ({ showToast, user }: any) => {
@@ -14,6 +15,7 @@ export const DashboardView = ({ showToast, user }: any) => {
     const [isLoading, setIsLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('menciones');
     const [mounted, setMounted] = useState(false);
+    const [isExportingPDF, setIsExportingPDF] = useState(false);
 
     useEffect(() => {
         if (IS_MOCK) {
@@ -102,14 +104,97 @@ export const DashboardView = ({ showToast, user }: any) => {
             </div>
         );
     }
+
+    // Exporta los highlights visibles del tab activo a un PDF descargable.
+    const handleDownloadReport = async () => {
+        if (isExportingPDF) return;
+        setIsExportingPDF(true);
+        try {
+            const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+            const pageW = 210, pageH = 297, margin = 15;
+            const now = new Date().toLocaleString('es-ES', { dateStyle: 'long', timeStyle: 'short' });
+
+            // Cabecera
+            doc.setFillColor(10, 17, 32);
+            doc.rect(0, 0, pageW, 28, 'F');
+            doc.setTextColor(0, 163, 224);
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(16);
+            doc.text('ENGIE – Panel de Control', margin, 14);
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(9);
+            doc.setTextColor(180, 200, 230);
+            const tituloReporte = activeTab === 'menciones' ? 'Menciones y Sentimiento' : 'Incidencias y Riesgo Reputacional';
+            doc.text('Reporte de ' + tituloReporte, margin, 21);
+            doc.text('Generado: ' + now, pageW - margin, 21, { align: 'right' });
+
+            let y = 40;
+            doc.setTextColor(20, 30, 50);
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(12);
+            doc.text('Resumen', margin, y); y += 6;
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(10);
+
+            const lines: [string, string][] = activeTab === 'menciones' ? [
+                ['Menciones monitoreadas:', String(commentsStats.totalMenciones)],
+                ['Fuentes activas:', String(commentsStats.fuentesActivas)],
+                ['Sentimiento positivo:', commentsStats.positivityRate + '%'],
+                ['Canal principal:', commentsStats.topCanal],
+                ['Fuente principal:', commentsStats.fuentePrincipal]
+            ] : [
+                ['Reportes creados:', String(rrssStats.totalReportes)],
+                ['Total incidencias:', String(rrssStats.totalIncidencias)],
+                ['Peligro inminente (Crítico):', String(rrssStats.criticalRisk)],
+                ['Índice de criticidad:', rrssStats.criticidadRate + '%'],
+                ['Canal con mayor exposición:', rrssStats.topNetwork]
+            ];
+            lines.forEach(([k, v]) => {
+                doc.setFont('helvetica', 'bold'); doc.text(k, margin, y);
+                doc.setFont('helvetica', 'normal'); doc.text(v, margin + 55, y);
+                y += 5.5;
+            });
+            y += 4;
+
+            doc.setFont('helvetica', 'bold');
+            doc.text(activeTab === 'menciones' ? 'Distribución de sentimiento' : 'Semáforo de riesgo', margin, y); y += 6;
+            doc.setFont('helvetica', 'normal');
+            const buckets = activeTab === 'menciones' ? commentsStats.sentimentCounts : rrssStats.riesgoCounts;
+            Object.entries(buckets).forEach(([k, v]) => {
+                doc.text('• ' + k + ': ' + v, margin, y);
+                y += 5;
+            });
+
+            const totalPages = (doc as any).internal.getNumberOfPages();
+            for (let p = 1; p <= totalPages; p++) {
+                doc.setPage(p);
+                doc.setFontSize(8);
+                doc.setTextColor(120, 135, 160);
+                doc.text('ENGIE — Social Listening · Página ' + p + ' de ' + totalPages, pageW / 2, pageH - 8, { align: 'center' });
+            }
+
+            const filename = 'ENGIE_' + activeTab + '_' + new Date().toISOString().slice(0, 10) + '.pdf';
+            doc.save(filename);
+            showToast?.('Reporte PDF generado correctamente');
+        } catch (err) {
+            console.error('Error generando PDF:', err);
+            showToast?.('No se pudo generar el PDF', true);
+        } finally {
+            setIsExportingPDF(false);
+        }
+    };
+
 return (
         <div className="fade-in pb-20 relative space-y-6">
-            <div className="flex items-center gap-4">
-                <div className="w-1 h-10 rounded-full engie-energy-line" />
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-black theme-text-main tracking-tight">Panel de Control</h1>
                     <p className="text-sm theme-text-muted mt-0.5">{activeTab === 'menciones' ? 'Menciones y sentimiento' : 'Incidencias y riesgo reputacional'}</p>
                 </div>
+                <button type="button" onClick={handleDownloadReport} disabled={isExportingPDF} className="w-full md:w-auto flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-bold bg-[var(--primary)] text-white hover:brightness-110 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                    {isExportingPDF ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                    {isExportingPDF ? 'Generando PDF...' : 'Descargar PDF'}
+                </button>
             </div>
             <div className="flex gap-1 p-1 bg-black/5 dark:bg-white/5 rounded-xl w-fit shadow-inner">
                 <button type="button" onClick={() => setActiveTab('menciones')} className={`px-5 py-2.5 rounded-lg text-sm font-bold flex items-center gap-2 transition-all ${activeTab === 'menciones' ? 'bg-[var(--primary)] text-white shadow-sm' : 'theme-text-muted hover:theme-text-main'}`}><MessageSquare className="w-4 h-4" /> Menciones</button>
@@ -151,13 +236,13 @@ return (
                 )}
                 {activeTab === 'incidencias' && (
                     <div className="fade-in space-y-6">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                             <StatCard title="Reportes Creados" value={rrssStats.totalReportes} color="blue" icon={<Megaphone className="w-12 h-12 opacity-10 absolute -right-2 -bottom-2" />} />
                             <StatCard title="Total Incidencias" value={rrssStats.totalIncidencias} color="orange" icon={<Activity className="w-12 h-12 opacity-10 absolute -right-2 -bottom-2" />} />
                             <StatCard title="Peligro Inminente" value={rrssStats.criticalRisk} color="red" icon={<AlertTriangle className="w-12 h-12 opacity-10 absolute -right-2 -bottom-2" />} />
                         </div>
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                            <div className="lg:col-span-2 p-5 theme-bg-container border theme-border rounded-xl shadow-sm engie-card-hover">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div className="p-5 theme-bg-container border theme-border rounded-xl shadow-sm engie-card-hover">
                                 <h4 className="text-xs font-bold theme-text-muted uppercase tracking-wider mb-4 flex items-center gap-2"><AlertTriangle className="w-4 h-4" style={{ color: 'var(--error)' }} /> Semáforo de Riesgo</h4>
                                 <div className="space-y-3">
                                     {Object.entries(rrssStats.riesgoCounts).map(([name, count]) => {
