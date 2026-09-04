@@ -434,6 +434,7 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
     const [searchTerm, setSearchTerm] = useState('');
     const [filterYear, setFilterYear] = useState('Todos');
     const [filterFuente, setFilterFuente] = useState('Todas');
+    const [filterMonth, setFilterMonth] = useState('Todos');
     const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
 
     const camposFiltro = [
@@ -456,7 +457,7 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
     const [exportType, setExportType] = useState('all');
     const [exportYear, setExportYear] = useState('');
     const [exportMonth, setExportMonth] = useState('');
-    const [exportCampus, setExportCampus] = useState('');
+    const [exportFuente, setExportFuente] = useState('');
     const [isExporting, setIsExporting] = useState(false);
 
     useEffect(() => {
@@ -478,11 +479,12 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
         // Limpiamos selecciones si cambiamos filtros para evitar borrar cosas invisibles
         setSelectedIds([]);
         setIsSelectionMode(false);
-    }, [searchTerm, filterYear]);
+    }, [searchTerm, filterYear, filterMonth]);
 
     useEffect(() => {
-        setExportCampus('');
-    }, [exportType, exportYear, exportMonth]);
+        setExportMonth('');
+        setExportFuente('');
+    }, [exportType, exportYear]);
 
     const getNormalizedComments = (com: any) => normalizeMenciones(com);
 
@@ -491,39 +493,32 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
         return Array.from(years).sort((a: any, b: any) => b.localeCompare(a));
     }, [comments]);
 
-    const availableMonthsForExport = useMemo(() => {
-        if (!exportYear) return [];
+    const availableMonthsForFilter = useMemo(() => {
         const months = new Set(
             comments
-                .filter((c: any) => c.fechaPublicacion && c.fechaPublicacion.split('-')[0] === exportYear)
-                .map((c: any) => c.fechaPublicacion.split('-')[1])
+                .filter((c: any) => filterYear === 'Todos' || (c.fechaPublicacion && c.fechaPublicacion.split('-')[0] === filterYear))
+                .map((c: any) => c.fechaPublicacion && c.fechaPublicacion.split('-')[1])
+                .filter(Boolean)
         );
-        return Array.from(months).sort((a: any, b: any) => b.localeCompare(a));
-    }, [comments, exportYear]);
+        return Array.from(months).sort((a: any, b: any) => a.localeCompare(b));
+    }, [comments, filterYear]);
 
-    const availableCampusesForExport = useMemo(() => {
-        let filtered = comments;
-        if (exportType === 'year' && exportYear) {
-            filtered = comments.filter((i: any) => i.fechaPublicacion && i.fechaPublicacion.split('-')[0] === exportYear);
-        } else if (exportType === 'month' && exportYear && exportMonth) {
-            filtered = comments.filter((i: any) => i.fechaPublicacion && i.fechaPublicacion.startsWith(`${exportYear}-${exportMonth}`));
-        }
-        
-        const campuses = new Set<string>();
-        filtered.forEach((com: any) => {
-            const list = getNormalizedComments(com);
-            list.forEach((c: any) => {
-                if (c.campus && c.campus !== 'Sin especificar') campuses.add(c.campus);
-            });
-        });
-        
-        return Array.from(campuses).sort((a: any, b: any) => a.localeCompare(b));
-    }, [comments, exportType, exportYear, exportMonth]);
+    const availableMonthsForExport = useMemo(() => {
+        const months = new Set(
+            comments
+                .filter((c: any) => !exportYear || (c.fechaPublicacion && c.fechaPublicacion.split('-')[0] === exportYear))
+                .map((c: any) => c.fechaPublicacion && c.fechaPublicacion.split('-')[1])
+                .filter(Boolean)
+        );
+        return Array.from(months).sort((a: any, b: any) => a.localeCompare(b));
+    }, [comments, exportYear]);
 
     const filteredComments = useMemo(() => {
         return comments.filter((com: any) => {
             const year = com.fechaPublicacion ? com.fechaPublicacion.split('-')[0] : '';
+            const month = com.fechaPublicacion ? com.fechaPublicacion.split('-')[1] : '';
             const matchYear = filterYear === 'Todos' || year === filterYear;
+            const matchMonth = filterMonth === 'Todos' || month === filterMonth;
             const term = searchTerm.toLowerCase();
             const list = getNormalizedComments(com);
             
@@ -536,9 +531,9 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
                     return valor && String(valor).toLowerCase().includes(term);
                 });
             });
-            return matchYear && matchSearch && matchFuente;
+            return matchYear && matchMonth && matchSearch && matchFuente;
         });
-    }, [comments, searchTerm, filterYear, filterFuente]);
+    }, [comments, searchTerm, filterYear, filterMonth, filterFuente]);
 
     const groupedData = useMemo(() => {
         const groups: Record<string, Record<string, any[]>> = {};
@@ -607,17 +602,31 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
         let dataToExport = comments;
         let filenameSuffix = 'Todo';
 
-        if (exportType === 'year') {
-            if (!exportYear) return showToast('Selecciona un año para exportar', true);
-            dataToExport = comments.filter((i: any) => i.fechaPublicacion && i.fechaPublicacion.split('-')[0] === exportYear);
-            if (exportCampus) dataToExport = dataToExport.filter((i: any) => getNormalizedComments(i).some((c:any) => c.campus === exportCampus));
-            filenameSuffix = exportCampus ? `${exportYear}_${exportCampus}` : exportYear;
+        if (exportType === 'month') {
+            if (!exportYear && !exportMonth) return showToast('Selecciona al menos un año o un mes para exportar', true);
+            if (exportYear) {
+                dataToExport = dataToExport.filter((i: any) => i.fechaPublicacion && i.fechaPublicacion.split('-')[0] === exportYear);
+                filenameSuffix = exportYear;
+            }
+            if (exportMonth) {
+                dataToExport = dataToExport.filter((i: any) => i.fechaPublicacion && i.fechaPublicacion.split('-')[1] === exportMonth);
+                filenameSuffix = filenameSuffix === 'Todo' ? exportMonth : `${filenameSuffix}_${exportMonth}`;
+            }
 
-        } else if (exportType === 'month') {
-            if (!exportYear || !exportMonth) return showToast('Selecciona año y mes para exportar', true);
-            dataToExport = comments.filter((i: any) => i.fechaPublicacion && i.fechaPublicacion.startsWith(`${exportYear}-${exportMonth}`));
-            if (exportCampus) dataToExport = dataToExport.filter((i: any) => getNormalizedComments(i).some((c:any) => c.campus === exportCampus));
-            filenameSuffix = exportCampus ? `${exportYear}_${exportMonth}_${exportCampus}` : `${exportYear}_${exportMonth}`;
+        } else if (exportType === 'custom') {
+            if (!exportYear && !exportMonth && !exportFuente) return showToast('Configura al menos un criterio para la combinación personalizada', true);
+            if (exportYear) {
+                dataToExport = dataToExport.filter((i: any) => i.fechaPublicacion && i.fechaPublicacion.split('-')[0] === exportYear);
+                filenameSuffix = exportYear;
+            }
+            if (exportMonth) {
+                dataToExport = dataToExport.filter((i: any) => i.fechaPublicacion && i.fechaPublicacion.split('-')[1] === exportMonth);
+                filenameSuffix = filenameSuffix === 'Todo' ? exportMonth : `${filenameSuffix}_${exportMonth}`;
+            }
+            if (exportFuente) {
+                dataToExport = dataToExport.filter((i: any) => getNormalizedComments(i).some((c: any) => c.fuenteMonitoreo === exportFuente));
+                filenameSuffix = `${filenameSuffix === 'Todo' ? 'F' : filenameSuffix}_${exportFuente.replace(/\s+/g, '-')}`;
+            }
         }
 
         if (dataToExport.length === 0) return showToast('No hay datos registrados con esos filtros', true);
@@ -630,11 +639,7 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
                 : ['Fecha Publicación,Hora Detección,Fuente Monitoreo,Evidencias,Red Social,Campus,Sentiment,Usuario,Tipo Posteo,Posteo Original,Comentario'];
             
             const rows = dataToExport.flatMap((i: any) => {
-                let list = getNormalizedComments(i);
-                if (exportCampus) {
-                    list = list.filter((c: any) => c.campus === exportCampus);
-                }
-                
+                const list = getNormalizedComments(i);
                 return list.map((c: any) => {
                     const escape = (text: string) => `"${(text || '').toString().replace(/"/g, '""')}"`;
                     const posteoOriginal = c.posteoTipo === 'url' ? c.posteoUrl : c.posteoTexto;
@@ -699,6 +704,7 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
                         </div>
                         <div className="flex w-full md:w-auto items-center justify-between md:justify-end gap-4">
                             <div className="flex items-center gap-2"><label htmlFor="hc-filter-year" className="text-xs font-bold theme-text-muted whitespace-nowrap">Año</label><select id="hc-filter-year" value={filterYear} onChange={(e) => setFilterYear(e.target.value)} className={`${inputStyles} py-2 px-3 min-w-[100px]`}><option value="Todos">Todos</option>{availableYears.map((y: any) => <option key={y} value={y}>{y}</option>)}</select></div>
+                            <div className="flex items-center gap-2"><label htmlFor="hc-filter-month" className="text-xs font-bold theme-text-muted whitespace-nowrap">Mes</label><select id="hc-filter-month" value={filterMonth} onChange={(e) => setFilterMonth(e.target.value)} className={`${inputStyles} py-2 px-3 min-w-[120px]`}><option value="Todos">Todos</option>{availableMonthsForFilter.map((m: any) => <option key={m} value={m}>{getMonthName(m)}</option>)}</select></div>
                             <div className="flex items-center gap-2"><label htmlFor="hc-filter-fuente" className="text-xs font-bold theme-text-muted whitespace-nowrap">Fuente</label><select id="hc-filter-fuente" value={filterFuente} onChange={(e) => setFilterFuente(e.target.value)} className={`${inputStyles} py-2 px-3 min-w-[160px]`}><option value="Todas">Todas</option><option value="Redes sociales">Redes sociales</option><option value="Medios digitales">Medios digitales</option></select></div>
                             <div className="bg-black/5 dark:bg-white/5 border theme-border px-3 py-2 rounded-lg whitespace-nowrap"><span className="text-xs font-bold theme-text-main">{filteredComments.length}</span><span className="text-[10px] theme-text-muted font-medium ml-1">de {comments.length}</span></div>
                         </div>
@@ -891,54 +897,50 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
                                     <div><p className="text-sm font-bold theme-text-main">Todo el Historial</p><p className="text-xs theme-text-muted">Descarga todos los incidentes registrados.</p></div>
                                 </label>
                                 
-                                <label className={`flex flex-col gap-3 p-4 rounded-xl border cursor-pointer transition-colors ${exportType === 'year' ? 'border-blue-500 bg-blue-500/5' : 'theme-border theme-bg-low hover:border-gray-400'}`}>
-                                    <div className="flex items-center gap-3">
-                                        <input type="radio" name="exportType" checked={exportType === 'year'} onChange={() => { setExportType('year'); if(!exportYear && availableYears.length) setExportYear(String(availableYears[0])); }} className="w-4 h-4 text-blue-500" />
-                                        <div><p className="text-sm font-bold theme-text-main">Filtrar por Año y Campus</p><p className="text-xs theme-text-muted">Descarga un año y campus en específico.</p></div>
-                                    </div>
-                                    {exportType === 'year' && (
-                                        <div className="ml-7 flex flex-col gap-3 fade-in mt-2">
-                                            <select aria-label="Seleccionar año" value={exportYear} onChange={(e) => setExportYear(e.target.value)} className={inputStyles}>
-                                                <option value="" disabled>Selecciona un año</option>
-                                                {availableYears.map((y: any) => <option key={y} value={y}>{y}</option>)}
-                                            </select>
-                                            <select aria-label="Seleccionar campus" value={exportCampus} onChange={(e) => setExportCampus(e.target.value)} className={inputStyles}>
-                                                <option value="">Todos los Campus</option>
-                                                {availableCampusesForExport.length > 0 ? (
-                                                    availableCampusesForExport.map((c: any) => <option key={c} value={c}>{c}</option>)
-                                                ) : (
-                                                    <option value="none" disabled>No hay campus en esta fecha</option>
-                                                )}
-                                            </select>
-                                        </div>
-                                    )}
-                                </label>
-
                                 <label className={`flex flex-col gap-3 p-4 rounded-xl border cursor-pointer transition-colors ${exportType === 'month' ? 'border-blue-500 bg-blue-500/5' : 'theme-border theme-bg-low hover:border-gray-400'}`}>
                                     <div className="flex items-center gap-3">
-                                        <input type="radio" name="exportType" checked={exportType === 'month'} onChange={() => { setExportType('month'); if(!exportYear && availableYears.length) setExportYear(String(availableYears[0])); }} className="w-4 h-4 text-blue-500" />
-                                        <div><p className="text-sm font-bold theme-text-main">Filtrar por Mes y Campus</p><p className="text-xs theme-text-muted">Descarga un mes, año y campus específico.</p></div>
+                                        <input type="radio" name="exportType" checked={exportType === 'month'} onChange={() => setExportType('month')} className="w-4 h-4 text-blue-500" />
+                                        <div><p className="text-sm font-bold theme-text-main">Filtrar por Año y/o Mes</p></div>
                                     </div>
                                     {exportType === 'month' && (
                                         <div className="ml-7 flex flex-col gap-3 fade-in mt-2">
                                             <div className="flex gap-3">
                                                 <select aria-label="Seleccionar año" value={exportYear} onChange={(e) => setExportYear(e.target.value)} className={`${inputStyles} w-1/2`}>
-                                                    <option value="" disabled>Año</option>
+                                                    <option value="">Todos los años</option>
                                                     {availableYears.map((y: any) => <option key={y} value={y}>{y}</option>)}
                                                 </select>
                                                 <select aria-label="Seleccionar mes" value={exportMonth} onChange={(e) => setExportMonth(e.target.value)} className={`${inputStyles} w-1/2`}>
-                                                    <option value="" disabled>Mes</option>
+                                                    <option value="">Todos los meses</option>
                                                     {availableMonthsForExport.map((m: any) => <option key={m} value={m}>{getMonthName(m)}</option>)}
                                                 </select>
                                             </div>
-                                            <select aria-label="Seleccionar campus" value={exportCampus} onChange={(e) => setExportCampus(e.target.value)} className={inputStyles}>
-                                                <option value="">Todos los Campus</option>
-                                                {availableCampusesForExport.length > 0 ? (
-                                                    availableCampusesForExport.map((c: any) => <option key={c} value={c}>{c}</option>)
-                                                ) : (
-                                                    <option value="none" disabled>No hay campus en esta fecha</option>
-                                                )}
+                                        </div>
+                                    )}
+                                </label>
+
+                                <label className={`flex flex-col gap-3 p-4 rounded-xl border cursor-pointer transition-colors ${exportType === 'custom' ? 'border-blue-500 bg-blue-500/5' : 'theme-border theme-bg-low hover:border-gray-400'}`}>
+                                    <div className="flex items-center gap-3">
+                                        <input type="radio" name="exportType" checked={exportType === 'custom'} onChange={() => setExportType('custom')} className="w-4 h-4 text-blue-500" />
+                                        <div><p className="text-sm font-bold theme-text-main">Combinación Personalizada</p><p className="text-xs theme-text-muted">Combina año, mes y fuente de monitoreo.</p></div>
+                                    </div>
+                                    {exportType === 'custom' && (
+                                        <div className="ml-7 flex flex-col gap-3 fade-in mt-2">
+                                            <div className="flex gap-3">
+                                                <select aria-label="Seleccionar año" value={exportYear} onChange={(e) => setExportYear(e.target.value)} className={`${inputStyles} w-1/2`}>
+                                                    <option value="">Todos los años</option>
+                                                    {availableYears.map((y: any) => <option key={y} value={y}>{y}</option>)}
+                                                </select>
+                                                <select aria-label="Seleccionar mes" value={exportMonth} onChange={(e) => setExportMonth(e.target.value)} className={`${inputStyles} w-1/2`}>
+                                                    <option value="">Todos los meses</option>
+                                                    {availableMonthsForExport.map((m: any) => <option key={m} value={m}>{getMonthName(m)}</option>)}
+                                                </select>
+                                            </div>
+                                            <select aria-label="Filtrar por fuente" value={exportFuente} onChange={(e) => setExportFuente(e.target.value)} className={inputStyles}>
+                                                <option value="">Toda fuente</option>
+                                                <option value="Redes sociales">Redes sociales</option>
+                                                <option value="Medios digitales">Medios digitales</option>
                                             </select>
+                                            <button type="button" onClick={() => { setExportYear(''); setExportMonth(''); setExportFuente(''); }} className="self-start text-xs font-bold text-blue-500 hover:text-blue-400 hover:underline transition-colors">Limpiar combinación</button>
                                         </div>
                                     )}
                                 </label>
