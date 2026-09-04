@@ -110,8 +110,8 @@ export const Sidebar = ({ sidebarOpen, setSidebarOpen, currentView, navigate, is
     const isEditorContent = false; // Rol extinto: ya no existe EDITOR_CONTENT
     const isITAdmin = userRole === 'ADMIN_IT';
 
-    // Solo ADMIN_IT y ADMIN_CM son los roles válidos. El ADMIN_CM no ve Backups (eso es exclusivo del IT).
-    const isTrueAdmin = userRole === 'ADMIN_IT';
+    // ADMIN_IT y ADMIN_CM pueden ver Backups Core. La Auditoría sigue siendo exclusiva del ADMIN_IT.
+    const canViewBackups = ['ADMIN_IT', 'ADMIN_CM'].includes(userRole);
 
     const canViewReports = ['ADMIN_IT', 'ADMIN_CM'].includes(userRole);
 
@@ -164,8 +164,8 @@ export const Sidebar = ({ sidebarOpen, setSidebarOpen, currentView, navigate, is
 
 
 
-                    {/* 🔥 FIX PERMISOS: ADMIN_CM ya puede ver Backups Core */}
-                    {isTrueAdmin && (
+                    {/* Backups Core: accesible para ADMIN_IT y ADMIN_CM */}
+                    {canViewBackups && (
                         <NavBtn id="backups" icon={Database} label="Backups Core" currentView={currentView} navigate={navigate} />
                     )}
                     {isITAdmin && (
