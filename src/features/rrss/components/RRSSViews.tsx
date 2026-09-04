@@ -17,6 +17,11 @@ const editorStyles = `.wysiwyg-content ul { list-style-type: disc !important; pa
 
 const CAMPUS_OPTIONS = ['Atizapán', 'Coacalco', 'Cuautitlán Izcalli', 'Ecatepec', 'Tecamac', 'Tultepec', 'Zumpango', 'Tizayuca', 'Querétaro: la Joya', 'Querétaro: el Marqués', 'Huehuetoca', 'Chalco'];
 
+// Vocabulario reputacional del formulario — única fuente de verdad para form y filtros
+const FUENTES_DETECCION = ['Facebook', 'Instagram', 'TikTok', 'LinkedIn', 'YouTube', 'X', 'Medios Digitales'];
+const TEMAS_PRINCIPALES = ['Seguridad y regulación', 'Comunidades e impacto social', 'Legal y derechos humanos', 'Medio ambiente', 'Afectaciones o riesgos', 'Avances de obra e infraestructura', 'Reputación corporativa'];
+const NIVELES_RIESGO = ['Bajo', 'Medio', 'Alto', 'Crítico'];
+
 const EditorToolbar = ({ onCommand }: { onCommand: (cmd: string, val?: string) => void }) => {
     return (
         <div className="flex flex-wrap items-center gap-2 p-2 border-b theme-border bg-black/20 text-gray-400 select-none">
@@ -120,7 +125,7 @@ export const NewRRSSIncidentView = ({ isAdmin, showToast, navigate, user, logAct
                             <div className="space-y-1.5">
                                 <label htmlFor="nri-fuenteDeteccion" className="text-xs font-bold theme-text-muted uppercase tracking-wider">Fuente de Detección</label>
                                 <select id="nri-fuenteDeteccion" value={formData.fuenteDeteccion} onChange={(e) => setFormData({...formData, fuenteDeteccion: e.target.value})} className={inputStyles}>
-                                    {['Facebook', 'Instagram', 'TikTok', 'LinkedIn', 'YouTube', 'X', 'Medios Digitales'].map(opt => <option className={optionStyles} key={opt} value={opt}>{opt}</option>)}
+                                    {FUENTES_DETECCION.map(opt => <option className={optionStyles} key={opt} value={opt}>{opt}</option>)}
                                 </select>
                             </div>
                             <div className="space-y-1.5">
@@ -132,7 +137,7 @@ export const NewRRSSIncidentView = ({ isAdmin, showToast, navigate, user, logAct
                             <div className="space-y-1.5">
                                 <label htmlFor="nri-temaPrincipal" className="text-xs font-bold theme-text-muted uppercase tracking-wider">Tema Principal</label>
                                 <select id="nri-temaPrincipal" value={formData.temaPrincipal} onChange={(e) => setFormData({...formData, temaPrincipal: e.target.value})} className={inputStyles}>
-                                    {['Seguridad y regulación', 'Comunidades e impacto social', 'Legal y derechos humanos', 'Medio ambiente', 'Afectaciones o riesgos', 'Avances de obra e infraestructura', 'Reputación corporativa'].map(opt => <option className={optionStyles} key={opt} value={opt}>{opt}</option>)}
+                                    {TEMAS_PRINCIPALES.map(opt => <option className={optionStyles} key={opt} value={opt}>{opt}</option>)}
                                 </select>
                             </div>
 
@@ -284,16 +289,9 @@ export const HistorialRRSSView = ({ showToast, isAdmin, updateRrssIncident, dele
         return Array.from(years).sort((a: any, b: any) => b.localeCompare(a));
     }, [rrssIncidents]);
 
-    // Opciones de filtros derivadas del esquema reputacional (con fallback legacy vía normalización)
-    const availableFuentes = useMemo(() => {
-        const set = new Set(rrssIncidents.map((i: any) => normalizeIncidencia(i).fuenteDeteccion).filter((v: string) => v && v !== 'N/A'));
-        return Array.from(set).sort((a: any, b: any) => a.localeCompare(b));
-    }, [rrssIncidents]);
-
-    const availableTemas = useMemo(() => {
-        const set = new Set(rrssIncidents.map((i: any) => normalizeIncidencia(i).temaPrincipal).filter(Boolean));
-        return Array.from(set).sort((a: any, b: any) => a.localeCompare(b));
-    }, [rrssIncidents]);
+    // Opciones de filtros: exactamente el vocabulario del formulario (sin herencia legacy de Innova Schools)
+    const availableFuentes = FUENTES_DETECCION;
+    const availableTemas = TEMAS_PRINCIPALES;
 
     const availableMonthsForExport = useMemo(() => {
         if (!exportYear) return [];
@@ -557,17 +555,17 @@ const handleDownloadDocx = (inc: any) => {
                         </div>
                     </div>
 
-                    <div className="p-4 theme-bg-container border theme-border rounded-xl shadow-sm mb-6 flex flex-col xl:flex-row gap-4 items-center justify-between">
-                        <div className="relative w-full xl:w-1/2 flex items-center">
+                    <div className="p-4 theme-bg-container border theme-border rounded-xl shadow-sm mb-6 flex flex-col gap-4 min-w-0">
+                        <div className="relative w-full flex items-center">
                             <Search className="absolute left-3 text-gray-400 w-4 h-4 pointer-events-none" />
                             <input type="text" aria-label="Buscar" placeholder="Buscar por actor, campus, fuente, tema, resumen..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className={`${inputStyles} pl-10 pr-10`} />
                             {searchTerm && <button type="button" aria-label="Limpiar búsqueda" onClick={() => setSearchTerm('')} className="absolute right-3 p-1 rounded-md text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-800 dark:hover:text-white transition-colors" title="Limpiar búsqueda"><X className="w-4 h-4" /></button>}
                         </div>
-                        
-                        <div className="flex flex-col sm:flex-row w-full xl:w-auto items-center justify-between xl:justify-end gap-4">
-                            <div className="flex items-center gap-2 w-full sm:w-auto">
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:flex xl:flex-wrap xl:items-center xl:justify-between gap-3 w-full min-w-0">
+                            <div className="flex items-center gap-2 w-full xl:w-auto min-w-0">
                                 <label htmlFor="hr-filter-status" className="text-xs font-bold theme-text-muted whitespace-nowrap">Estatus</label>
-                                <select id="hr-filter-status" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className={`${inputStyles} py-1.5 px-3 min-w-[150px]`}>
+                                <select id="hr-filter-status" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className={`${inputStyles} py-1.5 px-3 w-full xl:w-auto xl:min-w-[150px]`}>
                                     <option className={optionStyles} value="Todos">Todos</option>
                                     <option className={optionStyles} value="Monitoreo activo">🔴 Monitoreo activo</option>
                                     <option className={optionStyles} value="En revisión">🟡 En revisión</option>
@@ -575,35 +573,35 @@ const handleDownloadDocx = (inc: any) => {
                                     <option className={optionStyles} value="Resuelto / solucionado">🟢 Resuelto</option>
                                 </select>
                             </div>
-                            <div className="flex items-center gap-2 w-full sm:w-auto">
+                            <div className="flex items-center gap-2 w-full xl:w-auto min-w-0">
                                 <label htmlFor="hr-filter-fuente" className="text-xs font-bold theme-text-muted whitespace-nowrap">Fuente</label>
-                                <select id="hr-filter-fuente" value={filterFuente} onChange={(e) => setFilterFuente(e.target.value)} className={`${inputStyles} py-1.5 px-3 min-w-[130px]`}>
+                                <select id="hr-filter-fuente" value={filterFuente} onChange={(e) => setFilterFuente(e.target.value)} className={`${inputStyles} py-1.5 px-3 w-full xl:w-auto xl:min-w-[140px]`}>
                                     <option className={optionStyles} value="Todas">Todas</option>
                                     {availableFuentes.map((f: any) => <option className={optionStyles} key={f} value={f}>{f}</option>)}
                                 </select>
                             </div>
-                            <div className="flex items-center gap-2 w-full sm:w-auto">
+                            <div className="flex items-center gap-2 w-full xl:w-auto min-w-0">
                                 <label htmlFor="hr-filter-tema" className="text-xs font-bold theme-text-muted whitespace-nowrap">Tema</label>
-                                <select id="hr-filter-tema" value={filterTema} onChange={(e) => setFilterTema(e.target.value)} className={`${inputStyles} py-1.5 px-3 min-w-[150px]`}>
+                                <select id="hr-filter-tema" value={filterTema} onChange={(e) => setFilterTema(e.target.value)} className={`${inputStyles} py-1.5 px-3 w-full xl:w-auto xl:min-w-[190px]`}>
                                     <option className={optionStyles} value="Todos">Todos</option>
                                     {availableTemas.map((t: any) => <option className={optionStyles} key={t} value={t}>{t}</option>)}
                                 </select>
                             </div>
-                            <div className="flex items-center gap-2 w-full sm:w-auto">
+                            <div className="flex items-center gap-2 w-full xl:w-auto min-w-0">
                                 <label htmlFor="hr-filter-riesgo" className="text-xs font-bold theme-text-muted whitespace-nowrap">Riesgo</label>
-                                <select id="hr-filter-riesgo" value={filterRiesgo} onChange={(e) => setFilterRiesgo(e.target.value)} className={`${inputStyles} py-1.5 px-3 min-w-[110px]`}>
+                                <select id="hr-filter-riesgo" value={filterRiesgo} onChange={(e) => setFilterRiesgo(e.target.value)} className={`${inputStyles} py-1.5 px-3 w-full xl:w-auto xl:min-w-[120px]`}>
                                     <option className={optionStyles} value="Todos">Todos</option>
-                                    {['Bajo', 'Medio', 'Alto', 'Crítico'].map(r => <option className={optionStyles} key={r} value={r}>{r}</option>)}
+                                    {NIVELES_RIESGO.map(r => <option className={optionStyles} key={r} value={r}>{r}</option>)}
                                 </select>
                             </div>
-                            <div className="flex items-center gap-2 w-full sm:w-auto">
+                            <div className="flex items-center gap-2 w-full xl:w-auto min-w-0">
                                 <label htmlFor="hr-filter-year" className="text-xs font-bold theme-text-muted whitespace-nowrap">Año</label>
-                                <select id="hr-filter-year" value={filterYear} onChange={(e) => setFilterYear(e.target.value)} className={`${inputStyles} py-1.5 px-3 min-w-[100px]`}>
+                                <select id="hr-filter-year" value={filterYear} onChange={(e) => setFilterYear(e.target.value)} className={`${inputStyles} py-1.5 px-3 w-full xl:w-auto xl:min-w-[100px]`}>
                                     <option className={optionStyles} value="Todos">Todos</option>
                                     {availableYears.map((y: any) => <option className={optionStyles} key={y} value={y}>{y}</option>)}
                                 </select>
                             </div>
-                            <div className="bg-black/5 dark:bg-white/5 border theme-border px-3 py-1.5 rounded-lg whitespace-nowrap hidden sm:block"><span className="text-xs font-bold theme-text-main">{filteredIncidents.length}</span><span className="text-[10px] theme-text-muted font-medium ml-1">de {rrssIncidents.length}</span></div>
+                            <div className="bg-black/5 dark:bg-white/5 border theme-border px-3 py-1.5 rounded-lg whitespace-nowrap w-full xl:w-auto text-center xl:text-left"><span className="text-xs font-bold theme-text-main">{filteredIncidents.length}</span><span className="text-[10px] theme-text-muted font-medium ml-1">de {rrssIncidents.length}</span></div>
                         </div>
                     </div>
 
