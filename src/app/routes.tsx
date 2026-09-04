@@ -8,6 +8,7 @@ import { NewCommentView, HistorialCommentView } from '../features/comments/compo
 import { UserManagementView } from '../features/users/components/UserViews';
 import { BackupView } from '../features/backups/components/BackupView';
 import { AuditViews } from '../features/audit/components/AuditViews';
+import { ChangelogView } from '../shared/components/ChangelogView';
 import { ReportDashboard } from '../features/reports/components/ReportDashboard';
 
 type AccessLevel = 'PUBLIC' | 'LOGGED_IN' | 'ADMIN_IT' | 'ADMIN_CM_IT' | 'ADMIN_CM_IT_EDITOR' | 'GUEST_ONLY';
@@ -21,6 +22,7 @@ export const ROUTES: Record<string, RouteConfig> = {
     'dashboard': { component: DashboardView, access: 'PUBLIC' },
     'roles': { component: RolesView, access: 'PUBLIC' },
     'ayuda': { component: AyudaView, access: 'PUBLIC' },
+    'changelog': { component: ChangelogView, access: 'LOGGED_IN' },
     'config': { component: ConfigView, access: 'PUBLIC' },
     'protocolo-rss': { component: ProtocoloRRSSView, access: 'PUBLIC' },
     'historial-rss': { component: HistorialRRSSView, access: 'PUBLIC' },

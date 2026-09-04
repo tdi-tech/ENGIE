@@ -160,6 +160,7 @@ export const Sidebar = ({ sidebarOpen, setSidebarOpen, currentView, navigate, is
                     <div className="my-2 border-t theme-border opacity-50"></div>
 
                     <NavBtn id="roles" icon={Users} label="Roles" currentView={currentView} navigate={navigate} />
+                    {isAdmin && !isEditorContent && <NavBtn id="changelog" icon={History} label="Changelog" currentView={currentView} navigate={navigate} />}
 
 
 

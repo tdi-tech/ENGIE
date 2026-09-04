@@ -32,6 +32,7 @@ export const MainLayout = ({
             case 'auditoria': return <h1 className="text-base sm:text-xl font-bold theme-text-main tracking-tight">Auditoría Avanzada</h1>;
             case 'config': return <h1 className="text-base sm:text-xl font-bold theme-text-main tracking-tight">Configuración</h1>;
             case 'ayuda': return <h1 className="text-base sm:text-xl font-bold theme-text-main tracking-tight">Ayuda</h1>;
+            case 'changelog': return <h1 className="text-base sm:text-xl font-bold theme-text-main tracking-tight">Changelog</h1>;
             default: return <h1 className="text-base sm:text-xl font-bold theme-text-main tracking-tight capitalize truncate">{currentView.replace(/-/g, ' ')}</h1>;
         }
     };
