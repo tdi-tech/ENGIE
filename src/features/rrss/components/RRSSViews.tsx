@@ -229,6 +229,7 @@ export const HistorialRRSSView = ({ showToast, isAdmin, updateRrssIncident, dele
     const [selectedIncident, setSelectedIncident] = useState<any>(null);
     const [isDetailOpen, setIsDetailOpen] = useState(false);
     const [isEditOpen, setIsEditOpen] = useState(false);
+    const nDetail = normalizeIncidencia(selectedIncident);
     const editEditorRef = useRef<HTMLDivElement>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [filterYear, setFilterYear] = useState('Todos');
@@ -385,12 +386,13 @@ export const HistorialRRSSView = ({ showToast, isAdmin, updateRrssIncident, dele
         return <Smartphone className={`w-5 h-5 ${isSelected ? 'text-white' : 'theme-text-muted'}`} />;
     };
 
-    const handleDownloadDocx = (inc: any) => {
+const handleDownloadDocx = (inc: any) => {
         if (!inc) return;
+        const n = normalizeIncidencia(inc);
         const cleanContent = DOMPurify.sanitize(inc.reporteTexto || '');
-        const docContent = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>Reporte de Incidencia RRSS</title><style>body { font-family: 'Arial', sans-serif; color: #222222; line-height: 1.5; } h2 { color: #f97316; border-b: 2px solid #f97316; padding-bottom: 5px; font-size: 18pt; } .table-info { width: 100%; border-collapse: collapse; margin-top: 15px; } .table-info td { padding: 8px; border: 1px solid #dddddd; font-size: 10.5pt; } .label { font-weight: bold; background-color: #f3f4f6; width: 30%; } .section-header { font-size: 12pt; font-weight: bold; color: #f97316; margin-top: 20px; margin-bottom: 5px; } .box { border: 1px solid #e5e7eb; padding: 10px; background: #fafafa; border-radius: 4px; font-size: 11pt; } ul { padding-left: 20px; list-style-type: disc; } ol { padding-left: 20px; list-style-type: decimal; }</style></head><body><h2>ENGIE MANAGEMENT - INFORME DE INCIDENCIA RRSS</h2><table class="table-info"><tr><td class="label">Fecha Recepción</td><td>${inc.fecha}</td></tr><tr><td class="label">Medio / Canal</td><td>${inc.medio}</td></tr><tr><td class="label">Usuario Afectado</td><td>${inc.usuario}</td></tr><tr><td class="label">Campus</td><td>${inc.campus}</td></tr><tr><td class="label">Área Responsable</td><td>${inc.area || 'N/A'}</td></tr><tr><td class="label">Nivel de Riesgo</td><td>${inc.riesgo}</td></tr><tr><td class="label">Volumen Incidencias</td><td>${inc.totalIncidencias}</td></tr><tr><td class="label">Registrado por</td><td>${inc.autor || 'Admin'}</td></tr></table><div class="section-header">Descripción del Evento:</div><div class="box">${inc.descripcion || ''}</div><div class="section-header">Comentarios Adicionales:</div><div class="box">${inc.comentarios || 'Sin comentarios adicionales.'}</div><div class="section-header">Bitácora / Reporte Estructurado:</div><div class="box">${cleanContent || 'Sin bitácora detallada de texto enriquecido.'}</div></body></html>`;
+        const docContent = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>Reporte de Incidente Reputacional</title><style>body { font-family: 'Arial', sans-serif; color: #222222; line-height: 1.5; } h2 { color: #f97316; border-bottom: 2px solid #f97316; padding-bottom: 5px; font-size: 18pt; } .table-info { width: 100%; border-collapse: collapse; margin-top: 15px; } .table-info td { padding: 8px; border: 1px solid #dddddd; font-size: 10.5pt; } .label { font-weight: bold; background-color: #f3f4f6; width: 30%; } .section-header { font-size: 12pt; font-weight: bold; color: #f97316; margin-top: 20px; margin-bottom: 5px; } .box { border: 1px solid #e5e7eb; padding: 10px; background: #fafafa; border-radius: 4px; font-size: 11pt; } ul { padding-left: 20px; list-style-type: disc; } ol { padding-left: 20px; list-style-type: decimal; }</style></head><body><h2>ENGIE MANAGEMENT - INFORME DE INCIDENTE REPUTACIONAL</h2><table class="table-info"><tr><td class="label">Fecha Recepción</td><td>${n.fecha}</td></tr><tr><td class="label">Volumen Incidencias</td><td>${n.totalIncidencias}</td></tr><tr><td class="label">Actor / Fuente</td><td>${n.actorFuente}</td></tr><tr><td class="label">Fuente de Detección</td><td>${n.fuenteDeteccion}</td></tr><tr><td class="label">Tipo de Fuente</td><td>${n.tipoFuente || 'N/A'}</td></tr><tr><td class="label">Tema Principal</td><td>${n.temaPrincipal || 'N/A'}</td></tr><tr><td class="label">Nivel de Riesgo</td><td>${n.nivelRiesgo}</td></tr><tr><td class="label">Alcance Actual</td><td>${n.alcanceActual || 'N/A'}</td></tr><tr><td class="label">Tendencia</td><td>${n.tendencia || 'N/A'}</td></tr><tr><td class="label">Campus</td><td>${n.campus}</td></tr><tr><td class="label">Área Responsable</td><td>${n.area || 'N/A'}</td></tr><tr><td class="label">Registrado por</td><td>${n.autor || 'Admin'}</td></tr></table><div class="section-header">Resumen del Incidente:</div><div class="box">${n.resumen || ''}</div><div class="section-header">Hallazgos Clave:</div><div class="box">${n.hallazgosClave || 'Sin hallazgos registrados.'}</div><div class="section-header">Bitácora / Reporte Estructurado:</div><div class="box">${cleanContent || 'Sin bitácora detallada.'}</div></body></html>`;
         const blob = new Blob([docContent], { type: 'application/msword' });
-        const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = `Reporte_RRSS_${inc.usuario || 'Incidente'}_${inc.fecha}.docx`; link.click();
+        const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = `Reporte_Reputacional_${n.actorFuente || 'Incidente'}_${n.fecha}.docx`; link.click();
         showToast('Documento Word (.docx) descargado con éxito.');
     };
 
@@ -857,16 +859,19 @@ export const HistorialRRSSView = ({ showToast, isAdmin, updateRrssIncident, dele
                             </div>
 
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-6 mb-8 print:mt-4">
-                                <div><p className="text-xs theme-text-muted font-medium mb-1">Total de Incidencias</p><p className="font-bold theme-text-main text-lg">{selectedIncident.totalIncidencias}</p></div>
-                                <div><p className="text-xs theme-text-muted font-medium mb-1">Campus</p><p className="font-bold theme-text-main">{selectedIncident.campus}</p></div>
-                                <div><p className="text-xs theme-text-muted font-medium mb-1">Área Responsable</p><p className="font-bold theme-text-main">{selectedIncident.area || 'Operaciones'}</p></div>
-                                <div><p className="text-xs theme-text-muted font-medium mb-1">Nivel de Riesgo</p><span className={`inline-block px-3 py-1 rounded-md text-xs font-bold border ${getRiskColor(selectedIncident.riesgo)}`}>{selectedIncident.riesgo}</span></div>
-                                <div className="col-span-2"><p className="text-xs theme-text-muted font-medium mb-1">Usuario RRSS</p><p className="font-bold theme-text-main bg-black/5 dark:bg-white/5 px-3 py-1.5 rounded-lg inline-block">{selectedIncident.usuario}</p></div>
+                                <div><p className="text-xs theme-text-muted font-medium mb-1">Total de Incidencias</p><p className="font-bold theme-text-main text-lg">{nDetail.totalIncidencias}</p></div>
+                                <div><p className="text-xs theme-text-muted font-medium mb-1">Campus</p><p className="font-bold theme-text-main">{nDetail.campus}</p></div>
+                                <div><p className="text-xs theme-text-muted font-medium mb-1">Área Responsable</p><p className="font-bold theme-text-main">{nDetail.area || 'Operaciones'}</p></div>
+                                <div><p className="text-xs theme-text-muted font-medium mb-1">Nivel de Riesgo</p><span className={`inline-block px-3 py-1 rounded-md text-xs font-bold border ${getRiskColor(String(nDetail.nivelRiesgo) === 'Crítico' ? 'Critico' : String(nDetail.nivelRiesgo))}`}>{nDetail.nivelRiesgo}</span></div>
+                                <div><p className="text-xs theme-text-muted font-medium mb-1">Alcance Actual</p><p className="font-bold theme-text-main">{nDetail.alcanceActual || 'N/A'}</p></div>
+                                <div><p className="text-xs theme-text-muted font-medium mb-1">Tendencia</p><p className="font-bold theme-text-main">{nDetail.tendencia || 'N/A'}</p></div>
+                                <div><p className="text-xs theme-text-muted font-medium mb-1">Fuente de Detección</p><p className="font-bold theme-text-main bg-black/5 dark:bg-white/5 px-3 py-1.5 rounded-lg inline-block">{nDetail.fuenteDeteccion}</p></div>
+                                <div className="col-span-2"><p className="text-xs theme-text-muted font-medium mb-1">Actor / Fuente</p><p className="font-bold theme-text-main bg-black/5 dark:bg-white/5 px-3 py-1.5 rounded-lg inline-block">{nDetail.actorFuente}</p><p className="text-[10px] theme-text-muted mt-1">{nDetail.tipoFuente || '—'} · {nDetail.temaPrincipal || '—'}</p></div>
                             </div>
-                            
+
                             <div className="space-y-6">
-                                <div><p className="text-xs theme-text-muted font-medium mb-2 uppercase tracking-wider">Descripción de la incidencia</p><div className="p-4 theme-bg-low rounded-xl border theme-border theme-text-main whitespace-pre-wrap text-sm leading-relaxed">{selectedIncident.descripcion}</div></div>
-                                {selectedIncident.comentarios && <div><p className="text-xs theme-text-muted font-medium mb-2 uppercase tracking-wider">Comentarios adicionales</p><div className="p-4 theme-bg-low rounded-xl border theme-border theme-text-main whitespace-pre-wrap text-sm">{selectedIncident.comentarios}</div></div>}
+                                <div><p className="text-xs theme-text-muted font-medium mb-2 uppercase tracking-wider">Resumen del incidente</p><div className="p-4 theme-bg-low rounded-xl border theme-border theme-text-main whitespace-pre-wrap text-sm leading-relaxed">{nDetail.resumen}</div></div>
+                                {nDetail.hallazgosClave && <div><p className="text-xs theme-text-muted font-medium mb-2 uppercase tracking-wider">Hallazgos clave</p><div className="p-4 theme-bg-low rounded-xl border theme-border theme-text-main whitespace-pre-wrap text-sm">{nDetail.hallazgosClave}</div></div>}
                                 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-2">
                                     {selectedIncident.reporteTexto && (
@@ -896,49 +901,89 @@ export const HistorialRRSSView = ({ showToast, isAdmin, updateRrssIncident, dele
                             <button type="button" onClick={() => setIsEditOpen(false)} className="p-2 theme-text-muted hover:bg-black/5 dark:hover:bg-white/5 rounded-lg"><X className="w-5 h-5"/></button>
                         </div>
                         <div className="p-6 overflow-y-auto custom-scrollbar flex-1">
-                            <form id="editRrssForm" onSubmit={(e) => {
+<form id="editRrssForm" onSubmit={(e) => {
                                 e.preventDefault();
                                 const fd = new FormData(e.currentTarget);
                                 const cleanHTML = DOMPurify.sanitize(editEditorRef.current ? editEditorRef.current.innerHTML : (selectedIncident.reporteTexto || ''));
                                 updateRrssIncident(selectedIncident.id, {
-                                    totalIncidencias: parseInt(fd.get('total') as string), fecha: fd.get('fecha'), usuario: fd.get('usuario'),
-                                    medio: fd.get('medio'), campus: fd.get('campus'), riesgo: fd.get('riesgo'), area: fd.get('area'),
-                                    descripcion: fd.get('descripcion'), comentarios: fd.get('comentarios'),
-                                    enlacePublicacion: fd.get('enlacePub'), enlaceDrive: fd.get('enlaceDrive'),
+                                    fecha: fd.get('fecha'),
+                                    totalIncidencias: parseInt(fd.get('total') as string) || 1,
+                                    actorFuente: fd.get('actorFuente'),
+                                    fuenteDeteccion: fd.get('fuenteDeteccion'),
+                                    tipoFuente: fd.get('tipoFuente'),
+                                    temaPrincipal: fd.get('temaPrincipal'),
+                                    nivelRiesgoReputacional: fd.get('nivelRiesgo'),
+                                    alcanceActual: fd.get('alcanceActual'),
+                                    tendencia: fd.get('tendencia'),
+                                    campus: fd.get('campus'),
+                                    area: fd.get('area'),
+                                    resumenIncidente: fd.get('resumenIncidente'),
+                                    hallazgosClave: fd.get('hallazgosClave'),
+                                    enlacePublicacion: fd.get('enlacePub'),
+                                    enlaceDrive: fd.get('enlaceDrive'),
                                     reporteTexto: cleanHTML,
-                                    estado: selectedIncident.estado || 'Monitoreo activo' 
+                                    estado: selectedIncident.estado || 'Monitoreo activo'
                                 });
                                 setIsEditOpen(false);
                             }} className="space-y-5">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div><label htmlFor="er-total" className="text-xs font-bold theme-text-muted">Total</label><input id="er-total" name="total" type="number" min="1" required defaultValue={selectedIncident.totalIncidencias} className={inputStyles} /></div>
-                                    <div><label htmlFor="er-fecha" className="text-xs font-bold theme-text-muted">Fecha</label><input id="er-fecha" name="fecha" type="date" required defaultValue={selectedIncident.fecha} className={`${inputStyles} [color-scheme:light] dark:[color-scheme:dark]`} /></div>
-                                    <div><label htmlFor="er-usuario" className="text-xs font-bold theme-text-muted">Usuario</label><input id="er-usuario" name="usuario" type="text" required defaultValue={selectedIncident.usuario} className={inputStyles} /></div>
-                                    <div><label htmlFor="er-medio" className="text-xs font-bold theme-text-muted">Medio</label><select id="er-medio" name="medio" defaultValue={selectedIncident.medio} className={inputStyles}><option className={optionStyles} value="Facebook Comentario">Facebook Comentario</option><option className={optionStyles} value="TikTok">TikTok</option><option className={optionStyles} value="FB Grupos">FB Grupos</option><option className={optionStyles} value="LinkedIn">LinkedIn</option><option className={optionStyles} value="Facebook DM">Facebook DM</option><option className={optionStyles} value="Instagram DM">Instagram DM</option></select></div>
-                                    <div><label htmlFor="er-campus" className="text-xs font-bold theme-text-muted">Campus</label><select id="er-campus" name="campus" defaultValue={selectedIncident.campus} className={inputStyles}>{['Atizapán', 'Coacalco', 'Cuautitlán Izcalli', 'Ecatepec', 'Tecamac', 'Tultepec', 'Zumpango', 'Tizayuca', 'Querétaro: la Joya', 'Querétaro: el Marqués', 'Huehuetoca', 'Chalco'].map(c => <option className={optionStyles} key={c}>{c}</option>)}</select></div>
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                    <div><label htmlFor="er-total" className="text-xs font-bold theme-text-muted">Volumen (Total)</label><input id="er-total" name="total" type="number" min="1" required defaultValue={nDetail.totalIncidencias} className={inputStyles} /></div>
+                                    <div><label htmlFor="er-fecha" className="text-xs font-bold theme-text-muted">Fecha de Recepción</label><input id="er-fecha" name="fecha" type="date" required defaultValue={nDetail.fecha} className={`${inputStyles} [color-scheme:light] dark:[color-scheme:dark]`} /></div>
+                                    <div><label htmlFor="er-actorFuente" className="text-xs font-bold theme-text-muted">Actor o Fuente</label><input id="er-actorFuente" name="actorFuente" type="text" required defaultValue={nDetail.actorFuente} className={inputStyles} /></div>
                                     <div>
-                                        <label htmlFor="er-riesgo" className="text-xs font-bold theme-text-muted">Riesgo</label>
-                                        <select id="er-riesgo" name="riesgo" defaultValue={selectedIncident.riesgo} className={inputStyles}>
-                                            <option className={optionStyles} value="Bajo">Bajo 🟢</option>
-                                            <option className={optionStyles} value="Medio">Medio 🟡</option>
-                                            <option className={optionStyles} value="Alto">Alto 🟠</option>
-                                            <option className={optionStyles} value="Critico">Crítico 🔴</option>
+                                        <label htmlFor="er-fuenteDeteccion" className="text-xs font-bold theme-text-muted">Fuente de Detección</label>
+                                        <select id="er-fuenteDeteccion" name="fuenteDeteccion" defaultValue={nDetail.fuenteDeteccion} className={inputStyles}>
+                                            {(() => { const opts = ['Facebook', 'Instagram', 'TikTok', 'LinkedIn', 'YouTube', 'X', 'Medios Digitales']; return (<>{nDetail.fuenteDeteccion && nDetail.fuenteDeteccion !== 'N/A' && !opts.includes(nDetail.fuenteDeteccion) && <option className={optionStyles} value={nDetail.fuenteDeteccion}>{nDetail.fuenteDeteccion} (actual)</option>}{opts.map(o => <option className={optionStyles} key={o} value={o}>{o}</option>)}</>); })()}
                                         </select>
                                     </div>
-                                    <div className="col-span-2"><label htmlFor="er-area" className="text-xs font-bold theme-text-muted">Área Responsable</label><select id="er-area" name="area" defaultValue={selectedIncident.area || 'Operaciones'} className={inputStyles}><option className={optionStyles} value="Operaciones">Operaciones</option><option className={optionStyles} value="Legal">Legal</option><option className={optionStyles} value="Comercial - Call Center">Comercial - Call Center</option></select></div>
+                                    <div>
+                                        <label htmlFor="er-tipoFuente" className="text-xs font-bold theme-text-muted">Tipo de Fuente</label>
+                                        <select id="er-tipoFuente" name="tipoFuente" defaultValue={nDetail.tipoFuente} className={inputStyles}>
+                                            {(() => { const opts = ['Queja', 'Desinformación', 'Acusación', 'Denuncia', 'Cuestionamiento', 'Riesgo de seguridad', 'Conflicto comunitario', 'Tema legal', 'Cobertura negativa', 'Crisis activa']; return (<>{nDetail.tipoFuente && !opts.includes(nDetail.tipoFuente) && <option className={optionStyles} value={nDetail.tipoFuente}>{nDetail.tipoFuente} (actual)</option>}{opts.map(o => <option className={optionStyles} key={o} value={o}>{o}</option>)}</>); })()}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label htmlFor="er-temaPrincipal" className="text-xs font-bold theme-text-muted">Tema Principal</label>
+                                        <select id="er-temaPrincipal" name="temaPrincipal" defaultValue={nDetail.temaPrincipal} className={inputStyles}>
+                                            {(() => { const opts = ['Seguridad y regulación', 'Comunidades e impacto social', 'Legal y derechos humanos', 'Medio ambiente', 'Afectaciones o riesgos', 'Avances de obra e infraestructura', 'Reputación corporativa']; return (<>{nDetail.temaPrincipal && !opts.includes(nDetail.temaPrincipal) && <option className={optionStyles} value={nDetail.temaPrincipal}>{nDetail.temaPrincipal} (actual)</option>}{opts.map(o => <option className={optionStyles} key={o} value={o}>{o}</option>)}</>); })()}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label htmlFor="er-nivelRiesgo" className="text-xs font-bold theme-text-muted">Nivel de Riesgo Reputacional</label>
+                                        <select id="er-nivelRiesgo" name="nivelRiesgo" defaultValue={String(nDetail.nivelRiesgo)} className={`${inputStyles} font-bold`}>
+                                            <option className={optionStyles} value="Bajo">🟢 Bajo</option>
+                                            <option className={optionStyles} value="Medio">🟠 Medio</option>
+                                            <option className={optionStyles} value="Alto">🟡 Alto</option>
+                                            <option className={optionStyles} value="Crítico">🔴 Crítico</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label htmlFor="er-alcance" className="text-xs font-bold theme-text-muted">Alcance Actual</label>
+                                        <select id="er-alcance" name="alcanceActual" defaultValue={nDetail.alcanceActual} className={`${inputStyles} font-bold`}>
+                                            {(() => { const opts = ['Aislado', 'Limitado', 'Extendido', 'Viral']; return (<>{nDetail.alcanceActual && !opts.includes(nDetail.alcanceActual) && <option className={optionStyles} value={nDetail.alcanceActual}>{nDetail.alcanceActual} (actual)</option>}{opts.map(o => <option className={optionStyles} key={o} value={o}>{o}</option>)}</>); })()}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label htmlFor="er-tendencia" className="text-xs font-bold theme-text-muted">Tendencia</label>
+                                        <select id="er-tendencia" name="tendencia" defaultValue={nDetail.tendencia} className={`${inputStyles} font-bold`}>
+                                            {(() => { const opts = ['Disminuyendo', 'Estable', 'Creciendo rápidamente']; return (<>{nDetail.tendencia && !opts.includes(nDetail.tendencia) && <option className={optionStyles} value={nDetail.tendencia}>{nDetail.tendencia} (actual)</option>}{opts.map(o => <option className={optionStyles} key={o} value={o}>{o}</option>)}</>); })()}
+                                        </select>
+                                    </div>
+                                    <div><label htmlFor="er-campus" className="text-xs font-bold theme-text-muted">Campus</label><select id="er-campus" name="campus" defaultValue={nDetail.campus} className={inputStyles}>{(() => { const opts = ['Atizapán', 'Coacalco', 'Cuautitlán Izcalli', 'Ecatepec', 'Tecamac', 'Tultepec', 'Zumpango', 'Tizayuca', 'Querétaro: la Joya', 'Querétaro: el Marqués', 'Huehuetoca', 'Chalco']; return (<>{nDetail.campus && !opts.includes(nDetail.campus) && <option className={optionStyles} value={nDetail.campus}>{nDetail.campus} (actual)</option>}{opts.map(o => <option className={optionStyles} key={o} value={o}>{o}</option>)}</>); })()}</select></div>
+                                    <div><label htmlFor="er-area" className="text-xs font-bold theme-text-muted">Área Responsable</label><select id="er-area" name="area" defaultValue={nDetail.area || 'Operaciones'} className={inputStyles}><option className={optionStyles} value="Operaciones">Operaciones</option><option className={optionStyles} value="Legal">Legal</option><option className={optionStyles} value="Comercial - Call Center">Comercial - Call Center</option></select></div>
                                 </div>
-                                <div><label htmlFor="er-descripcion" className="text-xs font-bold theme-text-muted">Descripción</label><textarea id="er-descripcion" name="descripcion" rows={3} required defaultValue={selectedIncident.descripcion} className={inputStyles}></textarea></div>
-                                <div><label htmlFor="er-comentarios" className="text-xs font-bold theme-text-muted">Comentarios</label><textarea id="er-comentarios" name="comentarios" rows={2} defaultValue={selectedIncident.comentarios} className={inputStyles}></textarea></div>
+                                <div><label htmlFor="er-resumenIncidente" className="text-xs font-bold theme-text-muted">Resumen del Incidente</label><textarea id="er-resumenIncidente" name="resumenIncidente" rows={3} required defaultValue={nDetail.resumen} className={`${inputStyles} resize-none leading-relaxed`}></textarea></div>
+                                <div><label htmlFor="er-hallazgosClave" className="text-xs font-bold theme-text-muted">Hallazgos Clave</label><textarea id="er-hallazgosClave" name="hallazgosClave" rows={3} maxLength={500} defaultValue={nDetail.hallazgosClave} className={`${inputStyles} resize-none leading-relaxed`}></textarea></div>
                                 <div>
-                                    <label className="text-xs font-bold theme-text-muted mb-1 block">Editar reporte (Texto Enriquecido)</label>
+                                    <label className="text-xs font-bold theme-text-muted mb-1 block">Editar análisis interno (Texto Enriquecido)</label>
                                     <div className="border theme-border rounded-xl overflow-hidden theme-bg-container focus-within:border-gray-400 focus-within:ring-1 focus-within:ring-gray-400 transition-all">
                                         <EditorToolbar onCommand={execEditCommand} />
                                         <div className="w-full p-4 theme-text-main theme-bg-low outline-none min-h-[160px] overflow-y-auto max-h-[300px] text-sm leading-relaxed custom-scrollbar wysiwyg-content" ref={editEditorRef} contentEditable dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(selectedIncident.reporteTexto || '') }} />
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
-                                    <div><label htmlFor="er-enlacePub" className="text-xs font-bold theme-text-muted">Enlace Publicación</label><input id="er-enlacePub" name="enlacePub" type="url" defaultValue={selectedIncident.enlacePublicacion} className={inputStyles} /></div>
-                                    <div><label htmlFor="er-enlaceDrive" className="text-xs font-bold theme-text-muted">Enlace Drive</label><input id="er-enlaceDrive" name="enlaceDrive" type="url" defaultValue={selectedIncident.enlaceDrive} className={inputStyles} /></div>
+                                    <div><label htmlFor="er-enlacePub" className="text-xs font-bold theme-text-muted">Enlace a la Publicación Original</label><input id="er-enlacePub" name="enlacePub" type="url" defaultValue={nDetail.enlacePublicacion} className={inputStyles} /></div>
+                                    <div><label htmlFor="er-enlaceDrive" className="text-xs font-bold theme-text-muted">Repositorio de Evidencia (Drive)</label><input id="er-enlaceDrive" name="enlaceDrive" type="url" defaultValue={nDetail.enlaceDrive} className={inputStyles} /></div>
                                 </div>
                             </form>
                         </div>
