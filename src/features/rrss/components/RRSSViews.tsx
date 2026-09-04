@@ -256,7 +256,12 @@ export const HistorialRRSSView = ({ showToast, isAdmin, updateRrssIncident, dele
     const [exportType, setExportType] = useState('all'); 
     const [exportYear, setExportYear] = useState('');
     const [exportMonth, setExportMonth] = useState('');
-    const [exportCampus, setExportCampus] = useState('');
+    const [exportFuente, setExportFuente] = useState('');
+    const [exportTema, setExportTema] = useState('');
+    const [exportRiesgo, setExportRiesgo] = useState('');
+    const [exportEstatus, setExportEstatus] = useState('');
+    const [exportAlcance, setExportAlcance] = useState('');
+    const [exportTendencia, setExportTendencia] = useState('');
     const [isExporting, setIsExporting] = useState(false);
 
     useEffect(() => {
@@ -281,8 +286,12 @@ export const HistorialRRSSView = ({ showToast, isAdmin, updateRrssIncident, dele
     }, [searchTerm, filterYear, filterStatus, filterFuente, filterTema, filterRiesgo]);
 
     useEffect(() => {
-        setExportCampus('');
-    }, [exportType, exportYear, exportMonth]);
+        setExportMonth('');
+    }, [exportType, exportYear]);
+
+    const clearCustomExportFilters = () => {
+        setExportFuente(''); setExportTema(''); setExportRiesgo(''); setExportEstatus(''); setExportAlcance(''); setExportTendencia('');
+    };
 
     const availableYears = useMemo(() => {
         const years = new Set(rrssIncidents.map((i: any) => i.fecha ? i.fecha.split('-')[0] : null).filter(Boolean));
@@ -302,17 +311,6 @@ export const HistorialRRSSView = ({ showToast, isAdmin, updateRrssIncident, dele
         );
         return Array.from(months).sort((a: any, b: any) => b.localeCompare(a));
     }, [rrssIncidents, exportYear]);
-
-    const availableCampusesForExport = useMemo(() => {
-        let filtered = rrssIncidents;
-        if (exportType === 'year' && exportYear) {
-            filtered = rrssIncidents.filter((i: any) => i.fecha && i.fecha.split('-')[0] === exportYear);
-        } else if (exportType === 'month' && exportYear && exportMonth) {
-            filtered = rrssIncidents.filter((i: any) => i.fecha && i.fecha.startsWith(`${exportYear}-${exportMonth}`));
-        }
-        const campuses = new Set(filtered.map((i: any) => i.campus).filter(Boolean));
-        return Array.from(campuses).sort((a: any, b: any) => a.localeCompare(b));
-    }, [rrssIncidents, exportType, exportYear, exportMonth]);
 
     const filteredIncidents = useMemo(() => {
         return rrssIncidents.filter((inc: any) => {
@@ -462,40 +460,60 @@ const handleDownloadDocx = (inc: any) => {
     };
 
     const handleExecuteExport = () => {
+        const norm = (i: any) => normalizeIncidencia(i);
         let dataToExport = rrssIncidents;
         let filenameSuffix = 'Todo';
 
-        if (exportType === 'year') {
-            if (!exportYear) return showToast('Selecciona un año para exportar', true);
-            dataToExport = rrssIncidents.filter((i: any) => i.fecha && i.fecha.split('-')[0] === exportYear);
-            if (exportCampus) dataToExport = dataToExport.filter((i: any) => i.campus === exportCampus);
-            filenameSuffix = exportCampus ? `${exportYear}_${exportCampus}` : exportYear;
-
-        } else if (exportType === 'month') {
+        if (exportType === 'month') {
             if (!exportYear || !exportMonth) return showToast('Selecciona año y mes para exportar', true);
             dataToExport = rrssIncidents.filter((i: any) => i.fecha && i.fecha.startsWith(`${exportYear}-${exportMonth}`));
-            if (exportCampus) dataToExport = dataToExport.filter((i: any) => i.campus === exportCampus);
-            filenameSuffix = exportCampus ? `${exportYear}_${exportMonth}_${exportCampus}` : `${exportYear}_${exportMonth}`;
+            filenameSuffix = `${exportYear}_${exportMonth}`;
+        } else if (exportType === 'custom') {
+            if (!exportYear && !exportMonth && !exportFuente && !exportTema && !exportRiesgo && !exportEstatus && !exportAlcance && !exportTendencia) {
+                return showToast('Configura al menos un criterio para la combinación personalizada', true);
+            }
+            if (exportYear) {
+                dataToExport = dataToExport.filter((i: any) => i.fecha && i.fecha.split('-')[0] === exportYear);
+                filenameSuffix = exportYear;
+            }
+            if (exportMonth) {
+                dataToExport = dataToExport.filter((i: any) => i.fecha && i.fecha.startsWith(`${exportYear}-${exportMonth}`));
+                filenameSuffix += `_${exportMonth}`;
+            }
+            if (exportFuente) { dataToExport = dataToExport.filter((i: any) => norm(i).fuenteDeteccion === exportFuente); filenameSuffix += `_F-${exportFuente}`; }
+            if (exportTema) { dataToExport = dataToExport.filter((i: any) => norm(i).temaPrincipal === exportTema); filenameSuffix += `_T-${exportTema}`; }
+            if (exportRiesgo) { dataToExport = dataToExport.filter((i: any) => riesgoValue(norm(i).nivelRiesgo) === exportRiesgo); filenameSuffix += `_R-${exportRiesgo}`; }
+            if (exportEstatus) { dataToExport = dataToExport.filter((i: any) => (i.estado || 'Monitoreo activo') === exportEstatus); filenameSuffix += `_E-${exportEstatus}`; }
+            if (exportAlcance) { dataToExport = dataToExport.filter((i: any) => norm(i).alcanceActual === exportAlcance); filenameSuffix += `_A-${exportAlcance}`; }
+            if (exportTendencia) { dataToExport = dataToExport.filter((i: any) => norm(i).tendencia === exportTendencia); filenameSuffix += `_Ten-${exportTendencia}`; }
+            filenameSuffix = filenameSuffix.replace(/[\/\s:]+/g, '-');
         }
 
-        if (dataToExport.length === 0) return showToast('No hay datos registrados con esos filtros', true);
+        if (dataToExport.length === 0) return showToast('No hay datos registrados con esos criterios', true);
 
         setIsExporting(true);
 
         setTimeout(() => {
-            const headers = isAdmin ? ['Fecha,Usuario RRSS,Medio,Campus,Riesgo,Area Responsable,Total,Estatus,Descripcion,Comentarios,Autor'] : ['Fecha,Usuario RRSS,Medio,Campus,Riesgo,Area Responsable,Total,Estatus,Descripcion,Comentarios'];
+            const esc = (v: any) => String(v ?? '').replace(/"/g, '""');
+            const headers = isAdmin
+                ? ['Fecha,Volumen,Actor o Fuente,Fuente de Deteccion,Tipo de Fuente,Tema Principal,Nivel de Riesgo,Alcance Actual,Tendencia,Resumen del Incidente,Hallazgos Clave,Estatus,Enlace Publicacion,Enlace Drive,Comentarios,Autor']
+                : ['Fecha,Volumen,Actor o Fuente,Fuente de Deteccion,Tipo de Fuente,Tema Principal,Nivel de Riesgo,Alcance Actual,Tendencia,Resumen del Incidente,Hallazgos Clave,Estatus,Enlace Publicacion,Enlace Drive,Comentarios'];
             const rows = dataToExport.map((i: any) => {
-                const safeDesc = i.descripcion ? i.descripcion.replace(/"/g, '""') : '';
-                const safeCom = i.comentarios ? i.comentarios.replace(/"/g, '""') : '';
-                const baseData = `"${i.fecha}","${i.usuario}","${i.medio}","${i.campus}","${i.riesgo}","${i.area}","${i.totalIncidencias}","${i.estado || 'Monitoreo activo'}","${safeDesc}","${safeCom}"`;
-                return isAdmin ? `${baseData},"${i.autor || 'Administrador'}"` : baseData;
+                const n = norm(i);
+                const baseData = [
+                    esc(i.fecha), esc(i.totalIncidencias), esc(n.actorFuente), esc(n.fuenteDeteccion), esc(n.tipoFuente),
+                    esc(n.temaPrincipal), esc(n.nivelRiesgo), esc(n.alcanceActual), esc(n.tendencia),
+                    esc(n.resumen), esc(n.hallazgosClave), esc(i.estado || 'Monitoreo activo'),
+                    esc(n.enlacePublicacion), esc(n.enlaceDrive), esc(i.comentarios)
+                ].map(v => `"${v}"`).join(',');
+                return isAdmin ? `${baseData},"${esc(i.autor || 'Administrador')}"` : baseData;
             });
 
-            const link = document.createElement("a"); 
-            link.href = encodeURI("data:text/csv;charset=utf-8," + [headers, ...rows].join("\n")); 
-            link.download = `Historial_RRSS_${filenameSuffix}_${new Date().toISOString().split('T')[0]}.csv`; 
-            document.body.appendChild(link); 
-            link.click(); 
+            const link = document.createElement("a");
+            link.href = encodeURI("data:text/csv;charset=utf-8," + [...headers, ...rows].join("\n"));
+            link.download = `Historial_RRSS_${filenameSuffix}_${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(link);
+            link.click();
             document.body.removeChild(link);
 
             setIsExporting(false);
@@ -781,29 +799,6 @@ const handleDownloadDocx = (inc: any) => {
                                     <input type="radio" name="exportType" checked={exportType === 'all'} onChange={() => setExportType('all')} className="w-4 h-4 text-orange-500" />
                                     <div><p className="text-sm font-bold theme-text-main">Todo el Historial</p><p className="text-xs theme-text-muted">Descarga todos los incidentes registrados.</p></div>
                                 </label>
-                                
-                                <label className={`flex flex-col gap-3 p-4 rounded-xl border cursor-pointer transition-colors ${exportType === 'year' ? 'border-orange-500 bg-orange-500/5' : 'theme-border theme-bg-low hover:border-gray-400'}`}>
-                                    <div className="flex items-center gap-3">
-                                        <input type="radio" name="exportType" checked={exportType === 'year'} onChange={() => { setExportType('year'); if(!exportYear && availableYears.length) setExportYear(String(availableYears[0])); }} className="w-4 h-4 text-orange-500" />
-                                        <div><p className="text-sm font-bold theme-text-main">Filtrar por Año y Campus</p><p className="text-xs theme-text-muted">Descarga un año y campus en específico.</p></div>
-                                    </div>
-                                    {exportType === 'year' && (
-                                        <div className="ml-7 flex flex-col gap-3 fade-in mt-2">
-                                            <select aria-label="Seleccionar año" value={exportYear} onChange={(e) => setExportYear(e.target.value)} className={inputStyles}>
-                                                <option className={optionStyles} value="" disabled>Selecciona un año</option>
-                                                {availableYears.map((y: any) => <option className={optionStyles} key={y} value={y}>{y}</option>)}
-                                            </select>
-                                            <select aria-label="Seleccionar campus" value={exportCampus} onChange={(e) => setExportCampus(e.target.value)} className={inputStyles}>
-                                                <option className={optionStyles} value="">Todos los Campus</option>
-                                                {availableCampusesForExport.length > 0 ? (
-                                                    availableCampusesForExport.map((c: any) => <option className={optionStyles} key={c} value={c}>{c}</option>)
-                                                ) : (
-                                                    <option className={optionStyles} value="none" disabled>No hay campus en esta fecha</option>
-                                                )}
-                                            </select>
-                                        </div>
-                                    )}
-                                </label>
 
                                 <label className={`flex flex-col gap-3 p-4 rounded-xl border cursor-pointer transition-colors ${exportType === 'month' ? 'border-orange-500 bg-orange-500/5' : 'theme-border theme-bg-low hover:border-gray-400'}`}>
                                     <div className="flex items-center gap-3">
@@ -822,14 +817,57 @@ const handleDownloadDocx = (inc: any) => {
                                                     {availableMonthsForExport.map((m: any) => <option className={optionStyles} key={m} value={m}>{getMonthName(m)}</option>)}
                                                 </select>
                                             </div>
-                                            <select aria-label="Seleccionar campus" value={exportCampus} onChange={(e) => setExportCampus(e.target.value)} className={inputStyles}>
-                                                <option className={optionStyles} value="">Todos los Campus</option>
-                                                {availableCampusesForExport.length > 0 ? (
-                                                    availableCampusesForExport.map((c: any) => <option className={optionStyles} key={c} value={c}>{c}</option>)
-                                                ) : (
-                                                    <option className={optionStyles} value="none" disabled>No hay campus en esta fecha</option>
-                                                )}
-                                            </select>
+                                        </div>
+                                    )}
+                                </label>
+
+                                <label className={`flex flex-col gap-3 p-4 rounded-xl border cursor-pointer transition-colors ${exportType === 'custom' ? 'border-orange-500 bg-orange-500/5' : 'theme-border theme-bg-low hover:border-gray-400'}`}>
+                                    <div className="flex items-center gap-3">
+                                        <input type="radio" name="exportType" checked={exportType === 'custom'} onChange={() => { setExportType('custom'); if(!exportYear && availableYears.length) setExportYear(String(availableYears[0])); }} className="w-4 h-4 text-orange-500" />
+                                        <div><p className="text-sm font-bold theme-text-main">Combinación Personalizada</p><p className="text-xs theme-text-muted">Combina año, mes, fuente, tema, riesgo, estatus, alcance y tendencia.</p></div>
+                                    </div>
+                                    {exportType === 'custom' && (
+                                        <div className="ml-7 flex flex-col gap-3 fade-in mt-2">
+                                            <div className="flex gap-3">
+                                                <select aria-label="Seleccionar año" value={exportYear} onChange={(e) => setExportYear(e.target.value)} className={`${inputStyles} w-1/2`}>
+                                                    <option className={optionStyles} value="">Todos los años</option>
+                                                    {availableYears.map((y: any) => <option className={optionStyles} key={y} value={y}>{y}</option>)}
+                                                </select>
+                                                <select aria-label="Seleccionar mes" value={exportMonth} onChange={(e) => setExportMonth(e.target.value)} className={`${inputStyles} w-1/2`} disabled={!exportYear}>
+                                                    <option className={optionStyles} value="">Todos los meses</option>
+                                                    {availableMonthsForExport.map((m: any) => <option className={optionStyles} key={m} value={m}>{getMonthName(m)}</option>)}
+                                                </select>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-3">
+                                                <select aria-label="Filtrar por fuente" value={exportFuente} onChange={(e) => setExportFuente(e.target.value)} className={`${inputStyles} py-2`}>
+                                                    <option className={optionStyles} value="">Toda fuente</option>
+                                                    {availableFuentes.map((f: any) => <option className={optionStyles} key={f} value={f}>{f}</option>)}
+                                                </select>
+                                                <select aria-label="Filtrar por tema" value={exportTema} onChange={(e) => setExportTema(e.target.value)} className={`${inputStyles} py-2`}>
+                                                    <option className={optionStyles} value="">Todo tema</option>
+                                                    {availableTemas.map((t: any) => <option className={optionStyles} key={t} value={t}>{t}</option>)}
+                                                </select>
+                                                <select aria-label="Filtrar por riesgo" value={exportRiesgo} onChange={(e) => setExportRiesgo(e.target.value)} className={`${inputStyles} py-2`}>
+                                                    <option className={optionStyles} value="">Todo riesgo</option>
+                                                    {NIVELES_RIESGO.map(r => <option className={optionStyles} key={r} value={r}>{r}</option>)}
+                                                </select>
+                                                <select aria-label="Filtrar por estatus" value={exportEstatus} onChange={(e) => setExportEstatus(e.target.value)} className={`${inputStyles} py-2`}>
+                                                    <option className={optionStyles} value="">Todo estatus</option>
+                                                    <option className={optionStyles} value="Monitoreo activo">🔴 Monitoreo activo</option>
+                                                    <option className={optionStyles} value="En revisión">🟡 En revisión</option>
+                                                    <option className={optionStyles} value="Seguimiento activo">🟠 Seguimiento activo</option>
+                                                    <option className={optionStyles} value="Resuelto / solucionado">🟢 Resuelto</option>
+                                                </select>
+                                                <select aria-label="Filtrar por alcance" value={exportAlcance} onChange={(e) => setExportAlcance(e.target.value)} className={`${inputStyles} py-2`}>
+                                                    <option className={optionStyles} value="">Todo alcance</option>
+                                                    {['Aislado', 'Limitado', 'Extendido', 'Viral'].map(o => <option className={optionStyles} key={o} value={o}>{o}</option>)}
+                                                </select>
+                                                <select aria-label="Filtrar por tendencia" value={exportTendencia} onChange={(e) => setExportTendencia(e.target.value)} className={`${inputStyles} py-2`}>
+                                                    <option className={optionStyles} value="">Toda tendencia</option>
+                                                    {['Disminuyendo', 'Estable', 'Creciendo rápidamente'].map(o => <option className={optionStyles} key={o} value={o}>{o}</option>)}
+                                                </select>
+                                            </div>
+                                            <button type="button" onClick={clearCustomExportFilters} className="self-start text-xs font-bold text-orange-500 hover:text-orange-400 hover:underline transition-colors">Limpiar combinación</button>
                                         </div>
                                     )}
                                 </label>
