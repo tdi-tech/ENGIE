@@ -1,7 +1,6 @@
 import React from 'react';
 import { RolesView, ProtocoloRRSSView } from '../shared/components/StaticViews';
 import { AyudaView } from '../shared/components/AyudaView';
-import { ChangelogView } from '../shared/components/ChangelogView';
 import { DashboardView } from '../features/dashboard/components/DashboardView';
 import { ConfigView } from '../features/settings/components/ConfigView';
 import { NewRRSSIncidentView, HistorialRRSSView } from '../features/rrss/components/RRSSViews';
@@ -27,7 +26,6 @@ export const ROUTES: Record<string, RouteConfig> = {
     'historial-rss': { component: HistorialRRSSView, access: 'PUBLIC' },
     'historial-comentario': { component: HistorialCommentView, access: 'PUBLIC' },
 
-    'changelog': { component: ChangelogView, access: 'LOGGED_IN' },
     'nuevo-rss': { component: NewRRSSIncidentView, access: 'LOGGED_IN' },
     'nuevo-comentario': { component: NewCommentView, access: 'LOGGED_IN' },
 

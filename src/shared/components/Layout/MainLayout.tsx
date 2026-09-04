@@ -28,7 +28,6 @@ export const MainLayout = ({
             case 'nuevo-comentario': return <div className={baseClass}><span className={parentClass}>Menciones</span><span className={separatorClass}>/</span><span className={childClass}>Capturar menciones</span></div>;
             case 'historial-comentario': return <div className={baseClass}><span className={parentClass}>Menciones</span><span className={separatorClass}>/</span><span className={childClass}>Historial</span></div>;
             case 'roles': return <h1 className="text-base sm:text-xl font-bold theme-text-main tracking-tight">Roles</h1>;
-            case 'changelog': return <h1 className="text-base sm:text-xl font-bold theme-text-main tracking-tight">Changelog</h1>;
             case 'backups': return <h1 className="text-base sm:text-xl font-bold theme-text-main tracking-tight">Copias de Seguridad Core</h1>;
             case 'auditoria': return <h1 className="text-base sm:text-xl font-bold theme-text-main tracking-tight">Auditoría Avanzada</h1>;
             case 'config': return <h1 className="text-base sm:text-xl font-bold theme-text-main tracking-tight">Configuración</h1>;

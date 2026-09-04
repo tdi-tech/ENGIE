@@ -161,7 +161,7 @@ export const Sidebar = ({ sidebarOpen, setSidebarOpen, currentView, navigate, is
 
                     <NavBtn id="roles" icon={Users} label="Roles" currentView={currentView} navigate={navigate} />
 
-                    {isAdmin && !isEditorContent && <NavBtn id="changelog" icon={History} label="Changelog" currentView={currentView} navigate={navigate} />}
+
 
                     {/* 🔥 FIX PERMISOS: ADMIN_CM ya puede ver Backups Core */}
                     {isTrueAdmin && (
