@@ -328,7 +328,6 @@ export const HistorialRRSSView = ({ showToast, isAdmin, updateRrssIncident, dele
                 (isAdmin && n.autor && n.autor.toLowerCase().includes(term)) ||
                 (n.fuenteDeteccion && n.fuenteDeteccion.toLowerCase().includes(term)) ||
                 (n.actorFuente && n.actorFuente.toLowerCase().includes(term)) ||
-                (n.campus && n.campus.toLowerCase().includes(term)) ||
                 (n.tipoFuente && n.tipoFuente.toLowerCase().includes(term)) ||
                 (n.temaPrincipal && n.temaPrincipal.toLowerCase().includes(term)) ||
                 (n.resumen && n.resumen.toLowerCase().includes(term)) ||
@@ -558,7 +557,7 @@ const handleDownloadDocx = (inc: any) => {
                     <div className="p-4 theme-bg-container border theme-border rounded-xl shadow-sm mb-6 flex flex-col gap-4 min-w-0">
                         <div className="relative w-full flex items-center">
                             <Search className="absolute left-3 text-gray-400 w-4 h-4 pointer-events-none" />
-                            <input type="text" aria-label="Buscar" placeholder="Buscar por actor, campus, fuente, tema, resumen..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className={`${inputStyles} pl-10 pr-10`} />
+                            <input type="text" aria-label="Buscar" placeholder="Buscar por actor, fuente, tema, resumen..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className={`${inputStyles} pl-10 pr-10`} />
                             {searchTerm && <button type="button" aria-label="Limpiar búsqueda" onClick={() => setSearchTerm('')} className="absolute right-3 p-1 rounded-md text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-800 dark:hover:text-white transition-colors" title="Limpiar búsqueda"><X className="w-4 h-4" /></button>}
                         </div>
 
