@@ -340,12 +340,13 @@ const rolesTimelineData = [
         icon: UserCog,
         color: 'text-blue-500',
         lineColor: 'bg-blue-500',
-        details: 'El Community Manager actúa como el centinela principal de la marca. Es el primer filtro operativo y el encargado directo de detectar anomalías en la interacción de la comunidad. Su objetivo es frenar la escalada inicial del incidente antes de que alcance proporciones críticas.',
+        details: 'El equipo de Community Management mantiene vigilancia sobre la conversación relacionada con ENGIE y Energía Mayakan. Es responsable de identificar menciones relevantes, documentar la evidencia disponible y comunicar oportunamente cualquier señal que pueda representar un riesgo para la reputación de la marca o del proyecto.',
         responsibilities: [
-            'Detección y reporte inmediato de comportamientos anómalos, publicaciones no autorizadas o accesos no reconocidos.',
-            'Contención básica en plataformas (ocultar contenido nocivo, pausar interacciones o comentarios públicos).',
-            'Documentación forense inicial (resguardo inmediato de URLs exactas, capturas de pantalla de la intrusión).',
-            'Mantener el canal de comunicación primaria con la audiencia si la plataforma sigue activa y bajo control.'
+            'Monitorear redes sociales, medios digitales, actores relevantes y narrativas prioritarias.',
+            'Documentar publicaciones mediante, enlaces y métricas visibles.',
+            'Identificar cambios en el volumen, tono o alcance de la conversación.',
+            'Detectar nuevos actores críticos o la reactivación de detractores previamente identificados.',
+            'Integrar reportes periódicos y actualizaciones de seguimiento.'
         ]
     },
     {
@@ -409,11 +410,11 @@ export const RolesView = () => {
                     <div className="relative z-10 flex justify-between items-start">
                         <div>
                             <p className="text-xs font-bold text-purple-500 uppercase tracking-widest mb-3 flex items-center gap-2">
-                                <Activity className="w-4 h-4" /> Comité de Crisis Operativa
+                                <Activity className="w-4 h-4" /> Gestión de Reputación Digital
                             </p>
                             <h2 className="text-4xl font-black theme-text-main mb-4 tracking-tight">Roles y Responsabilidades</h2>
                             <p className="theme-text-muted text-base max-w-2xl leading-relaxed">
-                                Flujo de escalamiento y responsabilidad operativa de cada área al enfrentar un hackeo, infección o pérdida de control en los activos digitales de la empresa.
+                                Funciones de las áreas que participan en la identificación, evaluación y atención de menciones e incidentes reputacionales relacionados con ENGIE y el proyecto Mayakan.
                             </p>
                         </div>
                     </div>
