@@ -1,4 +1,4 @@
-export type UserRole = 'ADMIN_IT' | 'ADMIN_CM' | 'EDITOR_CM' | 'READER' | '';
+export type UserRole = 'ADMIN_IT' | 'ADMIN_CM' | '';
 
 // 🔒 TIPADO ESTRICTO DE INFRAESTRUCTURA
 export type CollectionName = 'rrss_incidents' | 'comments' | 'notifications' | 'auditLogs' | 'users' | 'appState';

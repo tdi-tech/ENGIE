@@ -47,7 +47,7 @@ export const ReportDashboard = ({ showToast, isAdmin, userRole }: any) => {
     const fileRef = useRef<HTMLInputElement>(null);
     const { generatePDF } = useReportGenerator();
 
-    const isTrueAdmin = ['ADMIN_IT', 'ADMIN_CM', 'EDITOR_CM'].includes(userRole);
+    const isTrueAdmin = ['ADMIN_IT', 'ADMIN_CM'].includes(userRole);
 
     const availableYears = useMemo(() => {
         const years = new Set<string>();

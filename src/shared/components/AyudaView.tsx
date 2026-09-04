@@ -35,35 +35,11 @@ const helpTopics = [
             <ul className="space-y-4 theme-text-main text-sm leading-relaxed">
                 <li className="flex items-start gap-3 p-4 theme-bg-low rounded-xl border theme-border">
                     <span className="w-2 h-2 rounded-full bg-purple-500 mt-1.5 flex-shrink-0 shadow-sm"></span>
-                    <p><strong className="theme-text-main block mb-1">ADMIN_IT:</strong> Control absoluto. Gestión de Backups, Auditoría SIEM forense, automatización de purga mediante Microservicio (Notificaciones y Auditoría) y administración total de usuarios.</p>
+                    <p><strong className="theme-text-main block mb-1">ADMIN_IT:</strong> Administrador superior de la plataforma. Control absoluto e intransferible. Único con acceso a Backups Core, Auditoría SIEM forense, configuración del Microservicio de purga (Notificaciones y Auditoría) y administración total de usuarios. No puede ser eliminado ni degradado desde la UI.</p>
                 </li>
                 <li className="flex items-start gap-3 p-4 theme-bg-low rounded-xl border theme-border">
                     <span className="w-2 h-2 rounded-full bg-purple-500 mt-1.5 flex-shrink-0 shadow-sm"></span>
-                    <p><strong className="theme-text-main block mb-1">ADMIN_CM:</strong> Control operativo. Acceso a Reportes Analíticos, generación de Backups Core, privilegios directivos para pre-registrar usuarios y asignación de semáforos de riesgo en Incidencias.</p>
-                </li>
-            </ul>
-        )
-    },
-    {
-        id: 'roles-operativos',
-        category: 'Fundamentos y Accesos',
-        title: 'Roles Operativos',
-        icon: <Users className="w-5 h-5 text-[var(--accent-purple)]" />,
-        badge: 'Ejecución',
-        badgeColor: 'bg-[var(--accent-purple)]/10 text-[var(--accent-purple)] border-[var(--accent-purple)]/20',
-        content: (
-            <ul className="space-y-3 theme-text-main text-sm leading-relaxed">
-                <li className="flex items-start gap-3">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent-purple)] mt-1.5 flex-shrink-0"></span>
-                    <p><strong className="theme-text-main">EDITOR_CM:</strong> Nivel operativo. Capacidad de crear/editar registros en Incidencias y Menciones. Acceso a los Reportes Analíticos de Menciones.</p>
-                </li>
-                <li className="flex items-start gap-3">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent-purple)] mt-1.5 flex-shrink-0"></span>
-                    <p><strong className="theme-text-main">EDITOR_CONTENT:</strong> Perfil operativo de soporte. Acceso de lectura al historial de Menciones para descarga CSV.</p>
-                </li>
-                <li className="flex items-start gap-3">
-                    <span className="w-1.5 h-1.5 rounded-full bg-gray-400 mt-1.5 flex-shrink-0"></span>
-                    <p><strong className="theme-text-main">Lector / Externo:</strong> Visualización del Dashboard analítico y protocolos de actuación.</p>
+                    <p><strong className="theme-text-main block mb-1">ADMIN_CM:</strong> Administrador de Contenido. Puede crear y editar registros de Incidencias y Menciones, ver el Dashboard analítico, los Reportes Analíticos y pre-registrar nuevos usuarios. <strong>No</strong> tiene acceso a Backups, Auditoría ni a la configuración del Microservicio. Solo el ADMIN_IT puede asignarle o revocarle el rol.</p>
                 </li>
             </ul>
         )

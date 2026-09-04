@@ -53,10 +53,10 @@ const AppContent = () => {
             return navigate('dashboard');
         }
 
-        if ((userRole as string) === 'EDITOR_CONTENT') {
+        if ((userRole as string) === 'ADMIN_CM') {
             const allowedViews = ['dashboard', 'roles', 'ayuda', 'config', 'historial-comentario'];
             if (!allowedViews.includes(view)) {
-                showToast('Acceso denegado. Tu rol (Editor Content) no tiene permisos para esta área.', true);
+                showToast('Acceso denegado. Tu rol (Administrador CM) no tiene permisos para esta área.', true);
                 return navigate('dashboard');
             }
         }
@@ -68,7 +68,7 @@ const AppContent = () => {
         if (access === 'ADMIN_CM_IT' && userRole !== 'ADMIN_IT' && userRole !== 'ADMIN_CM') {
             return showToast('Acceso denegado. Tu rol no tiene permisos para esta área.', true);
         }
-        if (access === 'ADMIN_CM_IT_EDITOR' && !['ADMIN_IT', 'ADMIN_CM', 'EDITOR_CM'].includes(userRole as string)) {
+        if (access === 'ADMIN_CM_IT_EDITOR' && !['ADMIN_IT', 'ADMIN_CM'].includes(userRole as string)) {
             return showToast('Acceso denegado. Tu rol no tiene permisos para esta área.', true);
         }
 
@@ -115,14 +115,14 @@ const AppContent = () => {
             finalView = 'dashboard';
         } else if (access === 'GUEST_ONLY' && user) {
             finalView = 'dashboard';
-        } else if ((userRole as string) === 'EDITOR_CONTENT') {
+        } else if ((userRole as string) === 'ADMIN_CM') {
             const allowedViews = ['dashboard', 'roles', 'ayuda', 'config', 'historial-comentario'];
             if (!allowedViews.includes(currentView)) finalView = 'dashboard';
         } else if (access === 'ADMIN_IT' && userRole !== 'ADMIN_IT') {
             finalView = 'dashboard';
         } else if (access === 'ADMIN_CM_IT' && !['ADMIN_IT', 'ADMIN_CM'].includes(userRole as string)) {
             finalView = 'dashboard';
-        } else if (access === 'ADMIN_CM_IT_EDITOR' && !['ADMIN_IT', 'ADMIN_CM', 'EDITOR_CM'].includes(userRole as string)) {
+        } else if (access === 'ADMIN_CM_IT_EDITOR' && !['ADMIN_IT', 'ADMIN_CM'].includes(userRole as string)) {
             finalView = 'dashboard';
         }
 
@@ -143,11 +143,11 @@ const AppContent = () => {
 
     const validNotifications = notifications.filter((n: any) => {
         if (n.userId === user?.uid || (n.deletedBy && n.deletedBy.includes(user?.uid))) return false;
-        
-        if ((userRole as string) === 'EDITOR_CONTENT') {
+
+        if ((userRole as string) === 'ADMIN_CM') {
             if (n.module !== 'Menciones') return false;
         }
-        
+
         return true;
     });
     
@@ -169,10 +169,8 @@ const AppContent = () => {
         } catch(e) { showToast('Error al conectar con servidor', true); }
     };
 
-    const displayRoleName = userRole === 'ADMIN_IT' ? 'Administrador IT' 
-                          : userRole === 'ADMIN_CM' ? 'Administrador CM' 
-                          : userRole === 'EDITOR_CM' ? 'Editor CM' 
-                          : (userRole as string) === 'EDITOR_CONTENT' ? 'Editor Content'
+    const displayRoleName = userRole === 'ADMIN_IT' ? 'Administrador IT'
+                          : userRole === 'ADMIN_CM' ? 'Administrador CM'
                           : 'Administrador';
 
     // 🔥 FIX: Se inyectaron todos los métodos faltantes en las props

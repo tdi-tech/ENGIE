@@ -113,7 +113,7 @@ export const ConfigView = ({
     const prefs = userPrefs || { sound: true, security: true, rrss: true, comments: true };
     const cleanRole = userRole?.toUpperCase()?.trim() || '';
     const isITAdmin = cleanRole === 'ADMIN_IT';
-    const canViewNotifications = ['ADMIN_IT', 'ADMIN_CM', 'EDITOR_CM', 'EDITOR_CONTENT'].includes(cleanRole);
+    const canViewNotifications = ['ADMIN_IT', 'ADMIN_CM'].includes(cleanRole);
 
     const fetchGlobalServerStats = useCallback(async () => {
         if (!isITAdmin) return;
@@ -280,7 +280,7 @@ export const ConfigView = ({
                                     <ToggleSwitch checked={prefs.sound} onChange={() => handleTogglePref('sound')} />
                                 </div>
                                 
-                                {cleanRole !== 'EDITOR_CONTENT' && (
+                                {(
                                     <>
                                         <div className="h-px w-full bg-gray-200 dark:bg-gray-800"></div>
                                         <div className="flex items-center justify-between gap-4">

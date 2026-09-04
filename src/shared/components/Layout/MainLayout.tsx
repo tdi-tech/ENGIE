@@ -38,7 +38,7 @@ export const MainLayout = ({
     };
 
     // 🔥 Agregamos el rol a una constante para limpiar el código de abajo
-    const isInternalUser = isAdmin || userRole === 'EDITOR_CONTENT';
+    const isInternalUser = isAdmin;
 
     return (
         <div className={`h-screen print:h-auto flex relative font-sans transition-colors duration-300 ${isAdmin ? 'is-admin' : ''}`}>

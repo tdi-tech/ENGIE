@@ -107,13 +107,13 @@ export const Sidebar = ({ sidebarOpen, setSidebarOpen, currentView, navigate, is
     });
 
 
-    const isEditorContent = userRole === 'EDITOR_CONTENT';
+    const isEditorContent = false; // Rol extinto: ya no existe EDITOR_CONTENT
     const isITAdmin = userRole === 'ADMIN_IT';
-    
-    // 🔥 FIX: ADMIN_CM ahora también entra a la regla isTrueAdmin para ver Backups
-    const isTrueAdmin = ['ADMIN_IT', 'ADMIN_CM'].includes(userRole);
 
-    const canViewReports = ['ADMIN_IT', 'ADMIN_CM', 'EDITOR_CM'].includes(userRole);
+    // Solo ADMIN_IT y ADMIN_CM son los roles válidos. El ADMIN_CM no ve Backups (eso es exclusivo del IT).
+    const isTrueAdmin = userRole === 'ADMIN_IT';
+
+    const canViewReports = ['ADMIN_IT', 'ADMIN_CM'].includes(userRole);
 
     const toggleGroup = (group: string) => {
         setOpenGroup(openGroup === group ? '' : group);

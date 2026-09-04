@@ -150,7 +150,7 @@ export const useAuthSession = (showToast: any, setLoginModalOpen: any) => {
                         
                         const role = data.role as UserRole;
                         setUserRole(role || '');
-                        setIsAdmin(['ADMIN_IT', 'ADMIN_CM', 'EDITOR_CM'].includes(role));
+                        setIsAdmin(['ADMIN_IT', 'ADMIN_CM'].includes(role));
 
                         const loadedPrefs = data.preferences || { sound: true, security: true, rrss: true, comments: true };
                         setUserPrefs(loadedPrefs);

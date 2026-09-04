@@ -1,9 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { collection, onSnapshot, doc, setDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db, appId, IS_MOCK } from '../../../services/firebase/config';
-
-// 🔥 FIX: Importación estática de auditoría
 import { logAuditEvent } from '../../../services/firebase/audit.service';
+
+// 🔐 Jerarquía actual: solo ADMIN_IT y ADMIN_CM
+export const ALLOWED_USER_ROLES: readonly string[] = ['ADMIN_IT', 'ADMIN_CM'];
+const isAllowedRole = (role: any): boolean => ALLOWED_USER_ROLES.includes(String(role || ''));
 
 export const useUsersManager = (user: any, userRole: any, showToast: any, openConfirmModal?: any) => {
     const [appUsers, setAppUsers] = useState<any[]>([]);
@@ -26,7 +28,15 @@ export const useUsersManager = (user: any, userRole: any, showToast: any, openCo
         const unsub = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'users'), (snapshot) => {
             const usersList: any[] = [];
             snapshot.forEach((d) => {
-                usersList.push({ id: d.id, ...d.data() });
+                const data: any = { id: d.id, ...d.data() };
+                // Normaliza roles antiguos al nuevo esquema de 2 niveles
+                if (data.role === 'ADMIN_IT' || data.role === 'ADMIN_CM') {
+                    // OK
+                } else {
+                    // Roles extintos (EDITOR_CM / EDITOR_CONTENT / READER) → degradar a ADMIN_CM
+                    data.role = 'ADMIN_CM';
+                }
+                usersList.push(data);
             });
             setAppUsers(usersList);
             setIsLoadingUsers(false);
@@ -46,18 +56,22 @@ export const useUsersManager = (user: any, userRole: any, showToast: any, openCo
             showToast('Por favor ingresa un correo electrónico válido', true);
             return;
         }
+        if (!isAllowedRole(role)) {
+            showToast('Rol no permitido. Solo se permite Administrador IT o Administrador CM.', true);
+            return;
+        }
 
         try {
             const userDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', cleanEmail);
-            
+
             await setDoc(userDocRef, {
                 email: cleanEmail,
                 displayName: cleanEmail.split('@')[0],
                 photoURL: null,
                 role: role,
                 disabled: false,
-                isProtected: false,
-                lastLogin: new Date().toISOString(), 
+                isProtected: role === 'ADMIN_IT',
+                lastLogin: new Date().toISOString(),
                 preferences: {}
             });
 
@@ -68,14 +82,18 @@ export const useUsersManager = (user: any, userRole: any, showToast: any, openCo
     }, [showToast]);
 
     const updateUserRole = useCallback(async (email: string, newRole: string) => {
+        if (!isAllowedRole(newRole)) {
+            showToast('Rol no permitido. Solo se permite Administrador IT o Administrador CM.', true);
+            return;
+        }
+
         try {
             const userDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', email);
-            await updateDoc(userDocRef, { role: newRole });
+            await updateDoc(userDocRef, { role: newRole, isProtected: newRole === 'ADMIN_IT' });
             showToast(`Rol actualizado a ${newRole}`);
         } catch (error: any) {
             if (error.code === 'permission-denied') {
                 showToast('Acceso bloqueado: No tienes permisos.', true);
-                // 🔥 FIX: Llamada directa a logAuditEvent
                 logAuditEvent(`Alerta RBAC/DOM: Intento ilegal de modificar rol al usuario ${email}`)
                     .catch(err => console.error("Error al disparar auditoría:", err));
             } else {
@@ -103,6 +121,14 @@ export const useUsersManager = (user: any, userRole: any, showToast: any, openCo
     }, [showToast]);
 
     const deleteUserRecord = useCallback((email: string) => {
+        const target = appUsers.find((u: any) => u.email === email);
+        if (target && target.role === 'ADMIN_IT') {
+            showToast('El Administrador IT no puede ser eliminado del sistema.', true);
+            logAuditEvent(`Alerta RBAC: Intento de eliminar al ADMIN_IT (${email})`)
+                .catch(err => console.error("Error al disparar auditoría:", err));
+            return;
+        }
+
         const executeDelete = async () => {
             try {
                 const userDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', email);
@@ -129,7 +155,7 @@ export const useUsersManager = (user: any, userRole: any, showToast: any, openCo
         } else {
             executeDelete();
         }
-    }, [showToast, openConfirmModal]);
+    }, [showToast, openConfirmModal, appUsers]);
 
     return {
         appUsers,

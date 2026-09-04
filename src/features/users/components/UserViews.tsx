@@ -6,7 +6,7 @@ export const UserManagementView = ({ appUsers, userRole, updateUserRole, toggleU
 
     const [isAdding, setIsAdding] = useState(false);
     const [newEmail, setNewEmail] = useState('');
-    const [newRole, setNewRole] = useState('EDITOR_CM');
+    const [newRole, setNewRole] = useState('ADMIN_CM');
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
@@ -20,7 +20,7 @@ export const UserManagementView = ({ appUsers, userRole, updateUserRole, toggleU
         e.preventDefault();
         await addManualUser(newEmail, newRole);
         setNewEmail('');
-        setNewRole('EDITOR_CM');
+        setNewRole('ADMIN_CM');
         setIsAdding(false);
     };
 
@@ -106,8 +106,6 @@ export const UserManagementView = ({ appUsers, userRole, updateUserRole, toggleU
                         <div className="w-full sm:w-64 space-y-1">
                             <label className="text-xs font-bold theme-text-muted">Asignar Rol</label>
                             <select value={newRole} onChange={(e) => setNewRole(e.target.value)} className="w-full p-2.5 rounded-lg theme-bg-low border theme-border theme-text-main outline-none focus:border-[var(--primary)]">
-                                <option value="EDITOR_CONTENT">Editor Content</option>
-                                <option value="EDITOR_CM">Editor CM</option>
                                 <option value="ADMIN_CM">Administrador CM</option>
                                 <option value="ADMIN_IT">Administrador IT</option>
                             </select>
@@ -141,6 +139,7 @@ export const UserManagementView = ({ appUsers, userRole, updateUserRole, toggleU
                         <tbody className="divide-y theme-border">
                             {sortedUsers.map((u: any) => {
                                 const isSuperUser = u.role === 'ADMIN_IT';
+                                // ADMIN_IT: nadie puede editarlo ni eliminarlo
                                 const canEdit = !isSuperUser;
 
                                 return (
@@ -173,8 +172,6 @@ export const UserManagementView = ({ appUsers, userRole, updateUserRole, toggleU
                                             >
                                                 <option value="ADMIN_IT">Administrador IT</option>
                                                 <option value="ADMIN_CM">Administrador CM</option>
-                                                <option value="EDITOR_CM">Editor CM</option>
-                                                <option value="EDITOR_CONTENT">Editor Content</option>
                                             </select>
                                             {isSuperUser && (
                                                 <p className="text-[10px] text-[var(--primary)] font-bold mt-1 flex items-center gap-1">
