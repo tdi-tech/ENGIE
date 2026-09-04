@@ -235,6 +235,9 @@ export const HistorialRRSSView = ({ showToast, isAdmin, updateRrssIncident, dele
     const [filterYear, setFilterYear] = useState('Todos');
     
     const [filterStatus, setFilterStatus] = useState('Todos');
+    const [filterFuente, setFilterFuente] = useState('Todas');
+    const [filterTema, setFilterTema] = useState('Todos');
+    const [filterRiesgo, setFilterRiesgo] = useState('Todos');
     
     const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
     const [pagePerMonth, setPagePerMonth] = useState<Record<string, number>>({});
@@ -270,7 +273,7 @@ export const HistorialRRSSView = ({ showToast, isAdmin, updateRrssIncident, dele
         // Limpiamos selecciones si cambiamos filtros para evitar borrar cosas invisibles
         setSelectedIds([]);
         setIsSelectionMode(false);
-    }, [searchTerm, filterYear, filterStatus]);
+    }, [searchTerm, filterYear, filterStatus, filterFuente, filterTema, filterRiesgo]);
 
     useEffect(() => {
         setExportCampus('');
@@ -279,6 +282,17 @@ export const HistorialRRSSView = ({ showToast, isAdmin, updateRrssIncident, dele
     const availableYears = useMemo(() => {
         const years = new Set(rrssIncidents.map((i: any) => i.fecha ? i.fecha.split('-')[0] : null).filter(Boolean));
         return Array.from(years).sort((a: any, b: any) => b.localeCompare(a));
+    }, [rrssIncidents]);
+
+    // Opciones de filtros derivadas del esquema reputacional (con fallback legacy vía normalización)
+    const availableFuentes = useMemo(() => {
+        const set = new Set(rrssIncidents.map((i: any) => normalizeIncidencia(i).fuenteDeteccion).filter((v: string) => v && v !== 'N/A'));
+        return Array.from(set).sort((a: any, b: any) => a.localeCompare(b));
+    }, [rrssIncidents]);
+
+    const availableTemas = useMemo(() => {
+        const set = new Set(rrssIncidents.map((i: any) => normalizeIncidencia(i).temaPrincipal).filter(Boolean));
+        return Array.from(set).sort((a: any, b: any) => a.localeCompare(b));
     }, [rrssIncidents]);
 
     const availableMonthsForExport = useMemo(() => {
@@ -325,9 +339,13 @@ export const HistorialRRSSView = ({ showToast, isAdmin, updateRrssIncident, dele
                 (n.alcanceActual && n.alcanceActual.toLowerCase().includes(term)) ||
                 (n.tendencia && n.tendencia.toLowerCase().includes(term));
             
-            return matchYear && matchStatus && matchSearch;
+            const matchFuente = filterFuente === 'Todas' || n.fuenteDeteccion === filterFuente;
+            const matchTema = filterTema === 'Todos' || n.temaPrincipal === filterTema;
+            const matchRiesgo = filterRiesgo === 'Todos' || riesgoValue(n.nivelRiesgo) === filterRiesgo;
+
+            return matchYear && matchStatus && matchSearch && matchFuente && matchTema && matchRiesgo;
         });
-    }, [rrssIncidents, searchTerm, filterYear, filterStatus, isAdmin]);
+    }, [rrssIncidents, searchTerm, filterYear, filterStatus, filterFuente, filterTema, filterRiesgo, isAdmin]);
 
     const groupedData = useMemo(() => {
         const groups: Record<string, Record<string, any[]>> = {};
@@ -542,7 +560,7 @@ const handleDownloadDocx = (inc: any) => {
                     <div className="p-4 theme-bg-container border theme-border rounded-xl shadow-sm mb-6 flex flex-col xl:flex-row gap-4 items-center justify-between">
                         <div className="relative w-full xl:w-1/2 flex items-center">
                             <Search className="absolute left-3 text-gray-400 w-4 h-4 pointer-events-none" />
-                            <input type="text" aria-label="Buscar" placeholder="Buscar por usuario, campus, medio, descripción..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className={`${inputStyles} pl-10 pr-10`} />
+                            <input type="text" aria-label="Buscar" placeholder="Buscar por actor, campus, fuente, tema, resumen..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className={`${inputStyles} pl-10 pr-10`} />
                             {searchTerm && <button type="button" aria-label="Limpiar búsqueda" onClick={() => setSearchTerm('')} className="absolute right-3 p-1 rounded-md text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-800 dark:hover:text-white transition-colors" title="Limpiar búsqueda"><X className="w-4 h-4" /></button>}
                         </div>
                         
@@ -555,6 +573,27 @@ const handleDownloadDocx = (inc: any) => {
                                     <option className={optionStyles} value="En revisión">🟡 En revisión</option>
                                     <option className={optionStyles} value="Seguimiento activo">🟠 Seguimiento activo</option>
                                     <option className={optionStyles} value="Resuelto / solucionado">🟢 Resuelto</option>
+                                </select>
+                            </div>
+                            <div className="flex items-center gap-2 w-full sm:w-auto">
+                                <label htmlFor="hr-filter-fuente" className="text-xs font-bold theme-text-muted whitespace-nowrap">Fuente</label>
+                                <select id="hr-filter-fuente" value={filterFuente} onChange={(e) => setFilterFuente(e.target.value)} className={`${inputStyles} py-1.5 px-3 min-w-[130px]`}>
+                                    <option className={optionStyles} value="Todas">Todas</option>
+                                    {availableFuentes.map((f: any) => <option className={optionStyles} key={f} value={f}>{f}</option>)}
+                                </select>
+                            </div>
+                            <div className="flex items-center gap-2 w-full sm:w-auto">
+                                <label htmlFor="hr-filter-tema" className="text-xs font-bold theme-text-muted whitespace-nowrap">Tema</label>
+                                <select id="hr-filter-tema" value={filterTema} onChange={(e) => setFilterTema(e.target.value)} className={`${inputStyles} py-1.5 px-3 min-w-[150px]`}>
+                                    <option className={optionStyles} value="Todos">Todos</option>
+                                    {availableTemas.map((t: any) => <option className={optionStyles} key={t} value={t}>{t}</option>)}
+                                </select>
+                            </div>
+                            <div className="flex items-center gap-2 w-full sm:w-auto">
+                                <label htmlFor="hr-filter-riesgo" className="text-xs font-bold theme-text-muted whitespace-nowrap">Riesgo</label>
+                                <select id="hr-filter-riesgo" value={filterRiesgo} onChange={(e) => setFilterRiesgo(e.target.value)} className={`${inputStyles} py-1.5 px-3 min-w-[110px]`}>
+                                    <option className={optionStyles} value="Todos">Todos</option>
+                                    {['Bajo', 'Medio', 'Alto', 'Crítico'].map(r => <option className={optionStyles} key={r} value={r}>{r}</option>)}
                                 </select>
                             </div>
                             <div className="flex items-center gap-2 w-full sm:w-auto">
@@ -648,6 +687,8 @@ const handleDownloadDocx = (inc: any) => {
                                                                 <div className="bg-[var(--surface)]">
                                                                     <div className="p-4 grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-4">
                                                                         {paginatedMonthItems.map((inc: any) => {
+                                                                            const nCard = normalizeIncidencia(inc);
+                                                                            const riskStr = riesgoValue(nCard.nivelRiesgo) === 'Crítico' ? 'Critico' : String(riesgoValue(nCard.nivelRiesgo));
                                                                             const currentStatus = inc.estado || 'Monitoreo activo';
                                                                             const isSelected = selectedIds.includes(inc.id);
                                                                             
@@ -660,8 +701,8 @@ const handleDownloadDocx = (inc: any) => {
                                                                                         isSelectionMode
                                                                                         ? isSelected
                                                                                             ? 'bg-red-500/10 border-red-500 border-l-red-500 scale-[0.98]'
-                                                                                            : `theme-bg-container theme-border hover:border-red-500/50 ${getRiskBorderCard(inc.riesgo)}`
-                                                                                        : `theme-bg-container theme-border hover:bg-black/10 dark:hover:bg-white/10 ${getRiskBorderCard(inc.riesgo)}`
+                                                                                            : `theme-bg-container theme-border hover:border-red-500/50 ${getRiskBorderCard(riskStr)}`
+                                                                                        : `theme-bg-container theme-border hover:bg-black/10 dark:hover:bg-white/10 ${getRiskBorderCard(riskStr)}`
                                                                                     }`}
                                                                                 >
                                                                                     {/* Checkbox Individual */}
@@ -677,22 +718,22 @@ const handleDownloadDocx = (inc: any) => {
                                                                                             ? 'bg-red-500 border-red-500 text-white'
                                                                                             : 'theme-bg-low theme-border'
                                                                                         }`}>
-                                                                                            {getMediaIcon(inc.medio, isSelectionMode && isSelected)}
+                                                                                            {getMediaIcon(nCard.fuenteDeteccion, isSelectionMode && isSelected)}
                                                                                         </div>
                                                                                         <div className="flex-1 min-w-0">
-                                                                                            <h3 className={`font-bold truncate text-base transition-colors ${isSelectionMode && isSelected ? 'text-red-500' : 'theme-text-main'}`}>{inc.medio}</h3>
+                                                                                            <h3 className={`font-bold truncate text-base transition-colors ${isSelectionMode && isSelected ? 'text-red-500' : 'theme-text-main'}`}>{nCard.fuenteDeteccion}</h3>
                                                                                             <p className="text-xs font-semibold theme-text-muted mt-0.5 truncate flex items-center gap-1">{inc.fecha} {isAdmin && <><span className="mx-1">|</span> Por: <span className="text-orange-500 truncate">{inc.autor || 'Administrador'}</span></>}</p>
                                                                                         </div>
                                                                                     </div>
-                                                                                    <div className="text-sm theme-text-main line-clamp-2 min-h-[40px] opacity-90 w-full"><span className="font-bold mr-1">{inc.usuario}:</span> {inc.descripcion}</div>
+                                                                                    <div className="text-sm theme-text-main line-clamp-2 min-h-[40px] opacity-90 w-full"><span className="font-bold mr-1">{nCard.actorFuente}:</span> {nCard.resumen}</div>
                                                                                     <div className="text-[11px] theme-text-muted mt-2 px-1 w-full"><span className="font-semibold theme-text-main">Área responsable:</span> {inc.area || 'Operaciones'}</div>
                                                                                     
                                                                                     <div className="mt-4 flex flex-col gap-2 pt-3 border-t theme-border border-dashed w-full">
                                                                                         <div className="flex flex-wrap items-center justify-between w-full gap-2">
                                                                                             <div className="flex flex-wrap items-center gap-2 flex-1">
-                                                                                                <span className={`px-2.5 py-1 text-[10px] font-bold rounded-md uppercase tracking-wider ${getRiskColor(inc.riesgo)}`}>Nivel de riesgo: {inc.riesgo}</span>
+                                                                                                <span className={`px-2.5 py-1 text-[10px] font-bold rounded-md uppercase tracking-wider ${getRiskColor(riskStr)}`}>Riesgo: {nCard.nivelRiesgo}</span>
                                                                                                 <span className={`px-2.5 py-1 text-[10px] font-bold rounded-md border whitespace-nowrap ${getNeutralBadge()}`}>Inc.: {inc.totalIncidencias}</span>
-                                                                                                <span className={`px-2.5 py-1 text-[10px] font-bold border rounded-md uppercase tracking-wider whitespace-nowrap ${getStatusColor(currentStatus)}`}>Estatus: {currentStatus}</span>
+                                                                                                <span className={`px-2.5 py-1 text-[10px] font-bold border rounded-md uppercase tracking-wider whitespace-nowrap ${getStatusColor(currentStatus)}`}>Estatus: {currentStatus}</span>{nCard.alcanceActual && <span className={`px-2.5 py-1 text-[10px] font-bold border rounded-md uppercase tracking-wider whitespace-nowrap ${getNeutralBadge()}`}>Alcance: {nCard.alcanceActual}</span>}{nCard.tendencia && <span className={`px-2.5 py-1 text-[10px] font-bold border rounded-md uppercase tracking-wider whitespace-nowrap ${getNeutralBadge()}`}>Tendencia: {nCard.tendencia}</span>}
                                                                                             </div>
                                                                                             {inc.reporteTexto && (
                                                                                                 <div onClick={(e) => { e.stopPropagation(); handleDownloadDocx(inc); }} className="p-1.5 text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors no-print flex-shrink-0" title="Descargar reporte (.docx)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="12" y2="18"/><line x1="15" y1="15" x2="12" y2="18"/></svg></div>
@@ -814,8 +855,8 @@ const handleDownloadDocx = (inc: any) => {
                     <div className="theme-bg-container rounded-2xl w-full max-w-2xl shadow-2xl border theme-border overflow-hidden flex flex-col max-h-[90vh] print:max-h-none print:shadow-none print:border-none print:w-full print:max-w-full">
                         <div className="p-5 border-b theme-border flex justify-between items-center bg-orange-500/5 no-print">
                             <div className="flex items-center gap-3">
-                                <div className="p-2 bg-orange-500/20 rounded-lg">{getMediaIcon(selectedIncident.medio)}</div>
-                                <div><h3 className="font-bold theme-text-main text-lg">{selectedIncident.medio}</h3><p className="text-xs theme-text-muted font-medium">{selectedIncident.fecha}</p></div>
+                                <div className="p-2 bg-orange-500/20 rounded-lg">{getMediaIcon(nDetail.fuenteDeteccion)}</div>
+                                <div><h3 className="font-bold theme-text-main text-lg">{nDetail.fuenteDeteccion}</h3><p className="text-xs theme-text-muted font-medium">{nDetail.fecha}</p></div>
                             </div>
                             <div className="flex items-center gap-2">
                                 <button type="button" onClick={() => window.print()} className="p-2 theme-text-muted hover:theme-text-main hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors" title="Imprimir"><Printer className="w-5 h-5"/></button>
