@@ -206,11 +206,9 @@ export const NewCommentView = ({ isAdmin, showToast, navigate, user, logAction }
                         <h3 className="text-xl font-black theme-text-main flex items-center gap-2">
                             <Share2 className="w-5 h-5 text-blue-500" /> {formData.fuenteMonitoreo === 'Redes sociales' ? 'Desglose de Menciones - Redes Sociales' : 'Desglose de Menciones - Medios Digitales'}
                         </h3>
-                        {formData.fuenteMonitoreo === 'Redes sociales' && (
-                            <button type="button" onClick={addRegistro} className="flex items-center gap-2 text-sm font-bold text-blue-600 bg-blue-500/10 hover:bg-blue-500/20 px-4 py-2 rounded-xl transition-colors">
-                                <PlusCircle className="w-4 h-4"/> Agregar nuevo registro
-                            </button>
-                        )}
+                        <button type="button" onClick={formData.fuenteMonitoreo === 'Redes sociales' ? addRegistro : addRegistroDigital} className="flex items-center gap-2 text-sm font-bold text-blue-600 bg-blue-500/10 hover:bg-blue-500/20 px-4 py-2 rounded-xl transition-colors">
+                            <PlusCircle className="w-4 h-4"/> Agregar nuevo registro
+                        </button>
                     </div>
 
                     {formData.fuenteMonitoreo === 'Redes sociales' ? (
@@ -316,13 +314,6 @@ export const NewCommentView = ({ isAdmin, showToast, navigate, user, logAction }
                         </div>
                     ) : (
                         <div className="space-y-6">
-                            {formData.fuenteMonitoreo === 'Medios digitales' && (
-                                <div className="flex justify-end">
-                                    <button type="button" onClick={addRegistroDigital} className="flex items-center gap-2 text-sm font-bold text-blue-600 bg-blue-500/10 hover:bg-blue-500/20 px-4 py-2 rounded-xl transition-colors">
-                                        <PlusCircle className="w-4 h-4"/> Agregar nuevo registro
-                                    </button>
-                                </div>
-                            )}
                             {formData.registrosDigitalesList.map((registro: any, idx: number) => (
                                 <div key={registro.id || idx} className="p-6 sm:p-8 theme-bg-container border theme-border rounded-[1.5rem] relative fade-in shadow-sm group border-l-[6px] border-l-blue-500 hover:border-l-blue-600 transition-all">
                                     {formData.registrosDigitalesList.length > 1 && (
