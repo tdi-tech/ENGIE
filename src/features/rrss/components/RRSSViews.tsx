@@ -238,6 +238,7 @@ export const HistorialRRSSView = ({ showToast, isAdmin, updateRrssIncident, dele
     const editEditorRef = useRef<HTMLDivElement>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [filterYear, setFilterYear] = useState('Todos');
+    const [filterMonth, setFilterMonth] = useState('Todos');
     
     const [filterStatus, setFilterStatus] = useState('Todos');
     const [filterFuente, setFilterFuente] = useState('Todas');
@@ -283,7 +284,7 @@ export const HistorialRRSSView = ({ showToast, isAdmin, updateRrssIncident, dele
         // Limpiamos selecciones si cambiamos filtros para evitar borrar cosas invisibles
         setSelectedIds([]);
         setIsSelectionMode(false);
-    }, [searchTerm, filterYear, filterStatus, filterFuente, filterTema, filterRiesgo]);
+    }, [searchTerm, filterYear, filterMonth, filterStatus, filterFuente, filterTema, filterRiesgo]);
 
     useEffect(() => {
         setExportMonth('');
@@ -302,6 +303,16 @@ export const HistorialRRSSView = ({ showToast, isAdmin, updateRrssIncident, dele
     const availableFuentes = FUENTES_DETECCION;
     const availableTemas = TEMAS_PRINCIPALES;
 
+    const availableMonthsForFilter = useMemo(() => {
+        const months = new Set(
+            rrssIncidents
+                .filter((i: any) => filterYear === 'Todos' || (i.fecha && i.fecha.split('-')[0] === filterYear))
+                .map((i: any) => i.fecha && i.fecha.split('-')[1])
+                .filter(Boolean)
+        );
+        return Array.from(months).sort((a: any, b: any) => a.localeCompare(b));
+    }, [rrssIncidents, filterYear]);
+
     const availableMonthsForExport = useMemo(() => {
         const months = new Set(
             rrssIncidents
@@ -315,7 +326,9 @@ export const HistorialRRSSView = ({ showToast, isAdmin, updateRrssIncident, dele
     const filteredIncidents = useMemo(() => {
         return rrssIncidents.filter((inc: any) => {
             const year = inc.fecha ? inc.fecha.split('-')[0] : '';
+            const month = inc.fecha ? inc.fecha.split('-')[1] : '';
             const matchYear = filterYear === 'Todos' || year === filterYear;
+            const matchMonth = filterMonth === 'Todos' || month === filterMonth;
             
             const currentStatus = inc.estado || 'Monitoreo activo';
             const matchStatus = filterStatus === 'Todos' || currentStatus === filterStatus;
@@ -338,9 +351,9 @@ export const HistorialRRSSView = ({ showToast, isAdmin, updateRrssIncident, dele
             const matchTema = filterTema === 'Todos' || n.temaPrincipal === filterTema;
             const matchRiesgo = filterRiesgo === 'Todos' || riesgoValue(n.nivelRiesgo) === filterRiesgo;
 
-            return matchYear && matchStatus && matchSearch && matchFuente && matchTema && matchRiesgo;
+            return matchYear && matchMonth && matchStatus && matchSearch && matchFuente && matchTema && matchRiesgo;
         });
-    }, [rrssIncidents, searchTerm, filterYear, filterStatus, filterFuente, filterTema, filterRiesgo, isAdmin]);
+    }, [rrssIncidents, searchTerm, filterYear, filterMonth, filterStatus, filterFuente, filterTema, filterRiesgo, isAdmin]);
 
     const groupedData = useMemo(() => {
         const groups: Record<string, Record<string, any[]>> = {};
@@ -622,6 +635,13 @@ const handleDownloadDocx = (inc: any) => {
                                 <select id="hr-filter-year" value={filterYear} onChange={(e) => setFilterYear(e.target.value)} className={`${inputStyles} py-1.5 px-3 w-full xl:w-auto xl:min-w-[100px]`}>
                                     <option className={optionStyles} value="Todos">Todos</option>
                                     {availableYears.map((y: any) => <option className={optionStyles} key={y} value={y}>{y}</option>)}
+                                </select>
+                            </div>
+                            <div className="flex items-center gap-2 w-full xl:w-auto min-w-0">
+                                <label htmlFor="hr-filter-month" className="text-xs font-bold theme-text-muted whitespace-nowrap">Mes</label>
+                                <select id="hr-filter-month" value={filterMonth} onChange={(e) => setFilterMonth(e.target.value)} className={`${inputStyles} py-1.5 px-3 w-full xl:w-auto xl:min-w-[120px]`}>
+                                    <option className={optionStyles} value="Todos">Todos</option>
+                                    {availableMonthsForFilter.map((m: any) => <option className={optionStyles} key={m} value={m}>{getMonthName(m)}</option>)}
                                 </select>
                             </div>
                             <div className="bg-black/5 dark:bg-white/5 border theme-border px-3 py-1.5 rounded-lg whitespace-nowrap w-full xl:w-auto text-center xl:text-left"><span className="text-xs font-bold theme-text-main">{filteredIncidents.length}</span><span className="text-[10px] theme-text-muted font-medium ml-1">de {rrssIncidents.length}</span></div>
