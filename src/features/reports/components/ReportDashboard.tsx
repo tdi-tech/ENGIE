@@ -3,7 +3,7 @@ import { Chart as ChartJS, ArcElement, BarElement, CategoryScale, LinearScale, L
 import { Bar, Doughnut, Line } from 'react-chartjs-2';
 import { collection, getDocs } from 'firebase/firestore';
 import { db, appId } from '../../../services/firebase/config';
-import { normalizeComments, generateCSV, downloadCSV, type ReportRow } from '../utils/csvExport';
+import { normalizeComments, type ReportRow } from '../utils/csvExport';
 import { calcSentiment, calcRedSocial, calcOrigen, calcTrend, calcCampusRanking, calcTopUsers, useReportGenerator } from '../hooks/useReportGenerator';
 import { BarChart3, FileUp, Database, UploadCloud, Box, Filter, Search, ChevronLeft, ChevronRight, ExternalLink, FileText, AlertTriangle, MapPin, Share2, FileDown, Loader2 } from 'lucide-react';
 import Papa from 'papaparse';

@@ -1,5 +1,3 @@
-import Papa from 'papaparse';
-
 export interface ReportRow {
     fechaInicio: string;
     fechaFin: string;
@@ -40,29 +38,4 @@ export const normalizeComments = (com: any): ReportRow[] => {
         posteoOriginal: com.posteoTipo === 'url' ? com.posteoUrl : com.posteoTexto,
         evidencias: com.evidencia || ''
     }];
-};
-
-export const generateCSV = (rows: ReportRow[]): string => {
-    const data = rows.map(r => ({
-        'Fecha Inicio': r.fechaInicio,
-        'Fecha Fin': r.fechaFin,
-        'Contenido Global': r.contenido,
-        'Red Social': r.redSocial,
-        'Campus': r.campus,
-        'Sentiment': r.sentiment,
-        'Usuario': r.usuario,
-        'Comentario': r.comentario,
-        'Posteo Original': r.posteoOriginal,
-        'Evidencias': r.evidencias
-    }));
-    return '\uFEFF' + Papa.unparse(data);
-};
-
-export const downloadCSV = (csv: string, filename: string) => {
-    const link = document.createElement('a');
-    link.href = encodeURI('data:text/csv;charset=utf-8,' + csv);
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
 };

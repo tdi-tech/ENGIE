@@ -31,7 +31,7 @@ const AppContent = () => {
     const [loginModalOpen, setLoginModalOpen] = useState(false);
 
     const { user, isAdmin, userRole, cloudStatus, loginWithGoogle, logoutAdmin, userPrefs, updateUserPrefs, prefsRef, loginRemainingAttempts } = useAuthSession(showToast, setLoginModalOpen);
-    const { checklistState, setChecklistState, notifications, logAction, markAsRead, hideNotification } = useGlobalEvents(user, prefsRef, showToast);
+    const { notifications, logAction, markAsRead, hideNotification } = useGlobalEvents(user, prefsRef, showToast);
     const { appUsers, updateUserRole, toggleUserStatus, deleteUserRecord, addManualUser } = useUsersManager(user, userRole, showToast, openConfirmModal);
     
     const { updateRrssIncident, deleteRrssIncident, deleteRrssBatch } = useRRSS(showToast, openConfirmModal, logAction);
@@ -175,9 +175,9 @@ const AppContent = () => {
 
     // 🔥 FIX: Se inyectaron todos los métodos faltantes en las props
     const viewProps = {
-        isAdmin, user, userRole, showToast, navigate, logAction, appUsers, checklistState, setChecklistState,
-        updateUserRole, toggleUserStatus, deleteUserRecord, addManualUser, isDarkMode, toggleTheme, userPrefs, updateUserPrefs,
-        updateRrssIncident, deleteRrssIncident, deleteRrssBatch, 
+        isAdmin, user, userRole, showToast, navigate, logAction, appUsers,
+        updateUserRole, toggleUserStatus, deleteUserRecord, addManualUser, userPrefs, updateUserPrefs,
+        updateRrssIncident, deleteRrssIncident, deleteRrssBatch,
         updateComment, deleteComment, deleteCommentsBatch,
         openConfirmModal
     };

@@ -107,7 +107,6 @@ export const Sidebar = ({ sidebarOpen, setSidebarOpen, currentView, navigate, is
     });
 
 
-    const isEditorContent = false; // Rol extinto: ya no existe EDITOR_CONTENT
     const isITAdmin = userRole === 'ADMIN_IT';
 
     // ADMIN_IT y ADMIN_CM pueden ver Backups Core. La Auditoría sigue siendo exclusiva del ADMIN_IT.
@@ -138,29 +137,23 @@ export const Sidebar = ({ sidebarOpen, setSidebarOpen, currentView, navigate, is
 
                     {/* Menciones (antes Comentarios) */}
                     <DropdownGroup id="menciones" icon={Eye} label="Menciones" openGroup={openGroup} toggleGroup={toggleGroup} currentView={currentView}>
-                        {!isEditorContent && (
-                            <SubNavBtn id="nuevo-comentario" icon={AlertTriangle} label="Crear reporte" requireAdmin={true} isAdmin={isAdmin} currentView={currentView} navigate={navigate} />
-                        )}
+                        <SubNavBtn id="nuevo-comentario" icon={AlertTriangle} label="Crear reporte" requireAdmin={true} isAdmin={isAdmin} currentView={currentView} navigate={navigate} />
                         <SubNavBtn id="historial-comentario" icon={FileText} label="Historial" currentView={currentView} navigate={navigate} />
                         {canViewReports && (
                             <SubNavBtn id="reportes" icon={BarChart3} label="Reportes Analíticos" currentView={currentView} navigate={navigate} />
                         )}
                     </DropdownGroup>
 
-                    {!isEditorContent && (
-                        <>
-                            <DropdownGroup id="incidencias" icon={Smartphone} label="Incidencias" openGroup={openGroup} toggleGroup={toggleGroup} currentView={currentView}>
-                                <SubNavBtn id="protocolo-rss" icon={BookOpen} label="Protocolo" currentView={currentView} navigate={navigate} />
-                                <SubNavBtn id="nuevo-rss" icon={AlertTriangle} label="Crear incidencia" requireAdmin={true} isAdmin={isAdmin} currentView={currentView} navigate={navigate} />
-                                <SubNavBtn id="historial-rss" icon={FileText} label="Historial" currentView={currentView} navigate={navigate} />
-                            </DropdownGroup>
-                        </>
-                    )}
+                    <DropdownGroup id="incidencias" icon={Smartphone} label="Incidencias" openGroup={openGroup} toggleGroup={toggleGroup} currentView={currentView}>
+                        <SubNavBtn id="protocolo-rss" icon={BookOpen} label="Protocolo" currentView={currentView} navigate={navigate} />
+                        <SubNavBtn id="nuevo-rss" icon={AlertTriangle} label="Crear incidencia" requireAdmin={true} isAdmin={isAdmin} currentView={currentView} navigate={navigate} />
+                        <SubNavBtn id="historial-rss" icon={FileText} label="Historial" currentView={currentView} navigate={navigate} />
+                    </DropdownGroup>
 
                     <div className="my-2 border-t theme-border opacity-50"></div>
 
                     <NavBtn id="roles" icon={Users} label="Roles" currentView={currentView} navigate={navigate} />
-                    {isAdmin && !isEditorContent && <NavBtn id="changelog" icon={History} label="Changelog" currentView={currentView} navigate={navigate} />}
+                    {isAdmin && <NavBtn id="changelog" icon={History} label="Changelog" currentView={currentView} navigate={navigate} />}
 
 
 
