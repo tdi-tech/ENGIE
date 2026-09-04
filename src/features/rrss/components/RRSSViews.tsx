@@ -598,53 +598,59 @@ const handleDownloadDocx = (inc: any) => {
                             {searchTerm && <button type="button" aria-label="Limpiar búsqueda" onClick={() => setSearchTerm('')} className="absolute right-3 p-1 rounded-md text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-800 dark:hover:text-white transition-colors" title="Limpiar búsqueda"><X className="w-4 h-4" /></button>}
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:flex xl:flex-wrap xl:items-center xl:justify-between gap-3 w-full min-w-0">
-                            <div className="flex items-center gap-2 w-full xl:w-auto min-w-0">
-                                <label htmlFor="hr-filter-status" className="text-xs font-bold theme-text-muted whitespace-nowrap">Estatus</label>
-                                <select id="hr-filter-status" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className={`${inputStyles} py-1.5 px-3 w-full xl:w-auto xl:min-w-[150px]`}>
-                                    <option className={optionStyles} value="Todos">Todos</option>
-                                    <option className={optionStyles} value="Monitoreo activo">🔴 Monitoreo activo</option>
-                                    <option className={optionStyles} value="En revisión">🟡 En revisión</option>
-                                    <option className={optionStyles} value="Seguimiento activo">🟠 Seguimiento activo</option>
-                                    <option className={optionStyles} value="Resuelto / solucionado">🟢 Resuelto</option>
-                                </select>
+                        <div className="flex flex-col lg:flex-row lg:items-end gap-3 w-full min-w-0">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-3 w-full min-w-0">
+                                <div className="flex flex-col gap-1 min-w-0">
+                                    <label htmlFor="hr-filter-fuente" className="text-[10px] font-bold theme-text-muted uppercase tracking-wide">Fuente</label>
+                                    <select id="hr-filter-fuente" value={filterFuente} onChange={(e) => setFilterFuente(e.target.value)} className={`${inputStyles} py-1.5 px-2.5 w-full`}>
+                                        <option className={optionStyles} value="Todas">Todas</option>
+                                        {availableFuentes.map((f: any) => <option className={optionStyles} key={f} value={f}>{f}</option>)}
+                                    </select>
+                                </div>
+                                <div className="flex flex-col gap-1 min-w-0">
+                                    <label htmlFor="hr-filter-tema" className="text-[10px] font-bold theme-text-muted uppercase tracking-wide">Tema</label>
+                                    <select id="hr-filter-tema" value={filterTema} onChange={(e) => setFilterTema(e.target.value)} className={`${inputStyles} py-1.5 px-2.5 w-full`}>
+                                        <option className={optionStyles} value="Todos">Todos</option>
+                                        {availableTemas.map((t: any) => <option className={optionStyles} key={t} value={t}>{t}</option>)}
+                                    </select>
+                                </div>
+                                <div className="flex flex-col gap-1 min-w-0">
+                                    <label htmlFor="hr-filter-riesgo" className="text-[10px] font-bold theme-text-muted uppercase tracking-wide">Riesgo</label>
+                                    <select id="hr-filter-riesgo" value={filterRiesgo} onChange={(e) => setFilterRiesgo(e.target.value)} className={`${inputStyles} py-1.5 px-2.5 w-full`}>
+                                        <option className={optionStyles} value="Todos">Todos</option>
+                                        {NIVELES_RIESGO.map(r => <option className={optionStyles} key={r} value={r}>{r}</option>)}
+                                    </select>
+                                </div>
+                                <div className="flex flex-col gap-1 min-w-0">
+                                    <label htmlFor="hr-filter-status" className="text-[10px] font-bold theme-text-muted uppercase tracking-wide">Estatus</label>
+                                    <select id="hr-filter-status" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className={`${inputStyles} py-1.5 px-2.5 w-full`}>
+                                        <option className={optionStyles} value="Todos">Todos</option>
+                                        <option className={optionStyles} value="Monitoreo activo">🔴 Monitoreo activo</option>
+                                        <option className={optionStyles} value="En revisión">🟡 En revisión</option>
+                                        <option className={optionStyles} value="Seguimiento activo">🟠 Seguimiento activo</option>
+                                        <option className={optionStyles} value="Resuelto / solucionado">🟢 Resuelto</option>
+                                    </select>
+                                </div>
+                                <div className="flex flex-col gap-1 min-w-0 col-span-2 sm:col-span-1">
+                                    <label htmlFor="hr-filter-year" className="text-[10px] font-bold theme-text-muted uppercase tracking-wide">Periodo</label>
+                                    <div className="flex gap-2 min-w-0">
+                                        <select id="hr-filter-year" aria-label="Filtrar por año" value={filterYear} onChange={(e) => setFilterYear(e.target.value)} className={`${inputStyles} py-1.5 px-2.5 w-full min-w-0`}>
+                                            <option className={optionStyles} value="Todos">Todos los años</option>
+                                            {availableYears.map((y: any) => <option className={optionStyles} key={y} value={y}>{y}</option>)}
+                                        </select>
+                                        <select id="hr-filter-month" aria-label="Filtrar por mes" value={filterMonth} onChange={(e) => setFilterMonth(e.target.value)} className={`${inputStyles} py-1.5 px-2.5 w-full min-w-0`}>
+                                            <option className={optionStyles} value="Todos">Todos los meses</option>
+                                            {availableMonthsForFilter.map((m: any) => <option className={optionStyles} key={m} value={m}>{getMonthName(m)}</option>)}
+                                        </select>
+                                    </div>
+                                </div>
                             </div>
-                            <div className="flex items-center gap-2 w-full xl:w-auto min-w-0">
-                                <label htmlFor="hr-filter-fuente" className="text-xs font-bold theme-text-muted whitespace-nowrap">Fuente</label>
-                                <select id="hr-filter-fuente" value={filterFuente} onChange={(e) => setFilterFuente(e.target.value)} className={`${inputStyles} py-1.5 px-3 w-full xl:w-auto xl:min-w-[140px]`}>
-                                    <option className={optionStyles} value="Todas">Todas</option>
-                                    {availableFuentes.map((f: any) => <option className={optionStyles} key={f} value={f}>{f}</option>)}
-                                </select>
+                            <div className="flex items-center gap-3 lg:shrink-0">
+                                {(searchTerm || filterFuente !== 'Todas' || filterTema !== 'Todos' || filterRiesgo !== 'Todos' || filterStatus !== 'Todos' || filterYear !== 'Todos' || filterMonth !== 'Todos') && (
+                                    <button type="button" onClick={() => { setSearchTerm(''); setFilterFuente('Todas'); setFilterTema('Todos'); setFilterRiesgo('Todos'); setFilterStatus('Todos'); setFilterYear('Todos'); setFilterMonth('Todos'); }} className="text-xs font-bold text-orange-500 hover:text-orange-400 hover:underline transition-colors whitespace-nowrap">Limpiar filtros</button>
+                                )}
+                                <div className="bg-black/5 dark:bg-white/5 border theme-border px-3 py-1.5 rounded-lg whitespace-nowrap text-center"><span className="text-xs font-bold theme-text-main">{filteredIncidents.length}</span><span className="text-[10px] theme-text-muted font-medium ml-1">de {rrssIncidents.length}</span></div>
                             </div>
-                            <div className="flex items-center gap-2 w-full xl:w-auto min-w-0">
-                                <label htmlFor="hr-filter-tema" className="text-xs font-bold theme-text-muted whitespace-nowrap">Tema</label>
-                                <select id="hr-filter-tema" value={filterTema} onChange={(e) => setFilterTema(e.target.value)} className={`${inputStyles} py-1.5 px-3 w-full xl:w-auto xl:min-w-[190px]`}>
-                                    <option className={optionStyles} value="Todos">Todos</option>
-                                    {availableTemas.map((t: any) => <option className={optionStyles} key={t} value={t}>{t}</option>)}
-                                </select>
-                            </div>
-                            <div className="flex items-center gap-2 w-full xl:w-auto min-w-0">
-                                <label htmlFor="hr-filter-riesgo" className="text-xs font-bold theme-text-muted whitespace-nowrap">Riesgo</label>
-                                <select id="hr-filter-riesgo" value={filterRiesgo} onChange={(e) => setFilterRiesgo(e.target.value)} className={`${inputStyles} py-1.5 px-3 w-full xl:w-auto xl:min-w-[120px]`}>
-                                    <option className={optionStyles} value="Todos">Todos</option>
-                                    {NIVELES_RIESGO.map(r => <option className={optionStyles} key={r} value={r}>{r}</option>)}
-                                </select>
-                            </div>
-                            <div className="flex items-center gap-2 w-full xl:w-auto min-w-0">
-                                <label htmlFor="hr-filter-year" className="text-xs font-bold theme-text-muted whitespace-nowrap">Año</label>
-                                <select id="hr-filter-year" value={filterYear} onChange={(e) => setFilterYear(e.target.value)} className={`${inputStyles} py-1.5 px-3 w-full xl:w-auto xl:min-w-[100px]`}>
-                                    <option className={optionStyles} value="Todos">Todos</option>
-                                    {availableYears.map((y: any) => <option className={optionStyles} key={y} value={y}>{y}</option>)}
-                                </select>
-                            </div>
-                            <div className="flex items-center gap-2 w-full xl:w-auto min-w-0">
-                                <label htmlFor="hr-filter-month" className="text-xs font-bold theme-text-muted whitespace-nowrap">Mes</label>
-                                <select id="hr-filter-month" value={filterMonth} onChange={(e) => setFilterMonth(e.target.value)} className={`${inputStyles} py-1.5 px-3 w-full xl:w-auto xl:min-w-[120px]`}>
-                                    <option className={optionStyles} value="Todos">Todos</option>
-                                    {availableMonthsForFilter.map((m: any) => <option className={optionStyles} key={m} value={m}>{getMonthName(m)}</option>)}
-                                </select>
-                            </div>
-                            <div className="bg-black/5 dark:bg-white/5 border theme-border px-3 py-1.5 rounded-lg whitespace-nowrap w-full xl:w-auto text-center xl:text-left"><span className="text-xs font-bold theme-text-main">{filteredIncidents.length}</span><span className="text-[10px] theme-text-muted font-medium ml-1">de {rrssIncidents.length}</span></div>
                         </div>
                     </div>
 
