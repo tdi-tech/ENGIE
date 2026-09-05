@@ -31,11 +31,12 @@ const firebaseConfig = {
 };
 
 // Dominio permitido para autenticación.
-// Valor: VITE_ALLOWED_EMAIL_DOMAIN o el dominio original por defecto.
+// Valor: VITE_ALLOWED_EMAIL_DOMAIN o el dominio por defecto (@engie.com).
 // Se normaliza SIN el '@' inicial en ALLOWED_EMAIL_DOMAIN_MAIL para poder
 // usarse tanto en validaciones ('.endsWith("@dominio")') como en parámetros
 // de proveedores OAuth ('hd: dominio') y placeholders de UI.
-export const ALLOWED_EMAIL_DOMAIN = import.meta.env.VITE_ALLOWED_EMAIL_DOMAIN || '@tierradeideas.mx';
+// MANTÉN ESTE VALOR SINCRONIZADO con firestore.rules (regex isAuthenticated).
+export const ALLOWED_EMAIL_DOMAIN = import.meta.env.VITE_ALLOWED_EMAIL_DOMAIN || '@engie.com';
 export const ALLOWED_EMAIL_DOMAIN_MAIL = ALLOWED_EMAIL_DOMAIN.replace(/^@/, '');
 
 // ---------------------------------------------------------------------------
@@ -99,7 +100,10 @@ const mockDb = new Proxy({ _isMockFirestore: true }, {
 export const app: FirebaseApp = IS_MOCK ? mockApp : initializeApp(firebaseConfig);
 export const auth: Auth = IS_MOCK ? mockAuth : getAuth(app);
 export const db: Firestore = IS_MOCK ? mockDb : getFirestore(app);
-export const appId = 'tdi-secure-social';
+// appId = projectId de Firebase. Define el path raíz en Firestore:
+//   artifacts/{appId}/public/data/...
+// Debe coincidir con el {appId} de firestore.rules y con la ruta de los docs.
+export const appId = (firebaseConfig.projectId || 'engie-76fb0') as string;
 
 /**
  * 🛡️ CONTEXTO DE RED SEGURO (ipQuery API)
