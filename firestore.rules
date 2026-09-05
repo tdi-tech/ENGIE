@@ -8,12 +8,12 @@ service cloud.firestore {
     //
     // El dominio se valida contra una constante. Mantenlo sincronizado con la
     // variable VITE_ALLOWED_EMAIL_DOMAIN del front (sin la @ inicial).
-    // Proyecto ENGIE: engie.com
+    // Proyecto ENGIE: tierradeideas.mx
     // ────────────────────────────────────────────────────────────────────────
     function isAuthenticated() {
       return request.auth != null
         && request.auth.token.email != null
-        && request.auth.token.email.matches('.*@engie\\.com$')
+        && request.auth.token.email.matches('.*@tierradeideas\\.mx$')
         && request.auth.token.firebase.sign_in_provider != 'anonymous';
     }
 

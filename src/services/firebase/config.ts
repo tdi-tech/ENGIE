@@ -31,12 +31,12 @@ const firebaseConfig = {
 };
 
 // Dominio permitido para autenticación.
-// Valor: VITE_ALLOWED_EMAIL_DOMAIN o el dominio por defecto (@engie.com).
+// Valor: VITE_ALLOWED_EMAIL_DOMAIN o el dominio por defecto (@tierradeideas.mx).
 // Se normaliza SIN el '@' inicial en ALLOWED_EMAIL_DOMAIN_MAIL para poder
 // usarse tanto en validaciones ('.endsWith("@dominio")') como en parámetros
 // de proveedores OAuth ('hd: dominio') y placeholders de UI.
 // MANTÉN ESTE VALOR SINCRONIZADO con firestore.rules (regex isAuthenticated).
-export const ALLOWED_EMAIL_DOMAIN = import.meta.env.VITE_ALLOWED_EMAIL_DOMAIN || '@engie.com';
+export const ALLOWED_EMAIL_DOMAIN = import.meta.env.VITE_ALLOWED_EMAIL_DOMAIN || '@tierradeideas.mx';
 export const ALLOWED_EMAIL_DOMAIN_MAIL = ALLOWED_EMAIL_DOMAIN.replace(/^@/, '');
 
 // ---------------------------------------------------------------------------
