@@ -117,10 +117,22 @@ export const useAuthSession = (showToast: any, setLoginModalOpen: any) => {
                     isAnonymous: firebaseUser.isAnonymous
                 };
                 setUser(session);
+// 🔍 DIAGNÓSTICO LOGIN (temporal)
+                console.log('[AUTH-DEBUG] 🔐 Usuario logueado:', {
+                    email: firebaseUser.email,
+                    emailVerified: firebaseUser.emailVerified,
+                    uid: firebaseUser.uid,
+                    dominioEsperado: '@' + ALLOWED_EMAIL_DOMAIN_MAIL
+                });
 
                 try {
                     const selfRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', firebaseUser.email);
                     const selfSnap = await getDoc(selfRef);
+
+                    console.log('[AUTH-DEBUG] appId en uso:', appId);
+                    console.log('[AUTH-DEBUG] Path consultado:',
+                        'artifacts/' + appId + '/public/data/users/' + firebaseUser.email,
+                        '→ existe:', selfSnap.exists());
 
                     if (!selfSnap.exists()) {
                         await setDoc(selfRef, {
@@ -131,11 +143,13 @@ export const useAuthSession = (showToast: any, setLoginModalOpen: any) => {
                         }, { merge: true });
                         setIsAdmin(false);
                         setUserRole('');
+                        console.warn('[AUTH-DEBUG] ⚠️ No existía el users. Se creó SIN role. → userRole="", isAdmin=false. DEBES crearlo en Firebase con role ADMIN_IT.');
                         const defaultPrefs = { sound: true, security: true, rrss: true, comments: true };
                         setUserPrefs(defaultPrefs);
                         prefsRef.current = defaultPrefs;
                     } else {
                         const data = selfSnap.data();
+                        console.log('[AUTH-DEBUG] 📄 Datos del doc en Firebase:', data);
                         if (data.disabled) {
                             await logoutUser();
                             showToast('Tu cuenta ha sido deshabilitada. Contacta a TI.', true);
@@ -151,6 +165,7 @@ export const useAuthSession = (showToast: any, setLoginModalOpen: any) => {
                         const role = data.role as UserRole;
                         setUserRole(role || '');
                         setIsAdmin(['ADMIN_IT', 'ADMIN_CM'].includes(role));
+                        console.log('[AUTH-DEBUG] 🎯 Rol leído:', JSON.stringify(data.role), '→ userRole=', role || '""', '| isAdmin=', ['ADMIN_IT', 'ADMIN_CM'].includes(role));
 
                         const loadedPrefs = data.preferences || { sound: true, security: true, rrss: true, comments: true };
                         setUserPrefs(loadedPrefs);
@@ -162,8 +177,9 @@ export const useAuthSession = (showToast: any, setLoginModalOpen: any) => {
                     setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'firewall_locks', lockId), { failedAttempts: 0, lockoutUntil: null }, { merge: true }).catch(() => {});
                     setLoginRemainingAttempts(5);
                     setIsLoginLocked(false);
-                } catch (error) {
-                    console.error("Error validando perfil", error);
+                } catch (error: any) {
+                    console.error("[AUTH-DEBUG] ❌ Error validando perfil:", error);
+                    console.error("[AUTH-DEBUG] Detalle:", { code: error?.code, message: error?.message });
                 }
                 
                 setCloudStatus('Conectado a Firebase');
