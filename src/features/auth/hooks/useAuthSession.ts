@@ -122,17 +122,24 @@ export const useAuthSession = (showToast: any, setLoginModalOpen: any) => {
                     const selfSnap = await getDoc(selfRef);
 
                     if (!selfSnap.exists()) {
+                        // 🆕 Alta automática por primer login: el usuario del dominio entra
+                        // directo como ADMIN_CM (único auto-rol permitido). Un ADMIN_IT
+                        // podrá promocionarlo a ADMIN_IT desde Gestión de Usuarios.
+                        const bootstrapPrefs = { sound: true, security: true, rrss: true, comments: true };
                         await setDoc(selfRef, {
                             email: firebaseUser.email,
                             displayName: firebaseUser.displayName || firebaseUser.email.split('@')[0],
                             photoURL: firebaseUser.photoURL,
-                            lastLogin: new Date().toISOString()
+                            role: 'ADMIN_CM',
+                            disabled: false,
+                            isProtected: false,
+                            lastLogin: new Date().toISOString(),
+                            preferences: bootstrapPrefs
                         }, { merge: true });
-                        setIsAdmin(false);
-                        setUserRole('');
-                        const defaultPrefs = { sound: true, security: true, rrss: true, comments: true };
-                        setUserPrefs(defaultPrefs);
-                        prefsRef.current = defaultPrefs;
+                        setUserRole('ADMIN_CM');
+                        setIsAdmin(true);
+                        setUserPrefs(bootstrapPrefs);
+                        prefsRef.current = bootstrapPrefs;
                     } else {
                         const data = selfSnap.data();
                         if (data.disabled) {

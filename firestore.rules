@@ -164,9 +164,13 @@ service cloud.firestore {
                     || (isAuthenticated() && request.auth.token.email == userEmail);
 
         allow create: if (
+          // Alta automática por primer login: el usuario del dominio crea su propio
+          // doc SOLO con rol ADMIN_CM (auto-registro). Nunca ADMIN_IT.
           isAuthenticated()
           && request.auth.token.email == userEmail
-          && !request.resource.data.keys().hasAny(['role', 'disabled', 'isProtected'])
+          && request.resource.data.get('role', '') == 'ADMIN_CM'
+          && request.resource.data.get('isProtected', false) != true
+          && request.resource.data.get('disabled', false) != true
           && isValidUser()
         ) || isITAdmin(appId) || (
           isCMAdmin(appId)
