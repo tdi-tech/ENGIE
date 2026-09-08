@@ -77,7 +77,14 @@ export const useUsersManager = (user: any, userRole: any, showToast: any, openCo
 
             showToast(`¡Usuario ${cleanEmail} pre-registrado como ${role}!`);
         } catch (error: any) {
-            showToast('Error al pre-registrar usuario: Permisos insuficientes o datos inválidos', true);
+            // 🔎 Diagnóstico: distingue fallo de permisos (reglas) de datos inválidos
+            const code = error?.code || '';
+            if (code === 'permission-denied') {
+                showToast('Acceso bloqueado: Tus permisos impiden pre-registrar este usuario.', true);
+            } else {
+                showToast('Datos inválidos: El formato del usuario no cumple el esquema de Firestore.', true);
+            }
+            if (code) console.error(`[user-register] ${code}:`, error?.message);
         }
     }, [showToast]);
 
