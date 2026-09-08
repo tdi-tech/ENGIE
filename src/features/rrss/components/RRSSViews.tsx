@@ -444,15 +444,6 @@ const handleDownloadDocx = (inc: any) => {
         }
     };
 
-    const getStatusColor = (status: string) => {
-        switch(status) {
-            case 'En revisión': return 'bg-yellow-500 text-black border-transparent dark:bg-yellow-900/30 dark:text-yellow-400 dark:border dark:border-yellow-800';
-            case 'Seguimiento activo': return 'bg-orange-600 text-white border-transparent dark:bg-orange-900/30 dark:text-orange-400 dark:border dark:border-orange-800';
-            case 'Resuelto / solucionado': return 'bg-green-600 text-white border-transparent dark:bg-green-900/30 dark:text-green-400 dark:border dark:border-green-800';
-            default: return 'bg-red-600 text-white border-transparent dark:bg-red-900/30 dark:text-red-400 dark:border dark:border-red-800'; 
-        }
-    };
-
     const getRiskBorderCard = (risk: string) => {
         switch(risk) {
             case 'Bajo': return 'border-l-green-500';
@@ -773,14 +764,13 @@ const handleDownloadDocx = (inc: any) => {
                                                                                         </div>
                                                                                     </div>
                                                                                     <div className="text-sm theme-text-main line-clamp-2 min-h-[40px] opacity-90 w-full"><span className="font-bold mr-1">{nCard.actorFuente}:</span> {nCard.resumen}</div>
-                                                                                    <div className="text-[11px] theme-text-muted mt-2 px-1 w-full"><span className="font-semibold theme-text-main">Área responsable:</span> {inc.area || 'Operaciones'}</div>
+                                                                                    <div className="text-[11px] theme-text-muted mt-2 px-1 w-full"><span className="font-semibold theme-text-main">Tema:</span> {nCard.temaPrincipal || '—'} <span className="mx-1">·</span><span className="font-semibold theme-text-main">Tipo:</span> {nCard.tipoFuente || '—'} <span className="mx-1">·</span><span className="font-semibold theme-text-main">Campus:</span> {nCard.campus || '—'} <span className="mx-1">·</span><span className="font-semibold theme-text-main">Área:</span> {nCard.area || '—'}</div>
                                                                                     
                                                                                     <div className="mt-4 flex flex-col gap-2 pt-3 border-t theme-border border-dashed w-full">
                                                                                         <div className="flex flex-wrap items-center justify-between w-full gap-2">
                                                                                             <div className="flex flex-wrap items-center gap-2 flex-1">
                                                                                                 <span className={`px-2.5 py-1 text-[10px] font-bold rounded-md uppercase tracking-wider ${getRiskColor(riskStr)}`}>Riesgo: {nCard.nivelRiesgo}</span>
-                                                                                                <span className={`px-2.5 py-1 text-[10px] font-bold rounded-md border whitespace-nowrap ${getNeutralBadge()}`}>Inc.: {inc.totalIncidencias}</span>
-                                                                                                <span className={`px-2.5 py-1 text-[10px] font-bold border rounded-md uppercase tracking-wider whitespace-nowrap ${getStatusColor(currentStatus)}`}>Estatus: {currentStatus}</span>{nCard.alcanceActual && <span className={`px-2.5 py-1 text-[10px] font-bold border rounded-md uppercase tracking-wider whitespace-nowrap ${getNeutralBadge()}`}>Alcance: {nCard.alcanceActual}</span>}{nCard.tendencia && <span className={`px-2.5 py-1 text-[10px] font-bold border rounded-md uppercase tracking-wider whitespace-nowrap ${getNeutralBadge()}`}>Tendencia: {nCard.tendencia}</span>}
+                                                                                                {nCard.alcanceActual && <span className={`px-2.5 py-1 text-[10px] font-bold border rounded-md uppercase tracking-wider whitespace-nowrap ${getNeutralBadge()}`}>Alcance: {nCard.alcanceActual}</span>}{nCard.tendencia && <span className={`px-2.5 py-1 text-[10px] font-bold border rounded-md uppercase tracking-wider whitespace-nowrap ${getNeutralBadge()}`}>Tendencia: {nCard.tendencia}</span>}
                                                                                             </div>
                                                                                             {inc.reporteTexto && (
                                                                                                 <div onClick={(e) => { e.stopPropagation(); handleDownloadDocx(inc); }} className="p-1.5 text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors no-print flex-shrink-0" title="Descargar reporte (.docx)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="12" y2="18"/><line x1="15" y1="15" x2="12" y2="18"/></svg></div>
@@ -939,47 +929,30 @@ const handleDownloadDocx = (inc: any) => {
 
                         <div className="p-6 overflow-y-auto custom-scrollbar print:overflow-visible flex-1">
                             
-                            <div className="mb-6 p-4 rounded-xl border theme-border bg-black/5 dark:bg-white/5 flex flex-col sm:flex-row justify-between sm:items-center gap-3 no-print">
-                                <div>
-                                    <p className="text-xs theme-text-muted font-bold uppercase tracking-wider mb-1">Estatus</p>
-                                    <p className="text-[11px] theme-text-muted">Fase actual de seguimiento de la incidencia</p>
-                                </div>
-                                {isAdmin ? (
-                                    <select 
-                                        value={selectedIncident.estado || 'Monitoreo activo'}
-                                        onChange={(e) => {
-                                            const newVal = e.target.value;
-                                            setSelectedIncident({...selectedIncident, estado: newVal});
-                                            updateRrssIncident(selectedIncident.id, { ...selectedIncident, estado: newVal });
-                                        }}
-                                        className={`px-4 py-2 rounded-lg text-xs font-black border theme-border outline-none cursor-pointer appearance-none uppercase tracking-wider shadow-sm transition-colors theme-bg-container theme-text-main`}
-                                    >
-                                        <option className={optionStyles} value="Monitoreo activo">🔴 MONITOREO ACTIVO</option>
-                                        <option className={optionStyles} value="En revisión">🟡 EN REVISIÓN</option>
-                                        <option className={optionStyles} value="Seguimiento activo">🟠 SEGUIMIENTO ACTIVO</option>
-                                        <option className={optionStyles} value="Resuelto / solucionado">🟢 RESUELTO</option>
-                                    </select>
-                                ) : (
-                                    <span className={`inline-block px-4 py-2 rounded-lg text-xs font-black border uppercase tracking-wider ${getNeutralBadge()}`}>
-                                        {selectedIncident.estado || 'Monitoreo activo'}
-                                    </span>
-                                )}
-                            </div>
-
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-6 mb-8 print:mt-4">
-                                <div><p className="text-xs theme-text-muted font-medium mb-1">Total de Incidencias</p><p className="font-bold theme-text-main text-lg">{nDetail.totalIncidencias}</p></div>
-                                <div><p className="text-xs theme-text-muted font-medium mb-1">Campus</p><p className="font-bold theme-text-main">{nDetail.campus}</p></div>
-                                <div><p className="text-xs theme-text-muted font-medium mb-1">Área Responsable</p><p className="font-bold theme-text-main">{nDetail.area || 'Operaciones'}</p></div>
+                                <div><p className="text-xs theme-text-muted font-medium mb-1">Fecha de Recepción</p><p className="font-bold theme-text-main bg-black/5 dark:bg-white/5 px-3 py-1.5 rounded-lg inline-block">{nDetail.fecha}</p></div>
+                                <div><p className="text-xs theme-text-muted font-medium mb-1">Fuente de Detección</p><p className="font-bold theme-text-main bg-black/5 dark:bg-white/5 px-3 py-1.5 rounded-lg inline-block">{nDetail.fuenteDeteccion}</p></div>
+                                <div><p className="text-xs theme-text-muted font-medium mb-1">Actor / Fuente</p><p className="font-bold theme-text-main bg-black/5 dark:bg-white/5 px-3 py-1.5 rounded-lg inline-block break-all">{nDetail.actorFuente}</p></div>
+                                <div><p className="text-xs theme-text-muted font-medium mb-1">Tipo de Fuente</p><span className={`inline-block px-3 py-1 rounded-md text-xs font-bold border ${getNeutralBadge()}`}>{nDetail.tipoFuente || '—'}</span></div>
+                                <div><p className="text-xs theme-text-muted font-medium mb-1">Tema Principal</p><p className="font-bold theme-text-main">{nDetail.temaPrincipal || '—'}</p></div>
                                 <div><p className="text-xs theme-text-muted font-medium mb-1">Nivel de Riesgo</p><span className={`inline-block px-3 py-1 rounded-md text-xs font-bold border ${getRiskColor(String(nDetail.nivelRiesgo) === 'Crítico' ? 'Critico' : String(nDetail.nivelRiesgo))}`}>{nDetail.nivelRiesgo}</span></div>
                                 <div><p className="text-xs theme-text-muted font-medium mb-1">Alcance Actual</p><p className="font-bold theme-text-main">{nDetail.alcanceActual || 'N/A'}</p></div>
                                 <div><p className="text-xs theme-text-muted font-medium mb-1">Tendencia</p><p className="font-bold theme-text-main">{nDetail.tendencia || 'N/A'}</p></div>
-                                <div><p className="text-xs theme-text-muted font-medium mb-1">Fuente de Detección</p><p className="font-bold theme-text-main bg-black/5 dark:bg-white/5 px-3 py-1.5 rounded-lg inline-block">{nDetail.fuenteDeteccion}</p></div>
-                                <div className="col-span-2"><p className="text-xs theme-text-muted font-medium mb-1">Actor / Fuente</p><p className="font-bold theme-text-main bg-black/5 dark:bg-white/5 px-3 py-1.5 rounded-lg inline-block">{nDetail.actorFuente}</p><p className="text-[10px] theme-text-muted mt-1">{nDetail.tipoFuente || '—'} · {nDetail.temaPrincipal || '—'}</p></div>
+                                <div><p className="text-xs theme-text-muted font-medium mb-1">Volumen de Incidencias</p><p className="font-bold theme-text-main">{nDetail.totalIncidencias || 1}</p></div>
+                                <div><p className="text-xs theme-text-muted font-medium mb-1">Campus</p><p className="font-bold theme-text-main">{nDetail.campus || 'N/A'}</p></div>
+                                <div><p className="text-xs theme-text-muted font-medium mb-1">Área Responsable</p><p className="font-bold theme-text-main">{nDetail.area || 'N/A'}</p></div>
                             </div>
 
                             <div className="space-y-6">
                                 <div><p className="text-xs theme-text-muted font-medium mb-2 uppercase tracking-wider">Resumen del incidente</p><div className="p-4 theme-bg-low rounded-xl border theme-border theme-text-main whitespace-pre-wrap text-sm leading-relaxed">{nDetail.resumen}</div></div>
                                 {nDetail.hallazgosClave && <div><p className="text-xs theme-text-muted font-medium mb-2 uppercase tracking-wider">Hallazgos clave</p><div className="p-4 theme-bg-low rounded-xl border theme-border theme-text-main whitespace-pre-wrap text-sm">{nDetail.hallazgosClave}</div></div>}
+                                {selectedIncident.reporteTexto && (
+                                    <div>
+                                        <p className="text-xs theme-text-muted font-medium mb-2 uppercase tracking-wider">Reporte oficial</p>
+                                        <style>{editorStyles}</style>
+                                        <div className="p-4 theme-bg-low rounded-xl border theme-border theme-text-main text-sm leading-relaxed prose-editor" dangerouslySetInnerHTML={{ __html: selectedIncident.reporteTexto }} />
+                                    </div>
+                                )}
                                 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-2">
                                     {selectedIncident.reporteTexto && (
