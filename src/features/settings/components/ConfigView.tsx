@@ -120,17 +120,35 @@ export const ConfigView = ({
         setIsFetchingLocal(true);
         
         try {
-            const [rrss, coms, notifs, logsAudit] = await Promise.all([
-                getCountFromServer(collection(db, 'artifacts', appId, 'public', 'data', 'rrss_incidents')),
-                getCountFromServer(collection(db, 'artifacts', appId, 'public', 'data', 'comments')),
-                getCountFromServer(collection(db, 'artifacts', appId, 'public', 'data', 'notifications')),
-                getCountFromServer(collection(db, 'artifacts', appId, 'public', 'data', 'auditLogs'))
+            // Cada lectura se captura por separado para que un fallo puntual
+            // (p.ej. permission-denied en auditLogs) NO tumbe el panel completo.
+            const safeCount = async (colName: string) => {
+                try {
+                    const snap = await getCountFromServer(collection(db, 'artifacts', appId, 'public', 'data', colName));
+                    return { colName, value: snap.data().count };
+                } catch (err: any) {
+                    if (err?.code === 'permission-denied') {
+                        console.warn(`[devops] ${colName}: lectura restringida (permission-denied)`);
+                    } else {
+                        console.error(`[devops] ${colName}:`, err);
+                    }
+                    return { colName, value: null };
+                }
+            };
+
+            const resultados = await Promise.all([
+                safeCount('rrss_incidents'),
+                safeCount('comments'),
+                safeCount('notifications'),
+                safeCount('auditLogs')
             ]);
-            
-            const cRrss = rrss.data().count;
-            const cComs = coms.data().count;
-            const cNotifs = notifs.data().count;
-            const cLogs = logsAudit.data().count;
+            const valores: Record<string, number | null> = {};
+            resultados.forEach(r => { valores[r.colName] = r.value; });
+
+            const cRrss = valores['rrss_incidents'] ?? 0;
+            const cComs = valores['comments'] ?? 0;
+            const cNotifs = valores['notifications'] ?? 0;
+            const cLogs = valores['auditLogs'] ?? 0;
 
             const opCount = cRrss + cComs;
             const trCount = cNotifs + cLogs;
@@ -154,8 +172,8 @@ export const ConfigView = ({
                 if(cronSnap.exists()) {
                     setCronFreq(cronSnap.data().frecuencia || 'manual');
                 }
-            } catch (cronError) {
-                console.log("No hay configuración previa del CronJob");
+            } catch (cronError: any) {
+                console.log("No hay configuración previa del CronJob" + (cronError?.code ? ` (${cronError.code})` : ''));
             }
 
         } catch (error) {
