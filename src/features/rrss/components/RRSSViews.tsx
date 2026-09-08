@@ -962,13 +962,40 @@ const handleDownloadDocx = (inc: any) => {
                             </div>
                         </div>
 
-                        <div className="p-6 overflow-y-auto custom-scrollbar print:overflow-visible flex-1 print:p-8">
-                            
-                            {/* Encabezado para impresión */}
-                            <div className="hidden print:block print:mb-6 print:text-center print:border-b-2 print:border-gray-300 print:pb-4">
-                                <h1 className="text-xl font-bold print:text-2xl print:text-black">Reporte de Incidencia - Redes Sociales</h1>
-                                <p className="text-sm print:text-gray-600 mt-1">{nDetail.fuenteDeteccion} | {nDetail.fecha}</p>
+                            {/* ── LAYOUT DE IMPRESIÓN (réplica exacta del .docx) ── */}
+                            <div className="hidden print:block text-black text-[10.5pt] leading-normal">
+                                <h1 className="text-[16pt] font-bold text-orange-600 border-b-2 border-orange-500 pb-1.5 mb-3">ENGIE MANAGEMENT - INFORME DE INCIDENTE REPUTACIONAL</h1>
+                                <table className="w-full border-collapse">
+                                    <tbody>
+                                        <tr><td className="border border-gray-400 px-2 py-1.5 font-bold bg-gray-100 w-[30%] align-top">Fecha Recepción</td><td className="border border-gray-400 px-2 py-1.5 align-top">{nDetail.fecha}</td></tr>
+                                        <tr><td className="border border-gray-400 px-2 py-1.5 font-bold bg-gray-100 align-top">Volumen Incidencias</td><td className="border border-gray-400 px-2 py-1.5 align-top">{nDetail.totalIncidencias || 1}</td></tr>
+                                        <tr><td className="border border-gray-400 px-2 py-1.5 font-bold bg-gray-100 align-top">Actor / Fuente</td><td className="border border-gray-400 px-2 py-1.5 align-top break-all">{isUrl(nDetail.actorFuente) ? <a href={nDetail.actorFuente} className="text-blue-700 underline">{nDetail.actorFuente}</a> : nDetail.actorFuente}</td></tr>
+                                        <tr><td className="border border-gray-400 px-2 py-1.5 font-bold bg-gray-100 align-top">Fuente de Detección</td><td className="border border-gray-400 px-2 py-1.5 align-top">{nDetail.fuenteDeteccion}</td></tr>
+                                        <tr><td className="border border-gray-400 px-2 py-1.5 font-bold bg-gray-100 align-top">Tipo de Fuente</td><td className="border border-gray-400 px-2 py-1.5 align-top">{nDetail.tipoFuente || 'N/A'}</td></tr>
+                                        <tr><td className="border border-gray-400 px-2 py-1.5 font-bold bg-gray-100 align-top">Tema Principal</td><td className="border border-gray-400 px-2 py-1.5 align-top">{nDetail.temaPrincipal || 'N/A'}</td></tr>
+                                        <tr><td className="border border-gray-400 px-2 py-1.5 font-bold bg-gray-100 align-top">Nivel de Riesgo</td><td className="border border-gray-400 px-2 py-1.5 align-top">{nDetail.nivelRiesgo}</td></tr>
+                                        <tr><td className="border border-gray-400 px-2 py-1.5 font-bold bg-gray-100 align-top">Alcance Actual</td><td className="border border-gray-400 px-2 py-1.5 align-top">{nDetail.alcanceActual || 'N/A'}</td></tr>
+                                        <tr><td className="border border-gray-400 px-2 py-1.5 font-bold bg-gray-100 align-top">Tendencia</td><td className="border border-gray-400 px-2 py-1.5 align-top">{nDetail.tendencia || 'N/A'}</td></tr>
+                                        <tr><td className="border border-gray-400 px-2 py-1.5 font-bold bg-gray-100 align-top">Registrado por</td><td className="border border-gray-400 px-2 py-1.5 align-top">{nDetail.autor || 'Admin'}</td></tr>
+                                    </tbody>
+                                </table>
+                                <p className="text-[12pt] font-bold text-orange-600 border-b border-orange-500 pb-0.5 mt-5 mb-1.5">Resumen del Incidente:</p>
+                                <div className="border border-gray-400 p-2.5 bg-gray-50 whitespace-pre-wrap">{nDetail.resumen || ''}</div>
+                                <p className="text-[12pt] font-bold text-orange-600 border-b border-orange-500 pb-0.5 mt-4 mb-1.5">Hallazgos Clave:</p>
+                                <div className="border border-gray-400 p-2.5 bg-gray-50 whitespace-pre-wrap">{nDetail.hallazgosClave || 'Sin hallazgos registrados.'}</div>
+                                {selectedIncident.reporteTexto && (<><p className="text-[12pt] font-bold text-orange-600 border-b border-orange-500 pb-0.5 mt-4 mb-1.5">Análisis Interno:</p><style>{editorStyles}</style><div className="border border-gray-400 p-2.5 bg-gray-50 prose-editor" dangerouslySetInnerHTML={{ __html: selectedIncident.reporteTexto }} /></>)}
+                                <p className="text-[12pt] font-bold text-orange-600 border-b border-orange-500 pb-0.5 mt-4 mb-1.5">Referencias y Evidencias:</p>
+                                <div className="border border-gray-400 p-2.5 bg-gray-50">
+                                    {selectedIncident.enlacePublicacion && <p className="m-1"><b>Enlace a la Publicación Original:</b> <a href={selectedIncident.enlacePublicacion} className="text-blue-700 underline break-all">{selectedIncident.enlacePublicacion}</a></p>}
+                                    {selectedIncident.enlaceDrive && <p className="m-1"><b>Repositorio de Evidencia (Drive):</b> <a href={selectedIncident.enlaceDrive} className="text-blue-700 underline break-all">{selectedIncident.enlaceDrive}</a></p>}
+                                    {selectedIncident.reporteTexto && <p className="m-1"><b>Reporte Oficial:</b> Documento Word (.docx) generado desde la plataforma.</p>}
+                                    {!selectedIncident.enlacePublicacion && !selectedIncident.enlaceDrive && !selectedIncident.reporteTexto && <p className="italic">Sin referencias adjuntas.</p>}
+                                </div>
+                                <p className="mt-5 pt-2 border-t border-gray-400 text-[9.5pt] text-gray-600 italic">Reportado por: {selectedIncident.autor || 'Administrador'} · Generado el {new Date().toLocaleDateString('es-MX', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
                             </div>
+
+                            {/* Contenido interactivo (solo pantalla) */}
+                            <div className="p-6 overflow-y-auto custom-scrollbar flex-1 print:hidden">
 
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-6 mb-8 print:mt-4 print:mb-6 print:gap-4">
                                 <div className="print:mb-2"><p className="text-xs theme-text-muted font-medium mb-1 print:text-xs print:font-bold print:text-gray-600">Fecha de Recepción</p><p className="font-bold theme-text-main bg-black/5 dark:bg-white/5 px-3 py-1.5 rounded-lg inline-block print:bg-gray-100 print:text-black print:text-sm">{nDetail.fecha}</p></div>
