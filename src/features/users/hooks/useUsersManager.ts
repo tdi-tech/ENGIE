@@ -84,7 +84,7 @@ export const useUsersManager = (user: any, userRole: any, showToast: any, openCo
             } else {
                 showToast('Datos inválidos: El formato del usuario no cumple el esquema de Firestore.', true);
             }
-            if (code) console.error(`[user-register] ${code}:`, error?.message);
+            console.error(`[user-register] ${code}:`, error?.message, '| details:', error?.details);
         }
     }, [showToast]);
 
