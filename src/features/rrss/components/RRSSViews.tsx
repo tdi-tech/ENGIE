@@ -482,6 +482,17 @@ const handleDownloadDocx = (inc: any) => {
 
     const isUrl = (v: string) => !!v && /^https?:\/\//i.test(v);
 
+    // Semáforo del Nivel de Riesgo Reputacional
+    const riskDot = (r: string) => {
+        switch(r) {
+            case 'Bajo': return 'bg-green-500';
+            case 'Medio': return 'bg-yellow-500';
+            case 'Alto': return 'bg-orange-500';
+            case 'Crítico': case 'Critico': return 'bg-red-600 animate-pulse';
+            default: return 'bg-gray-400';
+        }
+    };
+
 
     const execEditCommand = (command: string, value: string = '') => {
         document.execCommand(command, false, value);
@@ -934,9 +945,9 @@ const handleDownloadDocx = (inc: any) => {
             {isDetailOpen && selectedIncident && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 fade-in print:static print:block print:p-0 print:bg-transparent">
                     <div className="theme-bg-container rounded-2xl w-full max-w-2xl shadow-2xl border theme-border overflow-hidden flex flex-col max-h-[90vh] print:max-h-none print:shadow-none print:border-none print:w-full print:max-w-full">
-                        <div className="p-5 border-b theme-border flex justify-between items-center bg-orange-500/5 no-print">
+                        <div className="p-5 border-b theme-border flex justify-between items-center bg-orange-500/5 no-print print:hidden">
                             <div className="flex items-center gap-3">
-                                <div className="p-2 bg-orange-500/20 rounded-lg">{getMediaIcon(nDetail.fuenteDeteccion)}</div>
+                                <div className="p-2 bg-slate-800 rounded-lg">{getMediaIcon(nDetail.fuenteDeteccion)}</div>
                                 <div><h3 className="font-bold theme-text-main text-lg">{nDetail.fuenteDeteccion}</h3><p className="text-xs theme-text-muted font-medium">{nDetail.fecha}</p></div>
                             </div>
                             <div className="flex items-center gap-2">
@@ -951,54 +962,60 @@ const handleDownloadDocx = (inc: any) => {
                             </div>
                         </div>
 
-                        <div className="p-6 overflow-y-auto custom-scrollbar print:overflow-visible flex-1">
+                        <div className="p-6 overflow-y-auto custom-scrollbar print:overflow-visible flex-1 print:p-8">
                             
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-6 mb-8 print:mt-4">
-                                <div><p className="text-xs theme-text-muted font-medium mb-1">Fecha de Recepción</p><p className="font-bold theme-text-main bg-black/5 dark:bg-white/5 px-3 py-1.5 rounded-lg inline-block">{nDetail.fecha}</p></div>
-                                <div><p className="text-xs theme-text-muted font-medium mb-1">Volumen (Total Incidencias)</p><p className="font-bold theme-text-main bg-black/5 dark:bg-white/5 px-3 py-1.5 rounded-lg inline-block">{nDetail.totalIncidencias || 1}</p></div>
-                                <div><p className="text-xs theme-text-muted font-medium mb-1">Actor o Fuente</p>
-                                    {isUrl(nDetail.actorFuente) ? (
-                                        <a href={nDetail.actorFuente} target="_blank" rel="noreferrer" className="font-bold text-orange-500 hover:text-orange-400 inline-flex items-center gap-1.5 bg-black/5 dark:bg-white/5 px-3 py-1.5 rounded-lg transition-colors"><LinkIcon className="w-3.5 h-3.5" />Enlace</a>
-                                    ) : (
-                                        <p className="font-bold theme-text-main bg-black/5 dark:bg-white/5 px-3 py-1.5 rounded-lg inline-block break-all">{nDetail.actorFuente}</p>
-                                    )}
-                                </div>
-                                <div><p className="text-xs theme-text-muted font-medium mb-1">Fuente de Detección</p><p className="font-bold theme-text-main bg-black/5 dark:bg-white/5 px-3 py-1.5 rounded-lg inline-block">{nDetail.fuenteDeteccion}</p></div>
-                                <div><p className="text-xs theme-text-muted font-medium mb-1">Tipo de Fuente</p><span className={`inline-block px-3 py-1 rounded-md text-xs font-bold border ${getNeutralBadge()}`}>{nDetail.tipoFuente || '—'}</span></div>
-                                <div><p className="text-xs theme-text-muted font-medium mb-1">Tema Principal</p><p className="font-bold theme-text-main">{nDetail.temaPrincipal || '—'}</p></div>
-                                <div><p className="text-xs theme-text-muted font-medium mb-1">Nivel de Riesgo Reputacional</p><span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-bold border ${getRiskColor(String(nDetail.nivelRiesgo) === 'Crítico' ? 'Critico' : String(nDetail.nivelRiesgo))}`}><span className="w-2 h-2 rounded-full bg-current opacity-80"></span>{nDetail.nivelRiesgo}</span></div>
-                                <div><p className="text-xs theme-text-muted font-medium mb-1">Alcance Actual</p><span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-bold border ${getNeutralBadge()}`}><span className={`w-2 h-2 rounded-full ${getAlcanceDot(nDetail.alcanceActual)}`}></span>{nDetail.alcanceActual || 'N/A'}</span></div>
-                                <div><p className="text-xs theme-text-muted font-medium mb-1">Tendencia</p><span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-bold border ${getNeutralBadge()}`}><span className={`w-2 h-2 rounded-full ${getTendenciaDot(nDetail.tendencia)}`}></span>{nDetail.tendencia || 'N/A'}</span></div>
+                            {/* Encabezado para impresión */}
+                            <div className="hidden print:block print:mb-6 print:text-center print:border-b-2 print:border-gray-300 print:pb-4">
+                                <h1 className="text-xl font-bold print:text-2xl print:text-black">Reporte de Incidencia - Redes Sociales</h1>
+                                <p className="text-sm print:text-gray-600 mt-1">{nDetail.fuenteDeteccion} | {nDetail.fecha}</p>
                             </div>
 
-                            <div className="space-y-6">
-                                <div>
-                                    <p className="text-xs theme-text-muted font-semibold mb-3 uppercase tracking-wider border-b theme-border pb-1">Detalles del Incidente</p>
-                                    <div className="space-y-4">
-                                        <div><p className="text-xs theme-text-muted font-medium mb-1.5 uppercase tracking-wider">Resumen del Incidente</p><div className="p-4 theme-bg-low rounded-xl border theme-border theme-text-main whitespace-pre-wrap text-sm leading-relaxed">{nDetail.resumen}</div></div>
-                                        {nDetail.hallazgosClave && <div><p className="text-xs theme-text-muted font-medium mb-1.5 uppercase tracking-wider">Hallazgos Clave</p><div className="p-4 theme-bg-low rounded-xl border theme-border theme-text-main whitespace-pre-wrap text-sm leading-relaxed">{nDetail.hallazgosClave}</div></div>}
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-6 mb-8 print:mt-4 print:mb-6 print:gap-4">
+                                <div className="print:mb-2"><p className="text-xs theme-text-muted font-medium mb-1 print:text-xs print:font-bold print:text-gray-600">Fecha de Recepción</p><p className="font-bold theme-text-main bg-black/5 dark:bg-white/5 px-3 py-1.5 rounded-lg inline-block print:bg-gray-100 print:text-black print:text-sm">{nDetail.fecha}</p></div>
+                                <div className="print:mb-2"><p className="text-xs theme-text-muted font-medium mb-1 print:text-xs print:font-bold print:text-gray-600">Volumen (Total Incidencias)</p><p className="font-bold theme-text-main bg-black/5 dark:bg-white/5 px-3 py-1.5 rounded-lg inline-block print:bg-gray-100 print:text-black print:text-sm">{nDetail.totalIncidencias || 1}</p></div>
+                                <div className="print:mb-2"><p className="text-xs theme-text-muted font-medium mb-1 print:text-xs print:font-bold print:text-gray-600">Actor o Fuente</p>
+                                    {isUrl(nDetail.actorFuente) ? (
+                                        <a href={nDetail.actorFuente} target="_blank" rel="noopener noreferrer" className="font-bold text-orange-500 hover:underline inline-flex items-center gap-1.5 bg-black/5 dark:bg-white/5 px-3 py-1.5 rounded-lg print:bg-gray-100 print:text-black print:text-sm print:no-underline"><LinkIcon className="w-3.5 h-3.5 print:hidden" />Enlace</a>
+                                    ) : (
+                                        <p className="font-bold theme-text-main bg-black/5 dark:bg-white/5 px-3 py-1.5 rounded-lg inline-block break-all print:bg-gray-100 print:text-black print:text-sm">{nDetail.actorFuente}</p>
+                                    )}
+                                </div>
+                                <div className="print:mb-2"><p className="text-xs theme-text-muted font-medium mb-1 print:text-xs print:font-bold print:text-gray-600">Fuente de Detección</p><p className="font-bold theme-text-main bg-black/5 dark:bg-white/5 px-3 py-1.5 rounded-lg inline-block print:bg-gray-100 print:text-black print:text-sm">{nDetail.fuenteDeteccion}</p></div>
+                                <div className="print:mb-2"><p className="text-xs theme-text-muted font-medium mb-1 print:text-xs print:font-bold print:text-gray-600">Tipo de Fuente</p><span className={`inline-block px-3 py-1 rounded-md text-xs font-bold border print:bg-gray-100 print:text-black print:border-gray-300 print:text-sm`}>{nDetail.tipoFuente || '—'}</span></div>
+                                <div className="print:mb-2"><p className="text-xs theme-text-muted font-medium mb-1 print:text-xs print:font-bold print:text-gray-600">Tema Principal</p><p className="font-bold theme-text-main print:text-black print:text-sm">{nDetail.temaPrincipal || '—'}</p></div>
+                                <div className="print:mb-2"><p className="text-xs theme-text-muted font-medium mb-1 print:text-xs print:font-bold print:text-gray-600">Nivel de Riesgo Reputacional</p><span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-bold border print:bg-gray-100 print:text-black print:border-gray-300 print:text-sm`}><span className={`w-2 h-2 rounded-full ${riskDot(nDetail.nivelRiesgo as string)} print:bg-gray-600`}></span>{nDetail.nivelRiesgo}</span></div>
+                                <div className="print:mb-2"><p className="text-xs theme-text-muted font-medium mb-1 print:text-xs print:font-bold print:text-gray-600">Alcance Actual</p><span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-bold border print:bg-gray-100 print:text-black print:border-gray-300 print:text-sm`}><span className={`w-2 h-2 rounded-full ${getAlcanceDot(nDetail.alcanceActual || '')} print:bg-gray-600`}></span>{nDetail.alcanceActual || 'N/A'}</span></div>
+                                <div className="print:mb-2"><p className="text-xs theme-text-muted font-medium mb-1 print:text-xs print:font-bold print:text-gray-600">Tendencia</p><span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-bold border print:bg-gray-100 print:text-black print:border-gray-300 print:text-sm`}><span className={`w-2 h-2 rounded-full ${getTendenciaDot(nDetail.tendencia || '')} print:bg-gray-600`}></span>{nDetail.tendencia || 'N/A'}</span></div>
+                            </div>
+
+                            <div className="space-y-6 print:space-y-4">
+                                <div className="print:break-inside-avoid">
+                                    <p className="text-xs theme-text-muted font-semibold mb-3 uppercase tracking-wider border-b theme-border pb-1 print:text-sm print:font-bold print:text-black print:border-gray-300">Detalles del Incidente</p>
+                                    <div className="space-y-4 print:space-y-2">
+                                        <div className="print:mb-3"><p className="text-xs theme-text-muted font-medium mb-1.5 uppercase tracking-wider print:text-xs print:font-bold print:text-black">Resumen del Incidente</p><div className="p-4 theme-bg-low rounded-xl border theme-border theme-text-main whitespace-pre-wrap text-sm leading-relaxed print:p-3 print:bg-gray-50 print:border-gray-200 print:text-sm">{nDetail.resumen}</div></div>
+                                        {nDetail.hallazgosClave && <div className="print:mb-3"><p className="text-xs theme-text-muted font-medium mb-1.5 uppercase tracking-wider print:text-xs print:font-bold print:text-black">Hallazgos Clave</p><div className="p-4 theme-bg-low rounded-xl border theme-border theme-text-main whitespace-pre-wrap text-sm leading-relaxed print:p-3 print:bg-gray-50 print:border-gray-200 print:text-sm">{nDetail.hallazgosClave}</div></div>}
                                         {selectedIncident.reporteTexto && (
-                                            <div>
-                                                <p className="text-xs theme-text-muted font-medium mb-1.5 uppercase tracking-wider">Análisis Interno</p>
+                                            <div className="print:mb-3 print:break-inside-avoid">
+                                                <p className="text-xs theme-text-muted font-medium mb-1.5 uppercase tracking-wider print:text-xs print:font-bold print:text-black">Análisis Interno</p>
                                                 <style>{editorStyles}</style>
-                                                <div className="p-4 theme-bg-low rounded-xl border theme-border theme-text-main text-sm leading-relaxed prose-editor" dangerouslySetInnerHTML={{ __html: selectedIncident.reporteTexto }} />
+                                                <div className="p-4 theme-bg-low rounded-xl border theme-border theme-text-main text-sm leading-relaxed prose-editor print:p-3 print:bg-gray-50 print:border-gray-200 print:text-sm" dangerouslySetInnerHTML={{ __html: selectedIncident.reporteTexto }} />
                                             </div>
                                         )}
                                     </div>
                                 </div>
 
-                                <div>
-                                    <p className="text-xs theme-text-muted font-semibold mb-3 uppercase tracking-wider border-b theme-border pb-1">Referencias y Evidencias</p>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                                        {selectedIncident.enlacePublicacion && (<a href={selectedIncident.enlacePublicacion} target="_blank" rel="noreferrer" className="flex items-center gap-3 p-3 theme-bg-low border theme-border rounded-xl hover:border-orange-500 transition-colors group no-print text-left"><div className="p-2 bg-orange-500/10 text-orange-500 rounded-lg group-hover:scale-110 transition-transform flex-shrink-0"><LinkIcon className="w-4 h-4"/></div><div className="overflow-hidden"><p className="text-xs font-bold theme-text-main">Enlace a la Publicación Original</p><p className="text-[10px] theme-text-muted">Abrir enlace</p></div></a>)}
-                                        {selectedIncident.enlaceDrive && (<a href={selectedIncident.enlaceDrive} target="_blank" rel="noreferrer" className="flex items-center gap-3 p-3 theme-bg-low border theme-border rounded-xl hover:border-green-500 transition-colors group no-print text-left"><div className="p-2 bg-green-500/10 text-green-600 rounded-lg group-hover:scale-110 transition-transform flex-shrink-0"><HardDrive className="w-4 h-4"/></div><div className="overflow-hidden"><p className="text-xs font-bold theme-text-main">Repositorio de Evidencia (Drive)</p><p className="text-[10px] theme-text-muted">Abrir carpeta</p></div></a>)}
-                                        {selectedIncident.reporteTexto && (<button type="button" onClick={() => handleDownloadDocx(selectedIncident)} className="flex items-center gap-3 p-3 theme-bg-low border theme-border rounded-xl hover:border-blue-500 transition-colors group no-print text-left"><div className="p-2 bg-blue-500/10 text-blue-500 rounded-lg group-hover:scale-110 transition-transform flex-shrink-0"><FileText className="w-4 h-4"/></div><div className="overflow-hidden"><p className="text-xs font-bold theme-text-main">Reporte Oficial</p><p className="text-[10px] theme-text-muted">Descargar (.docx)</p></div></button>)}
-                                        {!selectedIncident.enlacePublicacion && !selectedIncident.enlaceDrive && !selectedIncident.reporteTexto && <p className="text-xs theme-text-muted italic">Sin referencias adjuntas.</p>}
+                                <div className="print:break-inside-avoid">
+                                    <p className="text-xs theme-text-muted font-semibold mb-3 uppercase tracking-wider border-b theme-border pb-1 print:text-sm print:font-bold print:text-black print:border-gray-300">Referencias y Evidencias</p>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 print:grid-cols-2 print:gap-3">
+                                        {selectedIncident.enlacePublicacion && (<div className="flex items-center gap-3 p-3 theme-bg-low border theme-border rounded-xl print:p-2 print:bg-gray-50 print:border-gray-200"><div className="p-2 bg-orange-500/10 text-orange-500 rounded-lg flex-shrink-0 print:bg-orange-100"><LinkIcon className="w-4 h-4"/></div><div className="overflow-hidden"><p className="text-xs font-bold theme-text-main print:text-black">Enlace a la Publicación Original</p><p className="text-[10px] theme-text-muted print:text-gray-600">{selectedIncident.enlacePublicacion}</p></div></div>)}
+                                        {selectedIncident.enlaceDrive && (<div className="flex items-center gap-3 p-3 theme-bg-low border theme-border rounded-xl print:p-2 print:bg-gray-50 print:border-gray-200"><div className="p-2 bg-green-500/10 text-green-600 rounded-lg flex-shrink-0 print:bg-green-100"><HardDrive className="w-4 h-4"/></div><div className="overflow-hidden"><p className="text-xs font-bold theme-text-main print:text-black">Repositorio de Evidencia (Drive)</p><p className="text-[10px] theme-text-muted print:text-gray-600">{selectedIncident.enlaceDrive}</p></div></div>)}
+                                        {selectedIncident.reporteTexto && (<div className="flex items-center gap-3 p-3 theme-bg-low border theme-border rounded-xl print:p-2 print:bg-gray-50 print:border-gray-200"><div className="p-2 bg-blue-500/10 text-blue-500 rounded-lg flex-shrink-0 print:bg-blue-100"><FileText className="w-4 h-4"/></div><div className="overflow-hidden"><p className="text-xs font-bold theme-text-main print:text-black">Reporte Oficial</p><p className="text-[10px] theme-text-muted print:text-gray-600">Documento disponible para descarga</p></div></div>)}
+                                        {!selectedIncident.enlacePublicacion && !selectedIncident.enlaceDrive && !selectedIncident.reporteTexto && <p className="text-xs theme-text-muted italic print:text-gray-500">Sin referencias adjuntas.</p>}
                                     </div>
                                 </div>
                             </div>
-                            <div className="mt-8 pt-4 border-t theme-border flex justify-between items-center">
-                                {isAdmin ? <p className="text-sm font-bold theme-text-muted italic flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-orange-500"></span>Reportado por: <span className="theme-text-main">{selectedIncident.autor || 'Administrador'}</span></p> : <p className="text-sm font-bold theme-text-muted italic flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-gray-400"></span>Registro de sistema (Acceso público)</p>}
+                            <div className="mt-8 pt-4 border-t theme-border flex justify-between items-center print:mt-6 print:pt-3 print:border-gray-300">
+                                {isAdmin ? <p className="text-sm font-bold theme-text-muted italic flex items-center gap-2 print:text-xs print:text-gray-600"><span className="w-2 h-2 rounded-full bg-orange-500 print:bg-gray-600"></span>Reportado por: <span className="theme-text-main print:text-black">{selectedIncident.autor || 'Administrador'}</span></p> : <p className="text-sm font-bold theme-text-muted italic flex items-center gap-2 print:text-xs print:text-gray-600"><span className="w-2 h-2 rounded-full bg-gray-400 print:bg-gray-600"></span>Registro de sistema (Acceso público)</p>}
                             </div>
                         </div>
                     </div>
