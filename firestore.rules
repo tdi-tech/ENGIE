@@ -75,7 +75,7 @@ service cloud.firestore {
       return data.keys().hasOnly([
           'totalIncidencias', 'fecha', 'actorFuente', 'fuenteDeteccion', 'tipoFuente',
           'temaPrincipal', 'nivelRiesgoReputacional', 'alcanceActual', 'tendencia',
-          'campus', 'resumenIncidente', 'hallazgosClave', 'enlacePublicacion',
+          'campus', 'area', 'resumenIncidente', 'hallazgosClave', 'enlacePublicacion',
           'enlaceDrive', 'reporteTexto', 'estado', 'autor', 'timestamp'
         ])
         && data.keys().hasAll([
@@ -92,6 +92,7 @@ service cloud.firestore {
           'Resuelto / solucionado'
         ]
         && (!('totalIncidencias' in data) || data.totalIncidencias is number)
+        && (!('area' in data) || data.area is string)
         && (!('reporteTexto' in data) || data.reporteTexto is string)
         && (!('resumenIncidente' in data) || data.resumenIncidente is string)
         && (!('hallazgosClave' in data) || data.hallazgosClave is string);
