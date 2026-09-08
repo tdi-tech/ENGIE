@@ -14,16 +14,7 @@ import { normalizeMenciones, isRegistroVacio } from '../../../shared/utils/menci
 const inputStyles = "w-full p-3 rounded-xl theme-bg-low border theme-border theme-text-main focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all text-sm";
 const radioLabelStyles = "flex items-center gap-2 text-sm font-medium theme-text-main cursor-pointer";
 
-const CAMPUS_OPTIONS = [
-    'Atizapán', 'Coacalco', 'Cuautitlán Izcalli', 'Ecatepec', 'Tecamac', 
-    'Tultepec', 'Zumpango', 'Tizayuca', 'Querétaro: la Joya', 'Querétaro: el Marqués', 
-    'Huehuetoca', 'Chalco'
-];
 
-const redesSocialesOptions = [
-    'Facebook comentario', 'Facebook DM', 'Facebook grupos', 'Instagram comentario', 
-    'Instagram DM', 'LinkedIn', 'Tiktok DM', 'Tiktok comentario'
-];
 
 const SentimentBadge = ({ sentiment }: { sentiment: string }) => {
     if (!sentiment) return null;
@@ -559,9 +550,50 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
         }
     };
     
-    const openEdit = () => { setEditData({ ...selectedComment, comentariosList: getNormalizedComments(selectedComment) }); setIsDetailOpen(false); setIsEditOpen(true); };
+    const openEdit = () => {
+        // Deriva los registros editables según la fuente real del doc (no legacy).
+        const isRedes = selectedComment.fuenteMonitoreo !== 'Medios digitales';
+        const base = {
+            ...selectedComment,
+            fuentemonitoreoEditada: selectedComment.fuenteMonitoreo
+        };
+        if (isRedes) {
+            setEditData({ ...base, registrosList: (selectedComment.registrosList || []) });
+        } else {
+            setEditData({ ...base, registrosDigitalesList: (selectedComment.registrosDigitalesList || []) });
+        }
+        setIsDetailOpen(false);
+        setIsEditOpen(true);
+    };
+    const updateEditRegistro = (index: number, field: string, value: string) => {
+        const list = [...(editData.registrosList || [])];
+        list[index] = { ...list[index], [field]: value };
+        setEditData({ ...editData, registrosList: list });
+    };
+    const updateEditRegistroDigital = (index: number, field: string, value: string) => {
+        const list = [...(editData.registrosDigitalesList || [])];
+        list[index] = { ...list[index], [field]: value };
+        setEditData({ ...editData, registrosDigitalesList: list });
+    };
+    const removeEditRegistro = (index: number) => {
+        const list = (editData.registrosList || []).filter((_: any, i: number) => i !== index);
+        setEditData({ ...editData, registrosList: list });
+    };
+    const removeEditRegistroDigital = (index: number) => {
+        const list = (editData.registrosDigitalesList || []).filter((_: any, i: number) => i !== index);
+        setEditData({ ...editData, registrosDigitalesList: list });
+    };
     const handleDelete = () => { setIsDetailOpen(false); deleteComment(selectedComment.id); };
-    const handleEditUpdate = (e: React.FormEvent) => { e.preventDefault(); updateComment(editData.id, editData); setIsEditOpen(false); };
+    const handleEditUpdate = (e: React.FormEvent) => {
+        e.preventDefault();
+        // Limpia y persiste SOLO la lista activa según la fuente, idéntico a creación.
+        const editarRS = editData.fuenteMonitoreo !== 'Medios digitales';
+        const payload = editarRS
+            ? { ...editData, registrosList: (editData.registrosList || []).filter((r: any) => !isRegistroVacio(r, 'rs')) }
+            : { ...editData, registrosDigitalesList: (editData.registrosDigitalesList || []).filter((r: any) => !isRegistroVacio(r, 'md')) };
+        updateComment(editData.id, payload);
+        setIsEditOpen(false);
+    };
 
     // 🔥 LOGICA DE SELECCIÓN MÚLTIPLE (Estilo UX de Tickets)
     const toggleSelection = (id: string) => {
@@ -826,7 +858,7 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
                                                                                     </div>
                                                                                     <div className="text-sm theme-text-main line-clamp-2 min-h-[40px] opacity-90 mb-1 w-full"><span className="font-bold mr-1">{firstComment.usuario}:</span>{firstComment.comentario}</div>
                                                                                     {hasMore && <p className="text-[10px] font-bold text-blue-500 mb-2">+ {list.length - 1} comentario(s) más</p>}
-                                                                                    <div className="mt-auto pt-3 border-t theme-border flex flex-wrap gap-2 items-center w-full"><span className="px-2 py-1 text-[10px] font-bold rounded-md bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">{com.contenido}</span><SentimentBadge sentiment={cardSentimentStatus} />{uniqueNetworks.map((net: any) => <span key={net} className={`px-2 py-1 text-[10px] font-bold rounded-md border ${isSelectionMode && isSelected ? 'bg-red-500/20 border-red-500/30 text-red-600 dark:text-red-400' : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 border-gray-200 dark:border-gray-700'}`}>{net}</span>)}</div>
+                                                                                    <div className="mt-auto pt-3 border-t theme-border flex flex-wrap gap-2 items-center w-full"><span className="px-2 py-1 text-[10px] font-bold rounded-md bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">{com.fuenteMonitoreo || com.contenido || 'Fuente de monitoreo'}</span><SentimentBadge sentiment={cardSentimentStatus} />{uniqueNetworks.map((net: any) => <span key={net} className={`px-2 py-1 text-[10px] font-bold rounded-md border ${isSelectionMode && isSelected ? 'bg-red-500/20 border-red-500/30 text-red-600 dark:text-red-400' : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 border-gray-200 dark:border-gray-700'}`}>{net}</span>)}</div>
                                                                                 </button>
                                                                             );
                                                                         })}
@@ -1004,28 +1036,106 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
                                 <div className="space-y-4">
                                     <div className="flex justify-between items-center border-b theme-border pb-2">
                                         <label className="text-sm font-bold theme-text-main">Comentarios Registrados</label>
-                                        <button type="button" onClick={() => { const last = editData.comentariosList[editData.comentariosList.length - 1] || {}; setEditData({...editData, comentariosList: [...editData.comentariosList, { id: Date.now().toString(), usuario:'', comentario:'', redSocial: last.redSocial || 'Facebook comentario', campus: last.campus || 'Sin especificar', sentiment: '', posteoTipo: last.posteoTipo || 'url', posteoUrl: last.posteoUrl || '', posteoTexto: last.posteoTexto || '' }]}); }} className="text-xs flex items-center gap-1 font-bold text-blue-500 hover:underline"><PlusCircle className="w-3 h-3"/> Agregar otro</button>
+                                        {editData.fuenteMonitoreo !== 'Medios digitales' ? (
+                                            <button type="button" onClick={() => { const last = (editData.registrosList || [])[(editData.registrosList || []).length - 1] || {}; setEditData({...editData, registrosList: [...(editData.registrosList || []), { id: Date.now().toString(), canal: last.canal || 'Facebook', tipoActor: last.tipoActor || '', usuarioSitioWeb: '', sentiment: '', narrativa: last.narrativa || '', narrativaOtro: '', tipoActorOtro: '', nivelRiesgo: '', estatus: '', visualizaciones: '', reacciones: '', comentarios: '', compartidos: '', hallazgoReputacional: '', linkPublicacion: '' }]}); }} className="text-xs flex items-center gap-1 font-bold text-blue-500 hover:underline"><PlusCircle className="w-3 h-3"/> Agregar otro</button>
+                                        ) : (
+                                            <button type="button" onClick={() => { const last = (editData.registrosDigitalesList || [])[(editData.registrosDigitalesList || []).length - 1] || {}; setEditData({...editData, registrosDigitalesList: [...(editData.registrosDigitalesList || []), { id: Date.now().toString(), sitioWeb: '', tipoActor: last.tipoActor || '', tipoActorOtro: '', sentimiento: '', narrativa: last.narrativa || '', narrativaOtro: '', nivelRiesgo: '', estatus: '', hallazgoReputacional: '', linkPublicacion: '' }]}); }} className="text-xs flex items-center gap-1 font-bold text-blue-500 hover:underline"><PlusCircle className="w-3 h-3"/> Agregar otro</button>
+                                        )}
                                     </div>
-                                    {editData.comentariosList.map((c: any, idx: number) => (
-                                        <div key={c.id || idx} className="flex flex-col gap-3 p-4 theme-bg-low border theme-border rounded-xl relative group">
-                                            {editData.comentariosList.length > 1 && (<button type="button" onClick={() => { const newList = editData.comentariosList.filter((_:any, i:number) => i !== idx); setEditData({...editData, comentariosList: newList}); }} className="absolute -top-2 -right-2 p-1.5 bg-red-100 text-red-600 rounded-full hover:bg-red-500 hover:text-white transition-colors opacity-0 group-hover:opacity-100"><Trash2 className="w-3 h-3"/></button>)}
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                <div><label htmlFor={`ec-red-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Red Social / Canal</label>
-                                                    <select id={`ec-red-${idx}`} value={c.redSocial} onChange={(e) => { const n = [...editData.comentariosList]; n[idx].redSocial = e.target.value; setEditData({...editData, comentariosList: n}); }} className={inputStyles}>
-                                                        {redesSocialesOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                                                    </select>
+                                    {editData.fuenteMonitoreo !== 'Medios digitales' ? (
+                                        (editData.registrosList || []).map((c: any, idx: number) => (
+                                            <div key={c.id || idx} className="flex flex-col gap-4 p-4 theme-bg-low border theme-border rounded-xl relative group">
+                                                {(editData.registrosList || []).length > 1 && (<button type="button" onClick={() => removeEditRegistro(idx)} className="absolute -top-2 -right-2 p-1.5 bg-red-100 text-red-600 rounded-full hover:bg-red-500 hover:text-white transition-colors opacity-0 group-hover:opacity-100"><Trash2 className="w-3 h-3"/></button>)}
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    <div><label htmlFor={`er-canal-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Canal</label>
+                                                        <select id={`er-canal-${idx}`} value={c.canal} onChange={(e) => updateEditRegistro(idx, 'canal', e.target.value)} className={inputStyles}>
+                                                            {['Facebook', 'Instagram', 'TikTok', 'LinkedIn', 'YouTube', 'X'].map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                                        </select>
+                                                    </div>
+                                                    <div><label htmlFor={`er-actor-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Tipo de Actor</label>
+                                                        <select id={`er-actor-${idx}`} value={c.tipoActor} onChange={(e) => updateEditRegistro(idx, 'tipoActor', e.target.value)} className={`${inputStyles} ${!c.tipoActor ? 'text-gray-400' : ''}`}>
+                                                            <option value="" disabled>Seleccionar tipo de actor...</option>
+                                                            {['Gobierno', 'Creadores de contenido', 'Detractor', 'Portales de noticias', 'Periódicos digitales', 'Medios especializados', 'Sitios institucionales', 'Medios Locales', 'Otro'].map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                                        </select>
+                                                    </div>
+                                                <div><label htmlFor={`er-sen-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Sentimiento de la Mención</label>
+                                                        <select id={`er-sen-${idx}`} required value={c.sentiment} onChange={(e) => updateEditRegistro(idx, 'sentiment', e.target.value)} className={`${inputStyles} ${!c.sentiment ? 'text-gray-400' : ''}`}>
+                                                            <option value="" disabled>Seleccionar sentimiento...</option>
+                                                            <option value="Positivo" className="text-green-600 dark:text-green-400">🟢 Positivo</option>
+                                                            <option value="Neutral" className="text-yellow-600 dark:text-yellow-400">🟡 Neutral</option>
+                                                            <option value="Negativo" className="text-red-600 dark:text-red-400">🔴 Negativo</option>
+                                                        </select>
+                                                    </div>
+                                                    <div><label htmlFor={`er-riesgo-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Nivel de Riesgo</label>
+                                                        <select id={`er-riesgo-${idx}`} value={c.nivelRiesgo} onChange={(e) => updateEditRegistro(idx, 'nivelRiesgo', e.target.value)} className={`${inputStyles} ${!c.nivelRiesgo ? 'text-gray-400' : ''}`}>
+                                                            <option value="" disabled>Seleccionar nivel...</option>
+                                                            <option value="Bajo" className="text-green-600 dark:text-green-400">🟢 Bajo</option>
+                                                            <option value="Medio" className="text-orange-600 dark:text-orange-400">🟠 Medio</option>
+                                                            <option value="Alto" className="text-yellow-600 dark:text-yellow-400">🟡 Alto</option>
+                                                            <option value="Crítico" className="text-red-600 dark:text-red-400">🔴 Crítico</option>
+                                                        </select>
+                                                    </div>
+                                                    <div><label htmlFor={`er-estatus-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Estatus</label>
+                                                        <select id={`er-estatus-${idx}`} value={c.estatus} onChange={(e) => updateEditRegistro(idx, 'estatus', e.target.value)} className={`${inputStyles} ${!c.estatus ? 'text-gray-400' : ''}`}>
+                                                            <option value="" disabled>Seleccionar estatus...</option>
+                                                            <option value="Monitoreo activo" className="text-yellow-600 dark:text-yellow-400">🟡 Monitoreo activo</option>
+                                                            <option value="En revisión" className="text-orange-600 dark:text-orange-400">🟠 En revisión</option>
+                                                            <option value="Seguimiento activo" className="text-blue-600 dark:text-blue-400">🔵 Seguimiento activo</option>
+                                                            <option value="Resuelto / solucionado" className="text-green-600 dark:text-green-400">🟢 Resuelto / solucionado</option>
+                                                        </select>
+                                                    </div>
+<div className="md:col-span-2"><label htmlFor={`er-narrativa-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Narrativa</label><textarea id={`er-narrativa-${idx}`} required rows={2} value={c.narrativa} onChange={(e) => updateEditRegistro(idx, 'narrativa', e.target.value)} className={`${inputStyles} resize-none leading-relaxed`}></textarea></div>
+                                                    <div className="md:col-span-2"><label htmlFor={`er-hallazgo-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Hallazgo reputacional</label><textarea id={`er-hallazgo-${idx}`} rows={2} value={c.hallazgoReputacional} onChange={(e) => updateEditRegistro(idx, 'hallazgoReputacional', e.target.value)} className={`${inputStyles} resize-none leading-relaxed`}></textarea></div>
+                                                    <div className="md:col-span-2"><label htmlFor={`er-link-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Link de la publicación original</label><input id={`er-link-${idx}`} type="url" placeholder="https://..." value={c.linkPublicacion} onChange={(e) => updateEditRegistro(idx, 'linkPublicacion', e.target.value)} className={inputStyles} /></div>
                                                 </div>
-                                                <div><label htmlFor={`ec-usr-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Usuario</label><input id={`ec-usr-${idx}`} type="text" required value={c.usuario} onChange={(e) => { const n = [...editData.comentariosList]; n[idx].usuario = e.target.value; setEditData({...editData, comentariosList: n}); }} className={inputStyles} /></div>
-                                                <div><label htmlFor={`ec-cam-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Campus</label><select id={`ec-cam-${idx}`} value={c.campus} onChange={(e) => { const n = [...editData.comentariosList]; n[idx].campus = e.target.value; setEditData({...editData, comentariosList: n}); }} className={inputStyles}>{['Sin especificar', 'Atizapán', 'Coacalco', 'Cuautitlán Izcalli', 'Ecatepec', 'Tecamac', 'Tultepec', 'Zumpango', 'Tizayuca', 'Querétaro: la Joya', 'Querétaro: el Marqués', 'Huehuetoca', 'Chalco'].map(camp => <option key={camp}>{camp}</option>)}</select></div>
-                                                <div><label htmlFor={`ec-sen-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Sentiment</label><select id={`ec-sen-${idx}`} required value={c.sentiment} onChange={(e) => { const n = [...editData.comentariosList]; n[idx].sentiment = e.target.value; setEditData({...editData, comentariosList: n}); }} className={`${inputStyles} ${!c.sentiment ? 'text-gray-400' : ''}`}><option value="" disabled>Seleccionar...</option><option value="Neutral" className="text-gray-700 dark:text-gray-300">Neutral</option><option value="Negativo" className="text-red-600 dark:text-red-400">Negativo</option></select></div>
                                             </div>
-                                            <div className="pt-2"><label htmlFor={`ec-com-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Comentario</label><textarea id={`ec-com-${idx}`} required rows={2} value={c.comentario} onChange={(e) => { const n = [...editData.comentariosList]; n[idx].comentario = e.target.value; setEditData({...editData, comentariosList: n}); }} className={`${inputStyles} resize-none leading-relaxed`}></textarea></div>
-                                            <div className="pt-3 border-t theme-border border-dashed">
-                                                <div className="flex items-center gap-4 mb-3"><label className="text-xs font-bold theme-text-muted uppercase tracking-wider">Formato Post Original:</label><select aria-label="Tipo de post original" value={c.posteoTipo} onChange={(e) => { const n = [...editData.comentariosList]; n[idx].posteoTipo = e.target.value; n[idx].posteoUrl = ''; n[idx].posteoTexto = ''; setEditData({...editData, comentariosList: n}); }} className={`${inputStyles} py-1.5 px-3 w-auto text-xs`}><option value="url">Enlace (URL)</option><option value="texto">Texto Libre</option></select></div>
-                                                {c.posteoTipo === 'url' ? (<input aria-label="URL del post original" type="url" placeholder="URL del post..." value={c.posteoUrl} onChange={(e) => { const n = [...editData.comentariosList]; n[idx].posteoUrl = e.target.value; setEditData({...editData, comentariosList: n}); }} className={inputStyles} />) : (<input aria-label="Texto del post original" type="text" placeholder="Texto del post..." value={c.posteoTexto} onChange={(e) => { const n = [...editData.comentariosList]; n[idx].posteoTexto = e.target.value; setEditData({...editData, comentariosList: n}); }} className={inputStyles} />)}
+                                        ))
+                                    ) : (
+(editData.registrosDigitalesList || []).map((c: any, idx: number) => (
+                                            <div key={c.id || idx} className="flex flex-col gap-4 p-4 theme-bg-low border theme-border rounded-xl relative group">
+                                                {(editData.registrosDigitalesList || []).length > 1 && (<button type="button" onClick={() => removeEditRegistroDigital(idx)} className="absolute -top-2 -right-2 p-1.5 bg-red-100 text-red-600 rounded-full hover:bg-red-500 hover:text-white transition-colors opacity-0 group-hover:opacity-100"><Trash2 className="w-3 h-3"/></button>)}
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    <div className="md:col-span-2"><label htmlFor={`ed-sitio-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Sitio Web</label><input id={`ed-sitio-${idx}`} type="url" required value={c.sitioWeb} onChange={(e) => updateEditRegistroDigital(idx, 'sitioWeb', e.target.value)} className={inputStyles} /></div>
+                                                    <div><label htmlFor={`ed-actor-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Tipo de Actor</label>
+                                                        <select id={`ed-actor-${idx}`} value={c.tipoActor} onChange={(e) => updateEditRegistroDigital(idx, 'tipoActor', e.target.value)} className={`${inputStyles} ${!c.tipoActor ? 'text-gray-400' : ''}`}>
+                                                            <option value="" disabled>Seleccionar tipo de actor...</option>
+                                                            {['Gobierno', 'Creadores de contenido', 'Detractor', 'Portales de noticias', 'Periódicos digitales', 'Medios especializados', 'Sitios institucionales', 'Medios Locales', 'Otro'].map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                                        </select>
+                                                    </div>
+                                                    {c.tipoActor === 'Otro' && (
+                                                        <div><label htmlFor={`ed-actorOtro-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Especificar Tipo de Actor</label><input id={`ed-actorOtro-${idx}`} type="text" required value={c.tipoActorOtro} onChange={(e) => updateEditRegistroDigital(idx, 'tipoActorOtro', e.target.value)} className={inputStyles} /></div>
+                                                    )}
+                                                    <div><label htmlFor={`ed-sen-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Sentimiento de la Mención</label>
+                                                        <select id={`ed-sen-${idx}`} required value={c.sentimiento} onChange={(e) => updateEditRegistroDigital(idx, 'sentimiento', e.target.value)} className={`${inputStyles} ${!c.sentimiento ? 'text-gray-400' : ''}`}>
+                                                            <option value="" disabled>Seleccionar sentimiento...</option>
+<option value="Neutral" className="text-yellow-600 dark:text-yellow-400">🟡 Neutral</option>
+                                                            <option value="Negativo" className="text-red-600 dark:text-red-400">🔴 Negativo</option>
+                                                        </select>
+                                                    </div>
+                                                            <option value="Positivo" className="text-green-600 dark:text-green-400">🟢 Positivo</option>
+<div><label htmlFor={`ed-nivelRiesgo-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Nivel de Riesgo</label>
+                                                        <select id={`ed-nivelRiesgo-${idx}`} value={c.nivelRiesgo} onChange={(e) => updateEditRegistroDigital(idx, 'nivelRiesgo', e.target.value)} className={`${inputStyles} ${!c.nivelRiesgo ? 'text-gray-400' : ''}`}>
+                                                            <option value="" disabled>Seleccionar nivel...</option>
+                                                            <option value="Bajo" className="text-green-600 dark:text-green-400">🟢 Bajo</option>
+                                                            <option value="Medio" className="text-orange-600 dark:text-orange-400">🟠 Medio</option>
+                                                            <option value="Alto" className="text-yellow-600 dark:text-yellow-400">🟡 Alto</option>
+                                                            <option value="Crítico" className="text-red-600 dark:text-red-400">🔴 Crítico</option>
+                                                        </select>
+                                                    </div>
+                                                    <div><label htmlFor={`ed-estatus-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Estatus</label>
+                                                        <select id={`ed-estatus-${idx}`} value={c.estatus} onChange={(e) => updateEditRegistroDigital(idx, 'estatus', e.target.value)} className={`${inputStyles} ${!c.estatus ? 'text-gray-400' : ''}`}>
+                                                            <option value="Monitoreando" className="text-yellow-600 dark:text-yellow-400">🟡 Monitoreando</option>
+                                                            <option value="Escalado" className="text-red-600 dark:text-red-400">🔴 Escalado</option>
+                                                            <option value="Cerrado" className="text-green-600 dark:text-green-400">🟢 Cerrado</option>
+                                                        </select>
+                                                    </div>
+                                                    <div className="md:col-span-2"><label htmlFor={`ed-narrativa-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Narrativa</label><textarea id={`ed-narrativa-${idx}`} required rows={2} value={c.narrativa} onChange={(e) => updateEditRegistroDigital(idx, 'narrativa', e.target.value)} className={`${inputStyles} resize-none leading-relaxed`}></textarea></div>
+                                                    <div className="md:col-span-2"><label htmlFor={`ed-hallazgo-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Hallazgo reputacional</label><textarea id={`ed-hallazgo-${idx}`} rows={2} value={c.hallazgoReputacional} onChange={(e) => updateEditRegistroDigital(idx, 'hallazgoReputacional', e.target.value)} className={`${inputStyles} resize-none leading-relaxed`}></textarea></div>
+                                                    <div className="md:col-span-2"><label htmlFor={`ed-link-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Link de la publicación original</label><input id={`ed-link-${idx}`} type="url" placeholder="Link de la publicación original" value={c.linkPublicacion} onChange={(e) => updateEditRegistroDigital(idx, 'linkPublicacion', e.target.value)} className={inputStyles} /></div>
+                                                </div>
                                             </div>
-                                        </div>
-                                    ))}
+                                        ))
+                                    )}
                                 </div>
                             </form>
                         </div>
