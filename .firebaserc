@@ -1,6 +1,7 @@
 {
   "projects": {
-    "engie-prod": "engie-76fb0"
+    "engie-prod": "engie-76fb0",
+    "engie": "engie-76fb0"
   },
   "targets": {},
   "etags": {}
