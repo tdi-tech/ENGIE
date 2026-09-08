@@ -331,3 +331,32 @@ body::after {
     scrollbar-width: thin;
     scrollbar-color: var(--scrollbar-thumb) transparent;
 }
+
+/* ── Impresión del modal de incidencias: solo el modal, ordenado ── */
+@media print {
+    body:has(.rrss-print-area) > * {
+        visibility: hidden;
+    }
+    .rrss-print-area, .rrss-print-area * {
+        visibility: visible;
+    }
+    .rrss-print-area {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        max-height: none !important;
+        max-width: 100% !important;
+        overflow: visible !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        background: white !important;
+        color: black !important;
+    }
+    .rrss-print-area .custom-scrollbar {
+        overflow: visible !important;
+    }
+    @page {
+        margin: 1.5cm;
+    }
+}
