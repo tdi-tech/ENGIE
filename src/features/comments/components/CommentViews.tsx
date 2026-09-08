@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import { 
     Save, Download, Trash2, MessageSquare, Printer, X, Edit3, 
     Link as LinkIcon, Calendar, PlusCircle, Share2, MapPin, 
-    Frown, Meh, Search, ChevronDown, ChevronRight, ChevronLeft, Loader2,
+    Frown, Meh, Smile, Search, ChevronDown, ChevronRight, ChevronLeft, Loader2,
     CheckSquare, Check, Filter
 } from 'lucide-react';
 import { collection, addDoc, onSnapshot } from 'firebase/firestore';
@@ -20,7 +20,29 @@ const SentimentBadge = ({ sentiment }: { sentiment: string }) => {
     if (!sentiment) return null;
     if (sentiment === 'Negativo') return <span className="px-2.5 py-1 text-[10px] font-bold rounded-md bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/30 flex items-center gap-1 shadow-sm transition-transform hover:scale-105"><Frown className="w-3.5 h-3.5" /> Negativo</span>;
     if (sentiment === 'Neutral') return <span className="px-2.5 py-1 text-[10px] font-bold rounded-md bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/30 flex items-center gap-1 shadow-sm transition-transform hover:scale-105"><Meh className="w-3.5 h-3.5" /> Neutral</span>;
+    if (sentiment === 'Positivo') return <span className="px-2.5 py-1 text-[10px] font-bold rounded-md bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/30 flex items-center gap-1 shadow-sm transition-transform hover:scale-105"><Smile className="w-3.5 h-3.5" /> Positivo</span>;
     return null;
+};
+
+// ── Helpers de semáforo y URLs para el modal de menciones ──
+const isUrl = (s: string): boolean => !!s && /^https?:\/\//i.test(String(s).trim());
+
+// Semáforo: devuelve punto de color + clases de badge
+const getSentimentDot = (s: string): { dot: string; badge: string } => {
+    if (s === 'Positivo') return { dot: 'bg-green-500', badge: 'bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/30' };
+    if (s === 'Neutral') return { dot: 'bg-slate-500', badge: 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/30' };
+    return { dot: 'bg-red-500', badge: 'bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/30' };
+};
+const getRiesgoDot = (r: string): { dot: string; badge: string } => {
+    if (r === 'Bajo') return { dot: 'bg-green-500', badge: 'bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/30' };
+    if (r === 'Medio') return { dot: 'bg-orange-500', badge: 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/30' };
+    if (r === 'Alto') return { dot: 'bg-yellow-500', badge: 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border border-yellow-500/30' };
+    return { dot: 'bg-red-500', badge: 'bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/30' };
+};
+const getEstatusDot = (e: string): { dot: string; badge: string } => {
+    if (e === 'Cerrado') return { dot: 'bg-green-500', badge: 'bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/30' };
+    if (e === 'Escalado') return { dot: 'bg-red-500', badge: 'bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/30' };
+    return { dot: 'bg-yellow-500', badge: 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border border-yellow-500/30' };
 };
 
 export const NewCommentView = ({ isAdmin, showToast, navigate, user, logAction }: any) => {
@@ -1010,20 +1032,57 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
                         </div>
 
                         <div className="p-6 overflow-y-auto custom-scrollbar print:overflow-visible flex-1">
-                            <div className="mb-6 flex items-center gap-2"><span className="px-3 py-1 bg-blue-500/10 text-blue-500 rounded-lg text-xs font-bold uppercase tracking-wider">{selectedComment.fuenteMonitoreo || selectedComment.contenido || 'Fuente de monitoreo'}</span>{selectedComment.evidencia && (<a href={selectedComment.evidencia} target="_blank" rel="noreferrer" className="px-3 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-lg text-xs font-bold uppercase tracking-wider flex items-center gap-1 hover:brightness-110 no-print"><LinkIcon className="w-3 h-3"/> Evidencias</a>)}</div>
-                            <div className="space-y-4">
-                                <p className="text-sm font-bold theme-text-muted uppercase tracking-wider flex items-center gap-2 border-b theme-border pb-2">Desglose de Comentarios <span className="px-2 py-0.5 bg-blue-500 text-white rounded-full text-xs">{getNormalizedComments(selectedComment).length}</span></p>
+                            <div className="mb-6 flex items-center gap-2 no-print"><span className="px-3 py-1 bg-blue-500/10 text-blue-500 rounded-lg text-xs font-bold uppercase tracking-wider">{selectedComment.fuenteMonitoreo || 'Fuente de monitoreo'}</span>{selectedComment.evidencia && (<a href={selectedComment.evidencia} target="_blank" rel="noreferrer" className="px-3 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-lg text-xs font-bold uppercase tracking-wider flex items-center gap-1 hover:brightness-110 no-print"><LinkIcon className="w-3 h-3"/> Evidencias</a>)}</div>
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6 no-print">
+                                {[
+                                    { label: 'Fecha de Publicación', value: selectedComment.fechaPublicacion },
+                                    { label: 'Hora de Detección', value: selectedComment.horaDeteccion },
+                                    { label: 'Fuente de Monitoreo', value: selectedComment.fuenteMonitoreo }
+                                ].map(f => (
+                                    <div key={f.label} className="p-3 theme-bg-low rounded-xl border theme-border">
+                                        <p className="text-[10px] font-bold theme-text-muted uppercase tracking-wider mb-1">{f.label}</p>
+                                        <p className="text-sm theme-text-main font-semibold break-words">{f.value || '—'}</p>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="space-y-4 no-print">
+                                <p className="text-sm font-bold theme-text-muted uppercase tracking-wider flex items-center gap-2 border-b theme-border pb-2">Menciones Registradas <span className="px-2 py-0.5 bg-blue-500 text-white rounded-full text-xs">{getNormalizedComments(selectedComment).length}</span></p>
                                 {getNormalizedComments(selectedComment).map((c: any, idx: number) => (
-                                    <div key={c.id || idx} className={`p-4 theme-bg-low rounded-xl border space-y-3 print:border-gray-300 ${c.sentiment === 'Negativo' ? 'border-red-500/30 bg-red-500/5' : 'theme-border'}`}>
-                                        <div className="flex flex-wrap items-center gap-3 border-b theme-border pb-2 border-dashed">
+                                    <div key={c.id || idx} className={`p-4 theme-bg-low rounded-xl border space-y-3 ${c.sentiment === 'Negativo' ? 'border-red-500/30 bg-red-500/5' : 'theme-border'}`}>
+                                        <div className="flex flex-wrap items-center gap-2 border-b theme-border pb-2 border-dashed">
+                                            <span className="flex items-center gap-1 text-[10px] font-bold text-gray-500 uppercase tracking-wider"><Share2 className="w-3 h-3"/> {c.fuenteMonitoreo === 'Medios digitales' ? 'Medio digital' : (c.redSocial || 'N/D')}</span>
+                                            <span className="text-gray-300 dark:text-gray-600">|</span>
                                             <span className="font-bold text-sm text-blue-500 break-all">{c.usuario}</span>
-                                            <div className="flex items-center gap-2 text-[10px] font-bold text-gray-500 uppercase tracking-wider"><span className="flex items-center gap-1"><Share2 className="w-3 h-3"/> {c.redSocial}</span><span>•</span><span className="flex items-center gap-1"><MapPin className="w-3 h-3"/> {c.campus}</span>{c.sentiment && (<><span>•</span><SentimentBadge sentiment={c.sentiment} /></>)}</div>
+                                            {c.tipoActor && (<><span className="text-gray-300 dark:text-gray-600">|</span><span className="text-[10px] font-bold theme-text-muted uppercase tracking-wider">Actor: <span className="theme-text-main normal-case">{c.tipoActor}</span></span></>)}
+                                        </div>
+                                        <div className="flex flex-wrap gap-2">
+                                            {c.sentiment && <span className={`px-2.5 py-1 text-[10px] font-bold rounded-md uppercase tracking-wider ${getSentimentDot(c.sentiment).badge}`}>{getSentimentDot(c.sentiment).dot} {c.sentiment}</span>}
+                                            {c.nivelRiesgo && <span className={`px-2.5 py-1 text-[10px] font-bold rounded-md uppercase tracking-wider ${getRiesgoDot(c.nivelRiesgo).badge}`}>{getRiesgoDot(c.nivelRiesgo).dot} Riesgo: {c.nivelRiesgo}</span>}
+                                            {c.estatus && <span className={`px-2.5 py-1 text-[10px] font-bold rounded-md uppercase tracking-wider border ${getEstatusDot(c.estatus).badge}`}>{getEstatusDot(c.estatus).dot} {c.estatus}</span>}
                                         </div>
                                         <p className="text-sm theme-text-main whitespace-pre-wrap">{c.comentario}</p>
-                                        <div className="pt-2">
-                                            <p className="text-[10px] theme-text-muted font-bold uppercase tracking-wider mb-1">Publicación Original</p>
-                                            {c.posteoTipo === 'url' ? (<a href={c.posteoUrl} target="_blank" rel="noreferrer" className="text-xs text-blue-500 hover:underline break-all inline-flex items-start gap-1"><LinkIcon className="w-3 h-3 flex-shrink-0 mt-0.5" /> {c.posteoUrl}</a>) : (<p className="text-xs theme-text-main italic">"{c.posteoTexto}"</p>)}
-                                        </div>
+                                        {c.hallazgo && (
+                                            <div className="p-3 bg-orange-500/5 border border-orange-500/20 rounded-lg">
+                                                <p className="text-[10px] font-bold text-orange-500 uppercase tracking-wider mb-1">Hallazgo Reputacional</p>
+                                                <p className="text-xs theme-text-main whitespace-pre-wrap">{c.hallazgo}</p>
+                                            </div>
+                                        )}
+                                        {(c.fuenteMonitoreo !== 'Medios digitales') && (c.metricas?.visualizaciones || c.metricas?.reacciones || c.metricas?.comentarios || c.metricas?.compartidos) && (
+                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                                                {[['Visualizaciones', c.metricas?.visualizaciones], ['Reacciones', c.metricas?.reacciones], ['Comentarios', c.metricas?.comentarios], ['Compartidos', c.metricas?.compartidos]].map(([l, v]) => v ? (
+                                                    <div key={l} className="p-2 theme-bg-container border theme-border rounded-lg text-center">
+                                                        <p className="text-[9px] font-bold theme-text-muted uppercase tracking-wider">{l}</p>
+                                                        <p className="text-sm font-bold theme-text-main">{v}</p>
+                                                    </div>
+                                                ) : null)}
+                                            </div>
+                                        )}
+                                        {c.linkPublicacion && (
+                                            <div className="pt-1">
+                                                <p className="text-[10px] theme-text-muted font-bold uppercase tracking-wider mb-1">Publicación Original</p>
+                                                <a href={c.linkPublicacion} target="_blank" rel="noreferrer" className="text-xs text-blue-500 hover:underline inline-flex items-center gap-1"><LinkIcon className="w-3 h-3 flex-shrink-0" /> Enlace</a>
+                                            </div>
+                                        )}
                                     </div>
                                 ))}
                             </div>

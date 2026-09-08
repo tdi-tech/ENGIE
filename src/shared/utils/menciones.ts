@@ -31,7 +31,7 @@ export const normalizeMenciones = (com: any): NormalizedMencion[] => {
         return com.registrosList.map((r: any, i: number) => ({
             id: r.id || `${com.id}-${i}`,
             usuario: r.usuarioSitioWeb || NA,
-            comentario: r.narrativa || 'Sin narrativa',
+            comentario: r.narrativa === 'Otro' && r.narrativaOtro ? `Otro: ${r.narrativaOtro}` : (r.narrativa || 'Sin narrativa'),
             redSocial: r.canal || 'N/D',
             sentiment: r.sentiment || '',
             nivelRiesgo: r.nivelRiesgo || '',
@@ -58,7 +58,7 @@ export const normalizeMenciones = (com: any): NormalizedMencion[] => {
         return com.registrosDigitalesList.map((r: any, i: number) => ({
             id: r.id || `${com.id}-${i}`,
             usuario: r.sitioWeb || NA,
-            comentario: r.narrativa || 'Sin narrativa',
+            comentario: r.narrativa === 'Otro' && r.narrativaOtro ? `Otro: ${r.narrativaOtro}` : (r.narrativa || 'Sin narrativa'),
             redSocial: r.sitioWeb || 'Medio digital',
             sentiment: r.sentimiento || '',
             nivelRiesgo: r.nivelRiesgo || '',
