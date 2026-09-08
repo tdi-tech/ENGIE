@@ -416,7 +416,7 @@ const handleDownloadDocx = (inc: any) => {
         if (!inc) return;
         const n = normalizeIncidencia(inc);
         const cleanContent = DOMPurify.sanitize(inc.reporteTexto || '');
-        const docContent = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>Reporte de Incidente Reputacional</title><style>body { font-family: 'Arial', sans-serif; color: #222222; line-height: 1.5; } h2 { color: #f97316; border-bottom: 2px solid #f97316; padding-bottom: 5px; font-size: 18pt; } .table-info { width: 100%; border-collapse: collapse; margin-top: 15px; } .table-info td { padding: 8px; border: 1px solid #dddddd; font-size: 10.5pt; } .label { font-weight: bold; background-color: #f3f4f6; width: 30%; } .section-header { font-size: 12pt; font-weight: bold; color: #f97316; margin-top: 20px; margin-bottom: 5px; } .box { border: 1px solid #e5e7eb; padding: 10px; background: #fafafa; border-radius: 4px; font-size: 11pt; } ul { padding-left: 20px; list-style-type: disc; } ol { padding-left: 20px; list-style-type: decimal; }</style></head><body><h2>ENGIE MANAGEMENT - INFORME DE INCIDENTE REPUTACIONAL</h2><table class="table-info"><tr><td class="label">Fecha Recepción</td><td>${n.fecha}</td></tr><tr><td class="label">Volumen Incidencias</td><td>${n.totalIncidencias}</td></tr><tr><td class="label">Actor / Fuente</td><td>${n.actorFuente}</td></tr><tr><td class="label">Fuente de Detección</td><td>${n.fuenteDeteccion}</td></tr><tr><td class="label">Tipo de Fuente</td><td>${n.tipoFuente || 'N/A'}</td></tr><tr><td class="label">Tema Principal</td><td>${n.temaPrincipal || 'N/A'}</td></tr><tr><td class="label">Nivel de Riesgo</td><td>${n.nivelRiesgo}</td></tr><tr><td class="label">Alcance Actual</td><td>${n.alcanceActual || 'N/A'}</td></tr><tr><td class="label">Tendencia</td><td>${n.tendencia || 'N/A'}</td></tr><tr><td class="label">Campus</td><td>${n.campus}</td></tr><tr><td class="label">Área Responsable</td><td>${n.area || 'N/A'}</td></tr><tr><td class="label">Registrado por</td><td>${n.autor || 'Admin'}</td></tr></table><div class="section-header">Resumen del Incidente:</div><div class="box">${n.resumen || ''}</div><div class="section-header">Hallazgos Clave:</div><div class="box">${n.hallazgosClave || 'Sin hallazgos registrados.'}</div><div class="section-header">Bitácora / Reporte Estructurado:</div><div class="box">${cleanContent || 'Sin bitácora detallada.'}</div></body></html>`;
+        const docContent = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>Reporte de Incidente Reputacional</title><style>body { font-family: 'Arial', sans-serif; color: #222222; line-height: 1.5; } h2 { color: #f97316; border-bottom: 2px solid #f97316; padding-bottom: 5px; font-size: 18pt; } .table-info { width: 100%; border-collapse: collapse; margin-top: 15px; } .table-info td { padding: 8px; border: 1px solid #dddddd; font-size: 10.5pt; } .label { font-weight: bold; background-color: #f3f4f6; width: 30%; } .section-header { font-size: 12pt; font-weight: bold; color: #f97316; margin-top: 20px; margin-bottom: 5px; } .box { border: 1px solid #e5e7eb; padding: 10px; background: #fafafa; border-radius: 4px; font-size: 11pt; } ul { padding-left: 20px; list-style-type: disc; } ol { padding-left: 20px; list-style-type: decimal; }</style></head><body><h2>ENGIE MANAGEMENT - INFORME DE INCIDENTE REPUTACIONAL</h2><table class="table-info"><tr><td class="label">Fecha Recepción</td><td>${n.fecha}</td></tr><tr><td class="label">Volumen Incidencias</td><td>${n.totalIncidencias}</td></tr><tr><td class="label">Actor / Fuente</td><td>${n.actorFuente}</td></tr><tr><td class="label">Fuente de Detección</td><td>${n.fuenteDeteccion}</td></tr><tr><td class="label">Tipo de Fuente</td><td>${n.tipoFuente || 'N/A'}</td></tr><tr><td class="label">Tema Principal</td><td>${n.temaPrincipal || 'N/A'}</td></tr><tr><td class="label">Nivel de Riesgo</td><td>${n.nivelRiesgo}</td></tr><tr><td class="label">Alcance Actual</td><td>${n.alcanceActual || 'N/A'}</td></tr><tr><td class="label">Tendencia</td><td>${n.tendencia || 'N/A'}</td></tr><tr><td class="label">Área Responsable</td><td>${n.area || 'N/A'}</td></tr><tr><td class="label">Registrado por</td><td>${n.autor || 'Admin'}</td></tr></table><div class="section-header">Resumen del Incidente:</div><div class="box">${n.resumen || ''}</div><div class="section-header">Hallazgos Clave:</div><div class="box">${n.hallazgosClave || 'Sin hallazgos registrados.'}</div><div class="section-header">Bitácora / Reporte Estructurado:</div><div class="box">${cleanContent || 'Sin bitácora detallada.'}</div></body></html>`;
         const blob = new Blob([docContent], { type: 'application/msword' });
         const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = `Reporte_Reputacional_${n.actorFuente || 'Incidente'}_${n.fecha}.docx`; link.click();
         showToast('Documento Word (.docx) descargado con éxito.');
@@ -457,6 +457,31 @@ const handleDownloadDocx = (inc: any) => {
     const getNeutralBadge = () => {
         return 'bg-gray-100 text-gray-800 border-gray-300 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700'; 
     };
+
+    // Semáforo de Alcance (verde → rojo según exposición)
+    const getAlcanceDot = (alcance: string) => {
+        switch(alcance) {
+            case 'Aislado': return 'bg-green-500';
+            case 'Local': return 'bg-yellow-500';
+            case 'Regional': return 'bg-orange-500';
+            case 'Nacional': return 'bg-red-500';
+            case 'Viral': return 'bg-red-600 animate-pulse';
+            default: return 'bg-gray-400';
+        }
+    };
+
+    // Semáforo de Tendencia (sube=rojo / estable=amarillo / baja=verde)
+    const getTendenciaDot = (tendencia: string) => {
+        switch(tendencia) {
+            case 'Aumentando': return 'bg-red-500';
+            case 'Estable': return 'bg-yellow-500';
+            case 'Disminuyendo': return 'bg-green-500';
+            default: return 'bg-gray-400';
+        }
+    };
+
+    const isUrl = (v: string) => !!v && /^https?:\/\//i.test(v);
+
 
     const execEditCommand = (command: string, value: string = '') => {
         document.execCommand(command, false, value);
@@ -727,7 +752,6 @@ const handleDownloadDocx = (inc: any) => {
                                                                         {paginatedMonthItems.map((inc: any) => {
                                                                             const nCard = normalizeIncidencia(inc);
                                                                             const riskStr = riesgoValue(nCard.nivelRiesgo) === 'Crítico' ? 'Critico' : String(riesgoValue(nCard.nivelRiesgo));
-                                                                            const currentStatus = inc.estado || 'Monitoreo activo';
                                                                             const isSelected = selectedIds.includes(inc.id);
                                                                             
                                                                             return (
@@ -764,7 +788,7 @@ const handleDownloadDocx = (inc: any) => {
                                                                                         </div>
                                                                                     </div>
                                                                                     <div className="text-sm theme-text-main line-clamp-2 min-h-[40px] opacity-90 w-full"><span className="font-bold mr-1">{nCard.actorFuente}:</span> {nCard.resumen}</div>
-                                                                                    <div className="text-[11px] theme-text-muted mt-2 px-1 w-full"><span className="font-semibold theme-text-main">Tema:</span> {nCard.temaPrincipal || '—'} <span className="mx-1">·</span><span className="font-semibold theme-text-main">Tipo:</span> {nCard.tipoFuente || '—'} <span className="mx-1">·</span><span className="font-semibold theme-text-main">Campus:</span> {nCard.campus || '—'} <span className="mx-1">·</span><span className="font-semibold theme-text-main">Área:</span> {nCard.area || '—'}</div>
+                                                                                    <div className="text-[11px] theme-text-muted mt-2 px-1 w-full"><span className="font-semibold theme-text-main">Tema:</span> {nCard.temaPrincipal || '—'} <span className="mx-1">·</span><span className="font-semibold theme-text-main">Tipo:</span> {nCard.tipoFuente || '—'}</div>
                                                                                     
                                                                                     <div className="mt-4 flex flex-col gap-2 pt-3 border-t theme-border border-dashed w-full">
                                                                                         <div className="flex flex-wrap items-center justify-between w-full gap-2">
@@ -931,38 +955,46 @@ const handleDownloadDocx = (inc: any) => {
                             
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-6 mb-8 print:mt-4">
                                 <div><p className="text-xs theme-text-muted font-medium mb-1">Fecha de Recepción</p><p className="font-bold theme-text-main bg-black/5 dark:bg-white/5 px-3 py-1.5 rounded-lg inline-block">{nDetail.fecha}</p></div>
+                                <div><p className="text-xs theme-text-muted font-medium mb-1">Volumen (Total Incidencias)</p><p className="font-bold theme-text-main bg-black/5 dark:bg-white/5 px-3 py-1.5 rounded-lg inline-block">{nDetail.totalIncidencias || 1}</p></div>
+                                <div><p className="text-xs theme-text-muted font-medium mb-1">Actor o Fuente</p>
+                                    {isUrl(nDetail.actorFuente) ? (
+                                        <a href={nDetail.actorFuente} target="_blank" rel="noreferrer" className="font-bold text-orange-500 hover:text-orange-400 inline-flex items-center gap-1.5 bg-black/5 dark:bg-white/5 px-3 py-1.5 rounded-lg transition-colors"><LinkIcon className="w-3.5 h-3.5" />Enlace</a>
+                                    ) : (
+                                        <p className="font-bold theme-text-main bg-black/5 dark:bg-white/5 px-3 py-1.5 rounded-lg inline-block break-all">{nDetail.actorFuente}</p>
+                                    )}
+                                </div>
                                 <div><p className="text-xs theme-text-muted font-medium mb-1">Fuente de Detección</p><p className="font-bold theme-text-main bg-black/5 dark:bg-white/5 px-3 py-1.5 rounded-lg inline-block">{nDetail.fuenteDeteccion}</p></div>
-                                <div><p className="text-xs theme-text-muted font-medium mb-1">Actor / Fuente</p><p className="font-bold theme-text-main bg-black/5 dark:bg-white/5 px-3 py-1.5 rounded-lg inline-block break-all">{nDetail.actorFuente}</p></div>
                                 <div><p className="text-xs theme-text-muted font-medium mb-1">Tipo de Fuente</p><span className={`inline-block px-3 py-1 rounded-md text-xs font-bold border ${getNeutralBadge()}`}>{nDetail.tipoFuente || '—'}</span></div>
                                 <div><p className="text-xs theme-text-muted font-medium mb-1">Tema Principal</p><p className="font-bold theme-text-main">{nDetail.temaPrincipal || '—'}</p></div>
-                                <div><p className="text-xs theme-text-muted font-medium mb-1">Nivel de Riesgo</p><span className={`inline-block px-3 py-1 rounded-md text-xs font-bold border ${getRiskColor(String(nDetail.nivelRiesgo) === 'Crítico' ? 'Critico' : String(nDetail.nivelRiesgo))}`}>{nDetail.nivelRiesgo}</span></div>
-                                <div><p className="text-xs theme-text-muted font-medium mb-1">Alcance Actual</p><p className="font-bold theme-text-main">{nDetail.alcanceActual || 'N/A'}</p></div>
-                                <div><p className="text-xs theme-text-muted font-medium mb-1">Tendencia</p><p className="font-bold theme-text-main">{nDetail.tendencia || 'N/A'}</p></div>
-                                <div><p className="text-xs theme-text-muted font-medium mb-1">Volumen de Incidencias</p><p className="font-bold theme-text-main">{nDetail.totalIncidencias || 1}</p></div>
-                                <div><p className="text-xs theme-text-muted font-medium mb-1">Campus</p><p className="font-bold theme-text-main">{nDetail.campus || 'N/A'}</p></div>
-                                <div><p className="text-xs theme-text-muted font-medium mb-1">Área Responsable</p><p className="font-bold theme-text-main">{nDetail.area || 'N/A'}</p></div>
+                                <div><p className="text-xs theme-text-muted font-medium mb-1">Nivel de Riesgo Reputacional</p><span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-bold border ${getRiskColor(String(nDetail.nivelRiesgo) === 'Crítico' ? 'Critico' : String(nDetail.nivelRiesgo))}`}><span className="w-2 h-2 rounded-full bg-current opacity-80"></span>{nDetail.nivelRiesgo}</span></div>
+                                <div><p className="text-xs theme-text-muted font-medium mb-1">Alcance Actual</p><span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-bold border ${getNeutralBadge()}`}><span className={`w-2 h-2 rounded-full ${getAlcanceDot(nDetail.alcanceActual)}`}></span>{nDetail.alcanceActual || 'N/A'}</span></div>
+                                <div><p className="text-xs theme-text-muted font-medium mb-1">Tendencia</p><span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-bold border ${getNeutralBadge()}`}><span className={`w-2 h-2 rounded-full ${getTendenciaDot(nDetail.tendencia)}`}></span>{nDetail.tendencia || 'N/A'}</span></div>
                             </div>
 
                             <div className="space-y-6">
-                                <div><p className="text-xs theme-text-muted font-medium mb-2 uppercase tracking-wider">Resumen del incidente</p><div className="p-4 theme-bg-low rounded-xl border theme-border theme-text-main whitespace-pre-wrap text-sm leading-relaxed">{nDetail.resumen}</div></div>
-                                {nDetail.hallazgosClave && <div><p className="text-xs theme-text-muted font-medium mb-2 uppercase tracking-wider">Hallazgos clave</p><div className="p-4 theme-bg-low rounded-xl border theme-border theme-text-main whitespace-pre-wrap text-sm">{nDetail.hallazgosClave}</div></div>}
-                                {selectedIncident.reporteTexto && (
-                                    <div>
-                                        <p className="text-xs theme-text-muted font-medium mb-2 uppercase tracking-wider">Reporte oficial</p>
-                                        <style>{editorStyles}</style>
-                                        <div className="p-4 theme-bg-low rounded-xl border theme-border theme-text-main text-sm leading-relaxed prose-editor" dangerouslySetInnerHTML={{ __html: selectedIncident.reporteTexto }} />
+                                <div>
+                                    <p className="text-xs theme-text-muted font-semibold mb-3 uppercase tracking-wider border-b theme-border pb-1">Detalles del Incidente</p>
+                                    <div className="space-y-4">
+                                        <div><p className="text-xs theme-text-muted font-medium mb-1.5 uppercase tracking-wider">Resumen del Incidente</p><div className="p-4 theme-bg-low rounded-xl border theme-border theme-text-main whitespace-pre-wrap text-sm leading-relaxed">{nDetail.resumen}</div></div>
+                                        {nDetail.hallazgosClave && <div><p className="text-xs theme-text-muted font-medium mb-1.5 uppercase tracking-wider">Hallazgos Clave</p><div className="p-4 theme-bg-low rounded-xl border theme-border theme-text-main whitespace-pre-wrap text-sm leading-relaxed">{nDetail.hallazgosClave}</div></div>}
+                                        {selectedIncident.reporteTexto && (
+                                            <div>
+                                                <p className="text-xs theme-text-muted font-medium mb-1.5 uppercase tracking-wider">Análisis Interno</p>
+                                                <style>{editorStyles}</style>
+                                                <div className="p-4 theme-bg-low rounded-xl border theme-border theme-text-main text-sm leading-relaxed prose-editor" dangerouslySetInnerHTML={{ __html: selectedIncident.reporteTexto }} />
+                                            </div>
+                                        )}
                                     </div>
-                                )}
-                                
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-2">
-                                    {selectedIncident.reporteTexto && (
-                                        <button type="button" onClick={() => handleDownloadDocx(selectedIncident)} className="flex items-center gap-3 p-3 theme-bg-low border theme-border rounded-xl hover:border-blue-500 transition-colors group no-print text-left">
-                                            <div className="p-2 bg-blue-500/10 text-blue-500 rounded-lg group-hover:scale-110 transition-transform"><FileText className="w-4 h-4"/></div>
-                                            <div className="overflow-hidden"><p className="text-xs font-bold theme-text-main">Reporte Oficial</p><p className="text-[10px] theme-text-muted truncate">Descargar (.docx)</p></div>
-                                        </button>
-                                    )}
-                                    {selectedIncident.enlacePublicacion && (<a href={selectedIncident.enlacePublicacion} target="_blank" rel="noreferrer" className="flex items-center gap-3 p-3 theme-bg-low border theme-border rounded-xl hover:border-orange-500 transition-colors group no-print"><div className="p-2 bg-orange-500/10 text-orange-500 rounded-lg group-hover:scale-110 transition-transform"><LinkIcon className="w-4 h-4"/></div><div className="overflow-hidden"><p className="text-xs font-bold theme-text-main">Ver Publicación</p><p className="text-[10px] theme-text-muted truncate">{selectedIncident.enlacePublicacion}</p></div></a>)}
-                                    {selectedIncident.enlaceDrive && (<a href={selectedIncident.enlaceDrive} target="_blank" rel="noreferrer" className="flex items-center gap-3 p-3 theme-bg-low border theme-border rounded-xl hover:border-orange-500 transition-colors group no-print"><div className="p-2 bg-green-500/10 text-green-600 rounded-lg group-hover:scale-110 transition-transform"><HardDrive className="w-4 h-4"/></div><div className="overflow-hidden"><p className="text-xs font-bold theme-text-main">Evidencia (Drive)</p><p className="text-[10px] theme-text-muted truncate">{selectedIncident.enlaceDrive}</p></div></a>)}
+                                </div>
+
+                                <div>
+                                    <p className="text-xs theme-text-muted font-semibold mb-3 uppercase tracking-wider border-b theme-border pb-1">Referencias y Evidencias</p>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        {selectedIncident.enlacePublicacion && (<a href={selectedIncident.enlacePublicacion} target="_blank" rel="noreferrer" className="flex items-center gap-3 p-3 theme-bg-low border theme-border rounded-xl hover:border-orange-500 transition-colors group no-print text-left"><div className="p-2 bg-orange-500/10 text-orange-500 rounded-lg group-hover:scale-110 transition-transform flex-shrink-0"><LinkIcon className="w-4 h-4"/></div><div className="overflow-hidden"><p className="text-xs font-bold theme-text-main">Enlace a la Publicación Original</p><p className="text-[10px] theme-text-muted">Abrir enlace</p></div></a>)}
+                                        {selectedIncident.enlaceDrive && (<a href={selectedIncident.enlaceDrive} target="_blank" rel="noreferrer" className="flex items-center gap-3 p-3 theme-bg-low border theme-border rounded-xl hover:border-green-500 transition-colors group no-print text-left"><div className="p-2 bg-green-500/10 text-green-600 rounded-lg group-hover:scale-110 transition-transform flex-shrink-0"><HardDrive className="w-4 h-4"/></div><div className="overflow-hidden"><p className="text-xs font-bold theme-text-main">Repositorio de Evidencia (Drive)</p><p className="text-[10px] theme-text-muted">Abrir carpeta</p></div></a>)}
+                                        {selectedIncident.reporteTexto && (<button type="button" onClick={() => handleDownloadDocx(selectedIncident)} className="flex items-center gap-3 p-3 theme-bg-low border theme-border rounded-xl hover:border-blue-500 transition-colors group no-print text-left"><div className="p-2 bg-blue-500/10 text-blue-500 rounded-lg group-hover:scale-110 transition-transform flex-shrink-0"><FileText className="w-4 h-4"/></div><div className="overflow-hidden"><p className="text-xs font-bold theme-text-main">Reporte Oficial</p><p className="text-[10px] theme-text-muted">Descargar (.docx)</p></div></button>)}
+                                        {!selectedIncident.enlacePublicacion && !selectedIncident.enlaceDrive && !selectedIncident.reporteTexto && <p className="text-xs theme-text-muted italic">Sin referencias adjuntas.</p>}
+                                    </div>
                                 </div>
                             </div>
                             <div className="mt-8 pt-4 border-t theme-border flex justify-between items-center">
@@ -1000,7 +1032,6 @@ const handleDownloadDocx = (inc: any) => {
                                     nivelRiesgoReputacional: fd.get('nivelRiesgo'),
                                     alcanceActual: fd.get('alcanceActual'),
                                     tendencia: fd.get('tendencia'),
-                                    campus: fd.get('campus'),
                                     area: fd.get('area'),
                                     resumenIncidente: fd.get('resumenIncidente'),
                                     hallazgosClave: fd.get('hallazgosClave'),
@@ -1054,7 +1085,6 @@ const handleDownloadDocx = (inc: any) => {
                                             {(() => { const opts = ['Disminuyendo', 'Estable', 'Creciendo rápidamente']; return (<>{nDetail.tendencia && !opts.includes(nDetail.tendencia) && <option className={optionStyles} value={nDetail.tendencia}>{nDetail.tendencia} (actual)</option>}{opts.map(o => <option className={optionStyles} key={o} value={o}>{o}</option>)}</>); })()}
                                         </select>
                                     </div>
-                                    <div><label htmlFor="er-campus" className="text-xs font-bold theme-text-muted">Campus</label><select id="er-campus" name="campus" defaultValue={nDetail.campus} className={inputStyles}>{(() => { const opts = ['Atizapán', 'Coacalco', 'Cuautitlán Izcalli', 'Ecatepec', 'Tecamac', 'Tultepec', 'Zumpango', 'Tizayuca', 'Querétaro: la Joya', 'Querétaro: el Marqués', 'Huehuetoca', 'Chalco']; return (<>{nDetail.campus && !opts.includes(nDetail.campus) && <option className={optionStyles} value={nDetail.campus}>{nDetail.campus} (actual)</option>}{opts.map(o => <option className={optionStyles} key={o} value={o}>{o}</option>)}</>); })()}</select></div>
                                     <div><label htmlFor="er-area" className="text-xs font-bold theme-text-muted">Área Responsable</label><select id="er-area" name="area" defaultValue={nDetail.area || 'Operaciones'} className={inputStyles}><option className={optionStyles} value="Operaciones">Operaciones</option><option className={optionStyles} value="Legal">Legal</option><option className={optionStyles} value="Comercial - Call Center">Comercial - Call Center</option></select></div>
                                 </div>
                                 <div><label htmlFor="er-resumenIncidente" className="text-xs font-bold theme-text-muted">Resumen del Incidente</label><textarea id="er-resumenIncidente" name="resumenIncidente" rows={3} required defaultValue={nDetail.resumen} className={`${inputStyles} resize-none leading-relaxed`}></textarea></div>
