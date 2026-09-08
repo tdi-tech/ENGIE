@@ -552,15 +552,13 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
     
     const openEdit = () => {
         // Deriva los registros editables según la fuente real del doc (no legacy).
+        // NO se meten campos extra: la regla isValidCommentReport usa hasOnly,
+        // así que el payload debe contener EXACTAMENTE los campos permitidos.
         const isRedes = selectedComment.fuenteMonitoreo !== 'Medios digitales';
-        const base = {
-            ...selectedComment,
-            fuentemonitoreoEditada: selectedComment.fuenteMonitoreo
-        };
         if (isRedes) {
-            setEditData({ ...base, registrosList: (selectedComment.registrosList || []) });
+            setEditData({ ...selectedComment, registrosList: (selectedComment.registrosList || []) });
         } else {
-            setEditData({ ...base, registrosDigitalesList: (selectedComment.registrosDigitalesList || []) });
+            setEditData({ ...selectedComment, registrosDigitalesList: (selectedComment.registrosDigitalesList || []) });
         }
         setIsDetailOpen(false);
         setIsEditOpen(true);
@@ -586,11 +584,28 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
     const handleDelete = () => { setIsDetailOpen(false); deleteComment(selectedComment.id); };
     const handleEditUpdate = (e: React.FormEvent) => {
         e.preventDefault();
-        // Limpia y persiste SOLO la lista activa según la fuente, idéntico a creación.
-        const editarRS = editData.fuenteMonitoreo !== 'Medios digitales';
-        const payload = editarRS
-            ? { ...editData, registrosList: (editData.registrosList || []).filter((r: any) => !isRegistroVacio(r, 'rs')) }
-            : { ...editData, registrosDigitalesList: (editData.registrosDigitalesList || []).filter((r: any) => !isRegistroVacio(r, 'md')) };
+        // La regla isValidCommentReport usa hasOnly: el payload debe contener
+        // EXACTAMENTE los campos permitidos. Extraemos solo esos y NO propagamos
+        // campos ninja (id, fuentemonitoreoEditada, etc.) del doc original.
+        const src = editData || {};
+        const editarRS = src.fuenteMonitoreo !== 'Medios digitales';
+        const lista = editarRS
+            ? (src.registrosList || []).filter((r: any) => !isRegistroVacio(r, 'rs'))
+            : (src.registrosDigitalesList || []).filter((r: any) => !isRegistroVacio(r, 'md'));
+
+        const payload: any = {
+            fechaPublicacion: src.fechaPublicacion || '',
+            horaDeteccion: src.horaDeteccion || '',
+            fuenteMonitoreo: src.fuenteMonitoreo || 'Redes sociales',
+            evidencia: src.evidencia || '',
+            autor: src.autor || 'Administrador',
+            timestamp: src.timestamp || new Date().toISOString()
+        };
+        if (editarRS) {
+            payload.registrosList = lista;
+        } else {
+            payload.registrosDigitalesList = lista;
+        }
         updateComment(editData.id, payload);
         setIsEditOpen(false);
     };
