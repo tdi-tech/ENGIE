@@ -1014,6 +1014,10 @@ const handleDownloadDocx = (inc: any) => {
                                 const fd = new FormData(e.currentTarget);
                                 const cleanHTML = DOMPurify.sanitize(editEditorRef.current ? editEditorRef.current.innerHTML : (selectedIncident.reporteTexto || ''));
                                 updateRrssIncident(selectedIncident.id, {
+                                    // La regla isValidRRSSIncident usa hasAll/hasOnly:
+                                    // autor y timestamp deben conservarse del doc original.
+                                    autor: selectedIncident.autor,
+                                    timestamp: selectedIncident.timestamp,
                                     fecha: fd.get('fecha'),
                                     totalIncidencias: parseInt(fd.get('total') as string) || 1,
                                     actorFuente: fd.get('actorFuente'),

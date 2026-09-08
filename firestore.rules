@@ -207,8 +207,9 @@ service cloud.firestore {
         allow update: if isContentAdmin(appId)
                       && isValidRRSSIncident()
                       && request.resource.data.autor == resource.data.autor
-                      && request.resource.data.timestamp == resource.data.timestamp
-                      && request.resource.data.fecha == resource.data.fecha;
+                      && request.resource.data.timestamp == resource.data.timestamp;
+                      // Nota: 'fecha' SÍ es editable desde el form (Fecha de Recepción),
+                      // por eso no se exige igualdad con el doc original.
         allow delete: if isITAdmin(appId) || isCMAdmin(appId);
       }
 
