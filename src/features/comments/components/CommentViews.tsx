@@ -387,19 +387,19 @@ export const NewCommentView = ({ isAdmin, showToast, navigate, user, logAction }
                                             <label htmlFor={`md-nivelRiesgo-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Nivel de Riesgo</label>
                                             <select id={`md-nivelRiesgo-${idx}`} value={registro.nivelRiesgo} onChange={(e) => updateRegistroDigital(idx, 'nivelRiesgo', e.target.value)} className={`${inputStyles} ${!registro.nivelRiesgo ? 'text-gray-400' : ''}`}>
                                                 <option value="" disabled>Seleccionar nivel...</option>
-                                                <option value="Bajo">Bajo</option>
-                                                <option value="Medio">Medio</option>
-                                                <option value="Alto">Alto</option>
-                                                <option value="Crítico">Crítico</option>
+                                                <option value="Bajo" className="text-green-600 dark:text-green-400">🟢 Bajo</option>
+                                                <option value="Medio" className="text-orange-600 dark:text-orange-400">🟠 Medio</option>
+                                                <option value="Alto" className="text-yellow-600 dark:text-yellow-400">🟡 Alto</option>
+                                                <option value="Crítico" className="text-red-600 dark:text-red-400">🔴 Crítico</option>
                                             </select>
                                         </div>
                                         <div className="space-y-1.5">
                                             <label htmlFor={`md-estatus-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Estatus</label>
                                             <select id={`md-estatus-${idx}`} value={registro.estatus} onChange={(e) => updateRegistroDigital(idx, 'estatus', e.target.value)} className={`${inputStyles} ${!registro.estatus ? 'text-gray-400' : ''}`}>
                                                 <option value="" disabled>Seleccionar estatus...</option>
-                                                <option value="Monitoreando">Monitoreando</option>
-                                                <option value="Escalado">Escalado</option>
-                                                <option value="Cerrado">Cerrado</option>
+                                                <option value="Monitoreando" className="text-yellow-600 dark:text-yellow-400">🟡 Monitoreando</option>
+                                                <option value="Escalado" className="text-red-600 dark:text-red-400">🔴 Escalado</option>
+                                                <option value="Cerrado" className="text-green-600 dark:text-green-400">🟢 Cerrado</option>
                                             </select>
                                         </div>
                                         <div className="space-y-1.5 md:col-span-2">
@@ -1253,18 +1253,18 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
 <div><label htmlFor={`ed-nivelRiesgo-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Nivel de Riesgo</label>
                                                         <select id={`ed-nivelRiesgo-${idx}`} value={c.nivelRiesgo} onChange={(e) => updateEditRegistroDigital(idx, 'nivelRiesgo', e.target.value)} className={`${inputStyles} ${!c.nivelRiesgo ? 'text-gray-400' : ''}`}>
                                                             <option value="" disabled>Seleccionar nivel...</option>
-                                                            <option value="Bajo">Bajo</option>
-                                                            <option value="Medio">Medio</option>
-                                                            <option value="Alto">Alto</option>
-                                                            <option value="Crítico">Crítico</option>
+                                                            <option value="Bajo" className="text-green-600 dark:text-green-400">🟢 Bajo</option>
+                                                            <option value="Medio" className="text-orange-600 dark:text-orange-400">🟠 Medio</option>
+                                                            <option value="Alto" className="text-yellow-600 dark:text-yellow-400">🟡 Alto</option>
+                                                            <option value="Crítico" className="text-red-600 dark:text-red-400">🔴 Crítico</option>
                                                         </select>
                                                     </div>
                                                     <div><label htmlFor={`ed-estatus-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Estatus</label>
                                                         <select id={`ed-estatus-${idx}`} value={c.estatus} onChange={(e) => updateEditRegistroDigital(idx, 'estatus', e.target.value)} className={`${inputStyles} ${!c.estatus ? 'text-gray-400' : ''}`}>
                                                             <option value="" disabled>Seleccionar estatus...</option>
-                                                            <option value="Monitoreando">Monitoreando</option>
-                                                            <option value="Escalado">Escalado</option>
-                                                            <option value="Cerrado">Cerrado</option>
+                                                            <option value="Monitoreando" className="text-yellow-600 dark:text-yellow-400">🟡 Monitoreando</option>
+                                                            <option value="Escalado" className="text-red-600 dark:text-red-400">🔴 Escalado</option>
+                                                            <option value="Cerrado" className="text-green-600 dark:text-green-400">🟢 Cerrado</option>
                                                         </select>
                                                     </div>
                                                     <div className="md:col-span-2"><label htmlFor={`ed-narrativa-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Narrativa</label><select id={`ed-narrativa-${idx}`} value={c.narrativa} onChange={(e) => updateEditRegistroDigital(idx, 'narrativa', e.target.value)} className={`${inputStyles} ${!c.narrativa ? 'text-gray-400' : ''}`}><option value="" disabled>Seleccionar narrativa...</option>{['Seguridad y regulación', 'Inversión y desarrollo regional', 'Avances de obra e infraestructura', 'Legal y derechos humanos', 'Medio ambiente', 'Difusión informativa', 'Otro'].map(opt => <option key={opt} value={opt}>{opt}</option>)}</select></div>
