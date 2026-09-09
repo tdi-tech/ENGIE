@@ -3,8 +3,8 @@ import { Chart as ChartJS, ArcElement, BarElement, CategoryScale, LinearScale, L
 import { Bar, Doughnut, Line } from 'react-chartjs-2';
 import { collection, getDocs } from 'firebase/firestore';
 import { db, appId } from '../../../services/firebase/config';
-import { normalizeMention, normalizeMentions, type ReportRow } from '../utils/csvExport';
-import { calcPlatforms, calcRiskLevels, calcTimeline, calcTopics, calcScope, calcTrends, calcTopActors, calcTopicsByRisk, useReportGenerator } from '../hooks/useReportGenerator';
+import { normalizeMention, normalizeMentions, normalizeMencionRow, normalizeMencionesDb, normalizeCsvMenciones, isMencionesCsv, type ReportRow } from '../utils/csvExport';
+import { calcPlatforms, calcRiskLevels, calcTimeline, calcTopics, calcTopActors, calcTopicsByRisk, useReportGenerator } from '../hooks/useReportGenerator';
 import { BarChart3, Database, UploadCloud, Search, ChevronLeft, ChevronRight, FileText, AlertTriangle, Share2, FileDown, Loader2, Target, TrendingUp, Users, Layers } from 'lucide-react';
 import Papa from 'papaparse';
 
@@ -99,23 +99,27 @@ export const ReportDashboard = ({ showToast, isAdmin, userRole }: any) => {
                 const data = results.data as any[];
                 if (!data.length) { showToast('CSV sin datos', true); return; }
                 
-                const parsed: ReportRow[] = data.map(vals => ({
-                    id: vals['ID'] || '',
-                    fecha: vals['Fecha'] || vals['Fecha Inicio'] || '',
-                    fuenteDeteccion: vals['Plataforma'] || vals['Red Social'] || vals['Fuente Detección'] || 'Sin especificar',
-                    actorFuente: vals['Actor'] || vals['Usuario'] || vals['Fuente'] || 'Anónimo',
-                    tipoFuente: vals['Tipo'] || vals['Tipo Fuente'] || 'Sin clasificar',
-                    temaPrincipal: vals['Tema'] || vals['Tema Principal'] || 'Sin clasificar',
-                    nivelRiesgo: vals['Riesgo'] || vals['Nivel Riesgo'] || 'Bajo',
-                    alcanceActual: vals['Alcance'] || 'Sin especificar',
-                    tendencia: vals['Tendencia'] || 'Sin especificar',
-                    resumen: vals['Resumen'] || '',
-                    hallazgosClave: vals['Hallazgos'] || '',
-                    estado: vals['Estado'] || 'Monitoreo activo',
-                    area: vals['Área'] || vals['Area'] || 'Sin asignar',
-                    totalIncidencias: parseInt(vals['Total']) || 1,
-                    autor: vals['Autor'] || 'Administrador',
-                }));
+                const firstRow = data[0] as any;
+                // Detecta el esquema: menciones (modelo actual) o legacy
+                const parsed: ReportRow[] = isMencionesCsv(firstRow)
+                    ? data.map(vals => normalizeCsvMenciones(vals))
+                    : data.map(vals => ({
+                        id: vals['ID'] || '',
+                        fecha: vals['Fecha'] || vals['Fecha Inicio'] || '',
+                        fuenteDeteccion: vals['Plataforma'] || vals['Red Social'] || vals['Fuente Detección'] || 'Sin especificar',
+                        actorFuente: vals['Actor'] || vals['Usuario'] || vals['Fuente'] || 'Anónimo',
+                        tipoFuente: vals['Tipo'] || vals['Tipo Fuente'] || 'Sin clasificar',
+                        temaPrincipal: vals['Tema'] || vals['Tema Principal'] || 'Sin clasificar',
+                        nivelRiesgo: vals['Riesgo'] || vals['Nivel Riesgo'] || 'Bajo',
+                        alcanceActual: vals['Alcance'] || 'Sin especificar',
+                        tendencia: vals['Tendencia'] || 'Sin especificar',
+                        resumen: vals['Resumen'] || '',
+                        hallazgosClave: vals['Hallazgos'] || '',
+                        estado: vals['Estado'] || 'Monitoreo activo',
+                        area: vals['Área'] || vals['Area'] || 'Sin asignar',
+                        totalIncidencias: parseInt(vals['Total']) || 1,
+                        autor: vals['Autor'] || 'Administrador',
+                    }));
                 
                 setAllData(parsed);
                 setRowData(parsed);
@@ -137,11 +141,13 @@ export const ReportDashboard = ({ showToast, isAdmin, userRole }: any) => {
         if (!isTrueAdmin) { showToast('Permisos insuficientes', true); return; }
         setLoadingDb(true);
         try {
-            const incidentsSnap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'rrss_incidents'));
+            // Carga la colección de menciones (comments) y expande cada registro
+            const mentionsSnap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'comments'));
             const mentions: ReportRow[] = [];
-            incidentsSnap.forEach(d => {
-                const data = d.data();
-                mentions.push(normalizeMention({ id: d.id, ...data }));
+            mentionsSnap.forEach(d => {
+                normalizeMencionesDb(d.data()).forEach((row, idx) => {
+                    mentions.push({ ...row, id: `${d.id}-${idx}` });
+                });
             });
 
             setAllData(mentions);
@@ -179,10 +185,28 @@ export const ReportDashboard = ({ showToast, isAdmin, userRole }: any) => {
     const riskLevels = calcRiskLevels(rowData);
     const timeline = calcTimeline(rowData);
     const topics = calcTopics(rowData);
-    const scope = calcScope(rowData);
-    const trends = calcTrends(rowData);
     const topActors = calcTopActors(rowData);
     const topicsByRisk = calcTopicsByRisk(rowData);
+
+    // Sentimiento y Estatus (campos reales del formulario de menciones)
+    const sentimentCounts = useMemo(() => {
+        const order = ['Positivo', 'Neutral', 'Negativo'];
+        const labels = order.filter(s => rowData.some(r => r.sentimiento === s));
+        return { labels, data: labels.map(s => rowData.filter(r => r.sentimiento === s).length) };
+    }, [rowData]);
+    const estatusCounts = useMemo(() => {
+        const order = ['Monitoreo activo', 'En revisión', 'Seguimiento activo', 'Escalado', 'Resuelto'];
+        const labels = order.filter(e => rowData.some(r => r.estado === e))
+            .concat(Array.from(new Set(rowData.map(r => r.estado).filter(e => e && !order.includes(e)))));
+        return { labels, data: labels.map(e => rowData.filter(r => r.estado === e).length) };
+    }, [rowData]);
+    const ESTATUS_COLORS: Record<string, string> = {
+        'Monitoreo activo': '#3B82F6', 'En revisión': '#F59E0B', 'Seguimiento activo': '#8B5CF6', 'Escalado': '#EF4444', 'Resuelto': '#10B981'
+    };
+    const sentimentTop = useMemo(() => {
+        const entries = sentimentCounts.labels.map((label: string, i: number) => ({ label, count: sentimentCounts.data[i] }));
+        return entries.sort((a, b) => b.count - a.count)[0] || { label: '—', count: 0 };
+    }, [sentimentCounts]);
 
     const tableRows = useMemo(() => {
         return rowData.filter(r => {
@@ -302,7 +326,7 @@ export const ReportDashboard = ({ showToast, isAdmin, userRole }: any) => {
                         <KpiCard icon={FileText} label="Total Menciones" value={rowData.length} color="#5b8def" />
                         <KpiCard icon={AlertTriangle} label="Riesgo Crítico" value={rowData.filter(r => r.nivelRiesgo === 'Crítico').length} color="#e0485a" />
                         <KpiCard icon={Target} label="Plataforma Top" value={platforms.labels[0] || '—'} sub={`${platforms.data[0] || 0} menciones`} color="#2fd9c4" />
-                        <KpiCard icon={TrendingUp} label="Tendencia Top" value={trends.labels[0] || '—'} sub={`${trends.data[0] || 0} menciones`} color="#f5a93f" />
+                        <KpiCard icon={TrendingUp} label="Sentimiento Top" value={sentimentTop.label} sub={`${sentimentTop.count} menciones`} color="#f5a93f" />
                     </div>
 
                     {/* GRÁFICAS PRINCIPALES */}
@@ -387,29 +411,29 @@ export const ReportDashboard = ({ showToast, isAdmin, userRole }: any) => {
                             </div>
                         </ChartCard>
 
-                        <ChartCard title="Alcance y Tendencia" sub="Distribución de alcance actual y tendencia">
+                        <ChartCard title="Sentimiento y Estatus" sub="Distribución de sentimiento y estatus de atención">
                             <div className="grid grid-cols-2 gap-4 pt-2">
                                 <div>
-                                    <p className="text-xs font-bold theme-text-muted mb-2 uppercase">Alcance</p>
-                                    {scope.labels.slice(0, 5).map((label, i) => (
+                                    <p className="text-xs font-bold theme-text-muted mb-2 uppercase">Sentimiento</p>
+                                    {sentimentCounts.labels.slice(0, 5).map((label: string, i: number) => (
                                         <div key={label} className="flex items-center gap-2 mb-2">
                                             <span className="text-[10px] font-semibold theme-text-main w-20 truncate">{label}</span>
                                             <div className="flex-1 h-2 bg-black/5 dark:bg-white/5 rounded-full overflow-hidden">
-                                                <div className="h-full bg-[var(--primary)] rounded-full" style={{ width: `${(scope.data[i] / (scope.data[0] || 1)) * 100}%` }}></div>
+                                                <div className="h-full rounded-full" style={{ width: `${(sentimentCounts.data[i] / (sentimentCounts.data[0] || 1)) * 100}%`, background: label === 'Positivo' ? '#10B981' : label === 'Negativo' ? '#EF4444' : '#F59E0B' }}></div>
                                             </div>
-                                            <span className="text-[10px] font-bold theme-text-muted w-6 text-right">{scope.data[i]}</span>
+                                            <span className="text-[10px] font-bold theme-text-muted w-6 text-right">{sentimentCounts.data[i]}</span>
                                         </div>
                                     ))}
                                 </div>
                                 <div>
-                                    <p className="text-xs font-bold theme-text-muted mb-2 uppercase">Tendencia</p>
-                                    {trends.labels.map((label, i) => (
+                                    <p className="text-xs font-bold theme-text-muted mb-2 uppercase">Estatus</p>
+                                    {estatusCounts.labels.map((label: string, i: number) => (
                                         <div key={label} className="flex items-center gap-2 mb-2">
                                             <span className="text-[10px] font-semibold theme-text-main w-20 truncate">{label}</span>
                                             <div className="flex-1 h-2 bg-black/5 dark:bg-white/5 rounded-full overflow-hidden">
-                                                <div className="h-full rounded-full" style={{ width: `${(trends.data[i] / (trends.data[0] || 1)) * 100}%`, background: label === 'Aumentando' ? '#EF4444' : label === 'Estable' ? '#10B981' : '#3B82F6' }}></div>
+                                                <div className="h-full rounded-full" style={{ width: `${(estatusCounts.data[i] / (estatusCounts.data[0] || 1)) * 100}%`, background: ESTATUS_COLORS[label] || 'var(--primary)' }}></div>
                                             </div>
-                                            <span className="text-[10px] font-bold theme-text-muted w-6 text-right">{trends.data[i]}</span>
+                                            <span className="text-[10px] font-bold theme-text-muted w-6 text-right">{estatusCounts.data[i]}</span>
                                         </div>
                                     ))}
                                 </div>
@@ -445,13 +469,13 @@ export const ReportDashboard = ({ showToast, isAdmin, userRole }: any) => {
                                 <thead>
                                     <tr className="theme-bg-low border-b theme-border text-[10.5px] theme-text-muted uppercase tracking-widest">
                                         <th className="p-4 font-bold rounded-tl-xl">Fecha</th>
-                                        <th className="p-4 font-bold">Plataforma</th>
-                                        <th className="p-4 font-bold">Tipo</th>
+                                        <th className="p-4 font-bold">Canal</th>
+                                        <th className="p-4 font-bold">Tipo Actor</th>
                                         <th className="p-4 font-bold">Riesgo</th>
-                                        <th className="p-4 font-bold">Tema</th>
-                                        <th className="p-4 font-bold">Alcance</th>
-                                        <th className="p-4 font-bold">Actor</th>
-                                        <th className="p-4 font-bold text-center rounded-tr-xl">Estado</th>
+                                        <th className="p-4 font-bold">Narrativa</th>
+                                        <th className="p-4 font-bold">Sentimiento</th>
+                                        <th className="p-4 font-bold">Usuario/Sitio</th>
+                                        <th className="p-4 font-bold text-center rounded-tr-xl">Estatus</th>
                                     </tr>
                                 </thead>
                                 <tbody className="text-sm theme-text-secondary">
@@ -472,10 +496,14 @@ export const ReportDashboard = ({ showToast, isAdmin, userRole }: any) => {
                                                 </span>
                                             </td>
                                             <td className="p-4 whitespace-nowrap text-xs">{r.temaPrincipal}</td>
-                                            <td className="p-4 whitespace-nowrap text-xs">{r.alcanceActual}</td>
+                                            <td className="p-4 whitespace-nowrap">
+                                                <span className="px-2 py-1 text-[10px] font-bold rounded-md" style={{ background: r.sentimiento === 'Positivo' ? '#10B98120' : r.sentimiento === 'Negativo' ? '#EF444420' : r.sentimiento === 'Neutral' ? '#F59E0B20' : '#6B728020', color: r.sentimiento === 'Positivo' ? '#10B981' : r.sentimiento === 'Negativo' ? '#EF4444' : r.sentimiento === 'Neutral' ? '#F59E0B' : '#6B7280' }}>
+                                                    {r.sentimiento || '—'}
+                                                </span>
+                                            </td>
                                             <td className="p-4 font-bold theme-text-main text-xs truncate max-w-[150px]" title={r.actorFuente}>{r.actorFuente}</td>
                                             <td className="p-4 whitespace-nowrap text-center">
-                                                <span className="px-2 py-1 text-[10px] font-bold rounded-md bg-emerald-500/10 text-emerald-600">{r.estado}</span>
+                                                <span className="px-2 py-1 text-[10px] font-bold rounded-md" style={{ background: `${ESTATUS_COLORS[r.estado] || '#6B7280'}20`, color: ESTATUS_COLORS[r.estado] || '#6B7280' }}>{r.estado || '—'}</span>
                                             </td>
                                         </tr>
                                     ))}
