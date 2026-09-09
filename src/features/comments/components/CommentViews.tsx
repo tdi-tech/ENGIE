@@ -265,9 +265,9 @@ export const NewCommentView = ({ isAdmin, showToast, navigate, user, logAction }
                                             <label htmlFor={`sentimiento-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Sentimiento de la Mención</label>
                                             <select id={`sentimiento-${idx}`} required value={registro.sentiment} onChange={(e) => updateRegistro(idx, 'sentiment', e.target.value)} className={`${inputStyles} ${!registro.sentiment ? 'text-gray-400' : ''}`}>
                                                 <option value="" disabled>Seleccionar sentimiento...</option>
-                                                <option value="Positivo">Positivo</option>
-                                                <option value="Neutral">Neutral</option>
-                                                <option value="Negativo">Negativo</option>
+                                                <option value="Positivo" className="text-green-600 dark:text-green-400">🟢 Positivo</option>
+                                                <option value="Neutral" className="text-yellow-600 dark:text-yellow-400">🟡 Neutral</option>
+                                                <option value="Negativo" className="text-red-600 dark:text-red-400">🔴 Negativo</option>
                                             </select>
                                         </div>
                                         <div className="space-y-1.5">
@@ -365,9 +365,9 @@ export const NewCommentView = ({ isAdmin, showToast, navigate, user, logAction }
                                             <label htmlFor={`md-sentimiento-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Sentimiento de la Mención</label>
                                             <select id={`md-sentimiento-${idx}`} required value={registro.sentimiento} onChange={(e) => updateRegistroDigital(idx, 'sentimiento', e.target.value)} className={`${inputStyles} ${!registro.sentimiento ? 'text-gray-400' : ''}`}>
                                                 <option value="" disabled>Seleccionar sentimiento...</option>
-                                                <option value="Positivo">Positivo</option>
-                                                <option value="Neutral">Neutral</option>
-                                                <option value="Negativo">Negativo</option>
+                                                <option value="Positivo" className="text-green-600 dark:text-green-400">🟢 Positivo</option>
+                                                <option value="Neutral" className="text-yellow-600 dark:text-yellow-400">🟡 Neutral</option>
+                                                <option value="Negativo" className="text-red-600 dark:text-red-400">🔴 Negativo</option>
                                             </select>
                                         </div>
                                         <div className="space-y-1.5">
@@ -1192,9 +1192,9 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
                                                 <div><label htmlFor={`er-sen-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Sentimiento de la Mención</label>
                                                         <select id={`er-sen-${idx}`} required value={c.sentiment} onChange={(e) => updateEditRegistro(idx, 'sentiment', e.target.value)} className={`${inputStyles} ${!c.sentiment ? 'text-gray-400' : ''}`}>
                                                             <option value="" disabled>Seleccionar sentimiento...</option>
-                                                            <option value="Positivo">Positivo</option>
-                                                            <option value="Neutral">Neutral</option>
-                                                            <option value="Negativo">Negativo</option>
+                                                            <option value="Positivo" className="text-green-600 dark:text-green-400">🟢 Positivo</option>
+                                                            <option value="Neutral" className="text-yellow-600 dark:text-yellow-400">🟡 Neutral</option>
+                                                            <option value="Negativo" className="text-red-600 dark:text-red-400">🔴 Negativo</option>
                                                         </select>
                                                     </div>
                                                     <div><label htmlFor={`er-riesgo-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Nivel de Riesgo</label>
@@ -1239,9 +1239,9 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
                                                     <div><label htmlFor={`ed-sen-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Sentimiento de la Mención</label>
                                                         <select id={`ed-sen-${idx}`} required value={c.sentimiento} onChange={(e) => updateEditRegistroDigital(idx, 'sentimiento', e.target.value)} className={`${inputStyles} ${!c.sentimiento ? 'text-gray-400' : ''}`}>
                                                             <option value="" disabled>Seleccionar sentimiento...</option>
-                                                            <option value="Positivo">Positivo</option>
-                                                            <option value="Neutral">Neutral</option>
-                                                            <option value="Negativo">Negativo</option>
+                                                            <option value="Positivo" className="text-green-600 dark:text-green-400">🟢 Positivo</option>
+                                                            <option value="Neutral" className="text-yellow-600 dark:text-yellow-400">🟡 Neutral</option>
+                                                            <option value="Negativo" className="text-red-600 dark:text-red-400">🔴 Negativo</option>
                                                         </select>
                                                     </div>
 <div><label htmlFor={`ed-nivelRiesgo-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Nivel de Riesgo</label>
