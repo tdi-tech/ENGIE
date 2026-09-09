@@ -51,20 +51,32 @@ export const DashboardView = ({ showToast, user }: any) => {
 
     // ── Stats de Incidencias ────────────────────────────────────────────────
     const rrssStats = useMemo(() => {
-        let totalIncidenciasSum = 0, criticalRisk = 0;
-        const networkCounts: Record<string, number> = {};
+        const fuenteCounts: Record<string, number> = {};
         const riesgoCounts: Record<string, number> = { Bajo: 0, Medio: 0, Alto: 0, 'Crítico': 0 };
+        const alcanceCounts: Record<string, number> = { Aislado: 0, Local: 0, Regional: 0, Nacional: 0, Viral: 0 };
+        const tendenciaCounts: Record<string, number> = { Aumentando: 0, Estable: 0, Disminuyendo: 0 };
+        const temasEscalada: Record<string, number> = {};
+        let enEscalada = 0;
         rrssIncidents.forEach((inc: any) => {
             const n = normalizeIncidencia(inc);
-            totalIncidenciasSum += Number(n.totalIncidencias) || 0;
             const r = n.nivelRiesgo ? riesgoValue(n.nivelRiesgo) : 'Bajo';
-            if (r === 'Crítico') criticalRisk++;
             if (r in riesgoCounts) riesgoCounts[r]++;
-            if (n.fuenteDeteccion && n.fuenteDeteccion !== 'N/A') networkCounts[n.fuenteDeteccion] = (networkCounts[n.fuenteDeteccion] || 0) + 1;
+            const f = n.fuenteDeteccion && n.fuenteDeteccion !== 'N/A' ? n.fuenteDeteccion : null;
+            if (f) fuenteCounts[f] = (fuenteCounts[f] || 0) + 1;
+            const a = n.alcanceActual as keyof typeof alcanceCounts;
+            if (a && a in alcanceCounts) alcanceCounts[a]++;
+            const t = n.tendencia as keyof typeof tendenciaCounts;
+            if (t && t in tendenciaCounts) tendenciaCounts[t]++;
+            // Cruce: riesgo Alto/Crítico + tendencia Aumentando = riesgo en escalada
+            if ((r === 'Alto' || r === 'Crítico') && t === 'Aumentando') {
+                enEscalada++;
+                const tema = n.temaPrincipal && n.temaPrincipal !== 'Otro' ? n.temaPrincipal : (n.temaPrincipal === 'Otro' ? 'Otro' : 'Tema sin clasificar');
+                temasEscalada[tema] = (temasEscalada[tema] || 0) + 1;
+            }
         });
-        const topNetwork = Object.keys(networkCounts).sort((a, b) => networkCounts[b] - networkCounts[a])[0] || 'N/D';
-        const criticidadRate = rrssIncidents.length ? Math.round((criticalRisk / rrssIncidents.length) * 100) : 0;
-        return { totalReportes: rrssIncidents.length, totalIncidencias: totalIncidenciasSum, criticalRisk, riesgoCounts, criticidadRate, topNetwork };
+        const topFuente = Object.keys(fuenteCounts).sort((a, b) => fuenteCounts[b] - fuenteCounts[a])[0] || 'N/D';
+        const temasEscaladaTop = Object.entries(temasEscalada).sort((a, b) => b[1] - a[1]).slice(0, 5);
+        return { totalReportes: rrssIncidents.length, fuenteCounts, topFuente, riesgoCounts, alcanceCounts, tendenciaCounts, enEscalada, temasEscaladaTop };
     }, [rrssIncidents]);
 
     const commentsStats = useMemo(() => {
@@ -159,10 +171,9 @@ export const DashboardView = ({ showToast, user }: any) => {
                 ['Canal principal:', commentsStats.topCanal]
             ] : [
                 ['Reportes creados:', String(rrssStats.totalReportes)],
-                ['Total incidencias:', String(rrssStats.totalIncidencias)],
-                ['Peligro inminente (Crítico):', String(rrssStats.criticalRisk)],
-                ['Índice de criticidad:', rrssStats.criticidadRate + '%'],
-                ['Canal con mayor exposición:', rrssStats.topNetwork]
+                ['Fuentes de detección:', String(Object.keys(rrssStats.fuenteCounts).length)],
+                ['Fuente principal:', rrssStats.topFuente],
+                ['Reportes en riesgo de escalada:', String(rrssStats.enEscalada)]
             ];
             lines.forEach(([k, v]) => {
                 doc.setFont('helvetica', 'bold'); doc.text(k, margin, y);
@@ -172,13 +183,27 @@ export const DashboardView = ({ showToast, user }: any) => {
             y += 4;
 
             doc.setFont('helvetica', 'bold');
-            doc.text(activeTab === 'menciones' ? 'Distribución de sentimiento' : 'Semáforo de riesgo', margin, y); y += 6;
+            doc.text(activeTab === 'menciones' ? 'Distribución de sentimiento' : 'Distribuciones (Riesgo · Alcance · Tendencia)', margin, y); y += 6;
             doc.setFont('helvetica', 'normal');
-            const buckets = activeTab === 'menciones' ? commentsStats.sentimentCounts : rrssStats.riesgoCounts;
-            Object.entries(buckets).forEach(([k, v]) => {
-                doc.text('• ' + k + ': ' + v, margin, y);
-                y += 5;
-            });
+            if (activeTab === 'menciones') {
+                Object.entries(commentsStats.sentimentCounts).forEach(([k, v]) => {
+                    doc.text('• ' + k + ': ' + v, margin, y); y += 5;
+                });
+            } else {
+                (['riesgoCounts', 'alcanceCounts', 'tendenciaCounts'] as const).forEach((bucket, i) => {
+                    const titulo = i === 0 ? 'Nivel de Riesgo Reputacional:' : i === 1 ? 'Alcance Actual:' : 'Tendencia:';
+                    doc.setFont('helvetica', 'bold'); doc.text(titulo, margin, y); y += 5;
+                    doc.setFont('helvetica', 'normal');
+                    Object.entries(rrssStats[bucket]).forEach(([k, v]) => {
+                        doc.text('   - ' + k + ': ' + v, margin, y); y += 5;
+                    });
+                    y += 2;
+                });
+                doc.setFont('helvetica', 'bold'); doc.text('Temas en riesgo de escalada:', margin, y); y += 5;
+                doc.setFont('helvetica', 'normal');
+                if (rrssStats.temasEscaladaTop.length === 0) { doc.text('   - Sin temas en riesgo de escalada', margin, y); y += 5; }
+                else rrssStats.temasEscaladaTop.forEach(([k, v]) => { doc.text('   - ' + k + ': ' + v + ' reporte(s)', margin, y); y += 5; });
+            }
 
             const totalPages = (doc as any).internal.getNumberOfPages();
             for (let p = 1; p <= totalPages; p++) {
@@ -292,33 +317,54 @@ return (
                 )}
                 {activeTab === 'incidencias' && (
                     <div className="fade-in space-y-6">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                             <StatCard title="Reportes Creados" value={rrssStats.totalReportes} color="blue" icon={<Megaphone className="w-12 h-12 opacity-10 absolute -right-2 -bottom-2" />} />
-                            <StatCard title="Total Incidencias" value={rrssStats.totalIncidencias} color="orange" icon={<Activity className="w-12 h-12 opacity-10 absolute -right-2 -bottom-2" />} />
-                            <StatCard title="Peligro Inminente" value={rrssStats.criticalRisk} color="red" icon={<AlertTriangle className="w-12 h-12 opacity-10 absolute -right-2 -bottom-2" />} />
+                            <StatCard title="Fuentes de Detección" value={Object.keys(rrssStats.fuenteCounts).length} color="primary" icon={<Globe className="w-12 h-12 opacity-10 absolute -right-2 -bottom-2" />} />
+                            <StatCard title="Riesgo en Escalada" value={rrssStats.enEscalada} color="red" icon={<AlertTriangle className="w-12 h-12 opacity-10 absolute -right-2 -bottom-2" />} />
+                            <StatCard title="Fuente Principal" value={rrssStats.topFuente} color="emerald" icon={<Activity className="w-12 h-12 opacity-10 absolute -right-2 -bottom-2" />} />
                         </div>
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            <div className="p-5 theme-bg-container border theme-border rounded-xl shadow-sm engie-card-hover">
-                                <h4 className="text-xs font-bold theme-text-muted uppercase tracking-wider mb-4 flex items-center gap-2"><AlertTriangle className="w-4 h-4" style={{ color: 'var(--error)' }} /> Semáforo de Riesgo</h4>
-                                <div className="space-y-3">
-                                    {Object.entries(rrssStats.riesgoCounts).map(([name, count]) => {
-                                        const percent = rrssStats.totalReportes ? Math.round((Number(count) / rrssStats.totalReportes) * 100) : 0;
-                                        const barColor = name === 'Crítico' ? 'var(--error)' : name === 'Alto' ? 'var(--warning)' : name === 'Medio' ? 'var(--warning)' : 'var(--success)';
+                        {/* Fila 2: Riesgo · Alcance · Tendencia */}
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                            {[
+                                { titulo: 'Nivel de Riesgo Reputacional', icono: <AlertTriangle className="w-4 h-4" style={{ color: 'var(--error)' }} />, datos: rrssStats.riesgoCounts, color: (n: string) => n === 'Crítico' ? 'var(--error)' : n === 'Alto' ? '#f97316' : n === 'Medio' ? 'var(--warning)' : 'var(--success)' },
+                                { titulo: 'Alcance Actual', icono: <Globe className="w-4 h-4" style={{ color: 'var(--primary)' }} />, datos: rrssStats.alcanceCounts, color: (n: string) => n === 'Viral' ? 'var(--error)' : n === 'Nacional' ? '#f97316' : n === 'Regional' ? 'var(--warning)' : 'var(--success)' },
+                                { titulo: 'Tendencia', icono: <TrendingUp className="w-4 h-4" style={{ color: 'var(--warning)' }} />, datos: rrssStats.tendenciaCounts, color: (n: string) => n === 'Aumentando' ? 'var(--error)' : n === 'Estable' ? 'var(--warning)' : 'var(--success)' }
+                            ].map((panel) => (
+                                <div key={panel.titulo} className="p-5 theme-bg-container border theme-border rounded-xl shadow-sm engie-card-hover">
+                                    <h4 className="text-xs font-bold theme-text-muted uppercase tracking-wider mb-4 flex items-center gap-2">{panel.icono} {panel.titulo}</h4>
+                                    <div className="space-y-3">
+                                        {Object.entries(panel.datos).map(([name, count]) => {
+                                            const percent = rrssStats.totalReportes ? Math.round((Number(count) / rrssStats.totalReportes) * 100) : 0;
+                                            return (
+                                                <div key={name}>
+                                                    <div className="flex justify-between text-xs mb-1.5"><span className="font-bold theme-text-main pr-2">{name}</span><span className="theme-text-muted font-semibold">{Number(count)} ({percent}%)</span></div>
+                                                    <div className="h-2.5 w-full bg-black/5 dark:bg-white/5 rounded-full overflow-hidden"><div className="h-full rounded-full transition-all duration-1000 ease-out" style={{ width: mounted ? `${percent}%` : '0%', backgroundColor: panel.color(name) }} /></div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                        {/* Fila 3: Cruce — Temas en riesgo de escalada (Riesgo Alto/Crítico + Tendencia Aumentando) */}
+                        <div className="p-5 theme-bg-container border theme-border rounded-xl shadow-sm engie-card-hover">
+                            <h4 className="text-xs font-bold theme-text-muted uppercase tracking-wider mb-4 flex items-center gap-2"><AlertTriangle className="w-4 h-4" style={{ color: 'var(--error)' }} /> Temas en Riesgo de Escalada <span className="normal-case font-medium theme-text-muted text-[10px]">(Riesgo Alto/Crítico + Tendencia Aumentando)</span></h4>
+                            {rrssStats.temasEscaladaTop.length === 0 ? (
+                                <p className="text-sm theme-text-muted py-4 text-center">Sin temas en riesgo de escalada actualmente.</p>
+                            ) : (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
+                                    {rrssStats.temasEscaladaTop.map(([tema, count]) => {
+                                        const maxCount = rrssStats.temasEscaladaTop[0][1] || 1;
+                                        const percent = Math.round((count / maxCount) * 100);
                                         return (
-                                            <div key={name}>
-                                                <div className="flex justify-between text-xs mb-1.5"><span className="font-bold theme-text-main pr-2">{name}</span><span className="theme-text-muted font-semibold">{Number(count)} ({percent}%)</span></div>
-                                                <div className="h-2.5 w-full bg-black/5 dark:bg-white/5 rounded-full overflow-hidden"><div className="h-full rounded-full transition-all duration-1000 ease-out" style={{ width: mounted ? `${percent}%` : '0%', backgroundColor: barColor }} /></div>
+                                            <div key={tema}>
+                                                <div className="flex justify-between text-xs mb-1.5"><span className="font-bold theme-text-main pr-2 truncate">{tema}</span><span className="theme-text-muted font-semibold shrink-0">{count} reporte{count !== 1 ? 's' : ''}</span></div>
+                                                <div className="h-2.5 w-full bg-black/5 dark:bg-white/5 rounded-full overflow-hidden"><div className="h-full rounded-full transition-all duration-1000 ease-out" style={{ width: mounted ? `${percent}%` : '0%', backgroundColor: 'var(--error)' }} /></div>
                                             </div>
                                         );
                                     })}
                                 </div>
-                            </div>
-                            <div className="p-5 theme-bg-container border theme-border rounded-xl shadow-sm flex flex-col justify-center items-center text-center gap-3 engie-card-hover">
-                                <div className="p-4 rounded-full" style={{ backgroundColor: 'rgba(225,29,72,0.12)', color: 'var(--error)' }}><AlertTriangle className="w-8 h-8" /></div>
-                                <p className="text-xs font-bold theme-text-muted uppercase tracking-wider">Índice de Criticidad</p>
-                                <p className="text-3xl font-black" style={{ color: 'var(--error)' }}>{rrssStats.criticidadRate}%</p>
-                                <span className="text-[11px] font-bold rounded-full px-3 py-1" style={{ backgroundColor: 'rgba(225,29,72,0.12)', color: 'var(--error)' }}>Canal: {rrssStats.topNetwork}</span>
-                            </div>
+                            )}
                         </div>
                     </div>
                 )}
