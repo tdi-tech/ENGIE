@@ -893,7 +893,7 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
                                                                             const list = getNormalizedComments(com);
                                                                             const firstComment = list[0];
                                                                             const hasMore = list.length > 1;
-                                                                            const uniqueNetworks = Array.from(new Set(list.map((c: any) => c.canal)));
+                                                                            const uniqueNetworks = Array.from(new Set(list.map((c: any) => com.fuenteMonitoreo === 'Medios digitales' ? (c.tipoActor || 'Medio digital') : c.canal).filter(Boolean)));
                                                                             const hasNegative = list.some((c: any) => c.sentiment === 'Negativo');
                                                                             const cardSentimentStatus = hasNegative ? 'Negativo' : (list.some((c: any) => c.sentiment === 'Neutral') ? 'Neutral' : '');
 
