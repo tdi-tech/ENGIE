@@ -9,7 +9,7 @@ import {
 import { collection, addDoc, onSnapshot } from 'firebase/firestore';
 import { db, appId, IS_MOCK } from '../../../services/firebase/config';
 import { getMonthName } from '../../../shared/utils/date';
-import { normalizeMenciones, isRegistroVacio } from '../../../shared/utils/menciones';
+import { calcCommentAnalytics, normalizeMenciones, isRegistroVacio } from '../../../shared/utils/menciones';
 
 const inputStyles = "w-full p-3 rounded-xl theme-bg-low border theme-border theme-text-main focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all text-sm";
 const radioLabelStyles = "flex items-center gap-2 text-sm font-medium theme-text-main cursor-pointer";
@@ -430,6 +430,7 @@ export const NewCommentView = ({ isAdmin, showToast, navigate, user, logAction }
 
 export const HistorialCommentView = ({ showToast, isAdmin, updateComment, deleteComment, deleteCommentsBatch }: any) => {
     const [comments, setComments] = useState<any[]>([]);
+    const [analytics, setAnalytics] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [selectedComment, setSelectedComment] = useState<any>(null);
     const [isDetailOpen, setIsDetailOpen] = useState(false);
@@ -473,6 +474,9 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
             snapshot.forEach((doc) => data.push({ id: doc.id, ...doc.data() }));
             data.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
             setComments(data);
+            // Cálculo de analíticas unificadas
+            const analytics = calcCommentAnalytics(data);
+            setAnalytics(analytics);
             setTimeout(() => setIsLoading(false), 600);
         });
         return () => unsub();
@@ -1052,13 +1056,13 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
                                         <div className="flex flex-wrap items-center gap-2 border-b theme-border pb-2 border-dashed">
                                             <span className="flex items-center gap-1 text-[10px] font-bold text-gray-500 uppercase tracking-wider"><Share2 className="w-3 h-3"/> {c.fuenteMonitoreo === 'Medios digitales' ? 'Medio digital' : (c.redSocial || 'N/D')}</span>
                                             <span className="text-gray-300 dark:text-gray-600">|</span>
-                                            <span className="font-bold text-sm text-blue-500 break-all">{c.usuario}</span>
+                                            {isUrl(c.usuario) ? (<a href={c.usuario} target="_blank" rel="noreferrer" title={c.usuario} className="font-bold text-sm text-blue-500 hover:underline inline-flex items-center gap-1"><LinkIcon className="w-3 h-3 flex-shrink-0" /> Enlace</a>) : (<span className="font-bold text-sm text-blue-500 break-all">{c.usuario}</span>)}
                                             {c.tipoActor && (<><span className="text-gray-300 dark:text-gray-600">|</span><span className="text-[10px] font-bold theme-text-muted uppercase tracking-wider">Actor: <span className="theme-text-main normal-case">{c.tipoActor}</span></span></>)}
                                         </div>
                                         <div className="flex flex-wrap gap-2">
-                                            {c.sentiment && <span className={`px-2.5 py-1 text-[10px] font-bold rounded-md uppercase tracking-wider ${getSentimentDot(c.sentiment).badge}`}>{getSentimentDot(c.sentiment).dot} {c.sentiment}</span>}
-                                            {c.nivelRiesgo && <span className={`px-2.5 py-1 text-[10px] font-bold rounded-md uppercase tracking-wider ${getRiesgoDot(c.nivelRiesgo).badge}`}>{getRiesgoDot(c.nivelRiesgo).dot} Riesgo: {c.nivelRiesgo}</span>}
-                                            {c.estatus && <span className={`px-2.5 py-1 text-[10px] font-bold rounded-md uppercase tracking-wider border ${getEstatusDot(c.estatus).badge}`}>{getEstatusDot(c.estatus).dot} {c.estatus}</span>}
+                                            {c.sentiment && <span title="Sentimiento de la Mención" className={`px-2.5 py-1 text-[10px] font-bold rounded-md uppercase tracking-wider ${getSentimentDot(c.sentiment).badge}`}><span className={`inline-block w-2 h-2 rounded-full mr-1 ${getSentimentDot(c.sentiment).dot}`}></span>Sentimiento: {c.sentiment}</span>}
+                                            {c.nivelRiesgo && <span title="Nivel de Riesgo" className={`px-2.5 py-1 text-[10px] font-bold rounded-md uppercase tracking-wider ${getRiesgoDot(c.nivelRiesgo).badge}`}><span className={`inline-block w-2 h-2 rounded-full mr-1 ${getRiesgoDot(c.nivelRiesgo).dot}`}></span>Riesgo: {c.nivelRiesgo}</span>}
+                                            {c.estatus && <span title="Estatus de la Mención" className={`px-2.5 py-1 text-[10px] font-bold rounded-md uppercase tracking-wider border ${getEstatusDot(c.estatus).badge}`}><span className={`inline-block w-2 h-2 rounded-full mr-1 ${getEstatusDot(c.estatus).dot}`}></span>Estatus: {c.estatus}</span>}
                                         </div>
                                         <p className="text-sm theme-text-main whitespace-pre-wrap">{c.comentario}</p>
                                         {c.hallazgo && (
@@ -1125,6 +1129,9 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
                                                         <select id={`er-canal-${idx}`} value={c.canal} onChange={(e) => updateEditRegistro(idx, 'canal', e.target.value)} className={inputStyles}>
                                                             {['Facebook', 'Instagram', 'TikTok', 'LinkedIn', 'YouTube', 'X'].map(opt => <option key={opt} value={opt}>{opt}</option>)}
                                                         </select>
+                                                    </div>
+                                                    <div><label htmlFor={`er-usuario-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Usuario o Sitio Web</label>
+                                                        <input id={`er-usuario-${idx}`} type="url" required placeholder="Ej: https://twitter.com/usuario o https://sitio-web.com" value={c.usuarioSitioWeb || ''} onChange={(e) => updateEditRegistro(idx, 'usuarioSitioWeb', e.target.value)} className={inputStyles} />
                                                     </div>
                                                     <div><label htmlFor={`er-actor-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Tipo de Actor</label>
                                                         <select id={`er-actor-${idx}`} value={c.tipoActor} onChange={(e) => updateEditRegistro(idx, 'tipoActor', e.target.value)} className={`${inputStyles} ${!c.tipoActor ? 'text-gray-400' : ''}`}>

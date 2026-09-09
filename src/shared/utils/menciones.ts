@@ -121,3 +121,60 @@ export const isRegistroVacio = (r: any, tipo: 'rs' | 'md'): boolean => {
     }
     return !r.sitioWeb && !r.narrativa && !r.linkPublicacion && !r.sentimiento;
 };
+
+// ── Análisis de datos de menciones ───────────────────────────────────────────
+
+export interface CommentAnalytics {
+    total: number;
+    byFuente: Record<string, number>;
+    bySentiment: Record<string, number>;
+    byRiesgo: Record<string, number>;
+    byEstatus: Record<string, number>;
+    sentimentVsRiesgo: Record<string, number>;
+    fuenteVsSentiment: Record<string, number>;
+}
+
+export const calcCommentAnalytics = (comments: any[]): CommentAnalytics => {
+    const allItems: any[] = [];
+    comments.forEach((com) => {
+        const normalized = normalizeMenciones(com);
+        normalized.forEach((item) => allItems.push(item));
+    });
+
+    const emptyCounters = <T extends string>(keys: T[]): Record<T, number> =>
+        keys.reduce((acc, key) => ({ ...acc, [key]: 0 }), {} as Record<T, number>);
+
+    const byFuente = emptyCounters(['Redes sociales', 'Medios digitales'] as const);
+    const bySentiment = emptyCounters(['Positivo', 'Neutro', 'Negativo'] as const);
+    const byRiesgo = emptyCounters(['Bajo', 'Medio', 'Alto', 'Crítico'] as const);
+    const byEstatus = emptyCounters(['Monitoreo activo', 'En revisión', 'Seguimiento activo', 'Resuelto / solucionado'] as const);
+    const sentimentVsRiesgo: Record<string, number> = {};
+    const fuenteVsSentiment: Record<string, number> = {};
+
+    allItems.forEach((item) => {
+        const fm = item.fuenteMonitoreo as 'Redes sociales' | 'Medios digitales';
+        if (fm) byFuente[fm] = (byFuente[fm] || 0) + 1;
+        if (item.sentiment) {
+            const sentimentKey = item.sentiment === 'Neutral' ? 'Neutro' : item.sentiment;
+            bySentiment[sentimentKey as 'Positivo' | 'Neutro' | 'Negativo'] = (bySentiment[sentimentKey as 'Positivo' | 'Neutro' | 'Negativo'] || 0) + 1;
+        }
+        if (item.nivelRiesgo) byRiesgo[item.nivelRiesgo as 'Bajo' | 'Medio' | 'Alto' | 'Crítico'] = (byRiesgo[item.nivelRiesgo as 'Bajo' | 'Medio' | 'Alto' | 'Crítico'] || 0) + 1;
+        if (item.estatus) byEstatus[item.estatus as 'Monitoreo activo' | 'En revisión' | 'Seguimiento activo' | 'Resuelto / solucionado'] = (byEstatus[item.estatus as 'Monitoreo activo' | 'En revisión' | 'Seguimiento activo' | 'Resuelto / solucionado'] || 0) + 1;
+
+        const svKey = `${item.sentiment || 'Sin sentimiento'} / ${item.nivelRiesgo || 'Sin riesgo'}`;
+        sentimentVsRiesgo[svKey] = (sentimentVsRiesgo[svKey] || 0) + 1;
+
+        const fvKey = `${item.fuenteMonitoreo || 'Sin fuente'} / ${item.sentiment || 'Sin sentimiento'}`;
+        fuenteVsSentiment[fvKey] = (fuenteVsSentiment[fvKey] || 0) + 1;
+    });
+
+    return {
+        total: allItems.length,
+        byFuente,
+        bySentiment,
+        byRiesgo,
+        byEstatus,
+        sentimentVsRiesgo,
+        fuenteVsSentiment,
+    };
+};
