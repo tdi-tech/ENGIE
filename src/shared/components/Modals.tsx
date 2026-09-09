@@ -2,6 +2,26 @@ import React from 'react';
 import { Users, AlertTriangle, X, Megaphone, MessageSquare, ChevronRight, ShieldAlert, Lock } from 'lucide-react';
 import type { PreviewModalState } from '../types/models';
 
+const getStatusStyles = (status: string): string => {
+    const s = (status || '').toLowerCase();
+    if (s.includes('resuelto') || s.includes('solucionado') || s === 'cerrado') {
+        return 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400';
+    }
+    if (s.includes('seguimiento')) {
+        return 'bg-blue-500/15 text-blue-600 dark:text-blue-400';
+    }
+    if (s.includes('revisión') || s.includes('revision') || s === 'escalado') {
+        return 'bg-orange-500/15 text-orange-600 dark:text-orange-400';
+    }
+    if (s.includes('monitoreo') || s.includes('activo') || s.includes('monitoreando')) {
+        return 'bg-amber-500/15 text-amber-600 dark:text-amber-400';
+    }
+    if (s.includes('pendiente')) {
+        return 'bg-yellow-500/15 text-yellow-600 dark:text-yellow-400';
+    }
+    return 'bg-slate-500/15 text-slate-600 dark:text-slate-400';
+};
+
 export const LoginModal = ({ 
     isOpen, 
     onClose, 
@@ -101,22 +121,21 @@ export const PreviewModal = ({ state, onClose, onNavigate }: { state: PreviewMod
                     {type === 'rrss' ? (
                         <>
                             <div className="flex justify-between items-start">
-                                <div><p className="text-xs theme-text-muted font-bold mb-1">Medio Afectado</p><p className="text-lg font-bold theme-text-main text-orange-500">{data.medio}</p></div>
-                                <span className={`px-2 py-1 text-[10px] font-bold rounded-md uppercase ${data.estado === 'Resuelto' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-orange-500/10 text-orange-500'}`}>{data.estado}</span>
+                                <div><p className="text-xs theme-text-muted font-bold mb-1">Medio Afectado</p><p className="text-lg font-bold theme-text-main text-orange-500">{data.fuenteDeteccion || data.medio}</p></div>
+                                <span className={`px-2 py-1 text-[10px] font-bold rounded-md uppercase ${getStatusStyles(data.estado)}`}>{data.estado}</span>
                             </div>
-                            <div className="p-3 theme-bg-low rounded-xl border theme-border"><p className="text-sm theme-text-main font-medium"><span className="font-bold">{data.usuario}:</span> {data.descripcion}</p></div>
+                            <div className="p-3 theme-bg-low rounded-xl border theme-border"><p className="text-sm theme-text-main font-medium"><span className="font-bold">{data.actorFuente || data.usuario}:</span> {data.resumenIncidente || data.descripcion}</p></div>
                             <div className="grid grid-cols-2 gap-4 text-sm">
-                                <div><span className="text-xs theme-text-muted block mb-0.5">Riesgo</span><span className="font-bold theme-text-main">{data.riesgo}</span></div>
-                                <div><span className="text-xs theme-text-muted block mb-0.5">Campus</span><span className="font-bold theme-text-main">{data.campus}</span></div>
+                                <div><span className="text-xs theme-text-muted block mb-0.5">Riesgo</span><span className="font-bold theme-text-main">{data.nivelRiesgoReputacional || data.riesgo}</span></div>
                             </div>
                         </>
                     ) : (
                         <>
                             <div className="flex justify-between items-start">
-                                <div><p className="text-xs theme-text-muted font-bold mb-1">Periodo del Reporte</p><p className="text-base font-bold theme-text-main text-blue-500">{data.fechaInicio} <span className="text-sm font-medium theme-text-muted">al</span> {data.fechaFin}</p></div>
-                                <span className="px-2 py-1 text-[10px] font-bold rounded-md uppercase bg-blue-500/10 text-blue-500">{data.contenido}</span>
+                                <div><p className="text-xs theme-text-muted font-bold mb-1">Periodo del Reporte</p><p className="text-base font-bold theme-text-main text-blue-500">{data.fechaPublicacion || data.fechaInicio} {data.horaDeteccion ? `a las ${data.horaDeteccion}` : (data.fechaFin ? <><span className="text-sm font-medium theme-text-muted">al</span> {data.fechaFin}</> : '')}</p></div>
+                                <span className="px-2 py-1 text-[10px] font-bold rounded-md uppercase bg-blue-500/10 text-blue-500">{data.fuenteMonitoreo || data.contenido}</span>
                             </div>
-                            <div className="p-3 theme-bg-low rounded-xl border theme-border"><p className="text-sm theme-text-main font-medium">Contiene <span className="font-bold text-blue-500">{data.comentariosList?.length || 1}</span> comentario(s) registrado(s).</p></div>
+                            <div className="p-3 theme-bg-low rounded-xl border theme-border"><p className="text-sm theme-text-main font-medium">Contiene <span className="font-bold text-blue-500">{data.registrosList?.length || data.registrosDigitalesList?.length || data.comentariosList?.length || 1}</span> mencion(es) registrado(s).</p></div>
                         </>
                     )}
                 </div>

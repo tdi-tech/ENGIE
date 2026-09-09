@@ -3,9 +3,9 @@ import { Chart as ChartJS, ArcElement, BarElement, CategoryScale, LinearScale, L
 import { Bar, Doughnut, Line } from 'react-chartjs-2';
 import { collection, getDocs } from 'firebase/firestore';
 import { db, appId } from '../../../services/firebase/config';
-import { normalizeComments, type ReportRow } from '../utils/csvExport';
-import { calcSentiment, calcRedSocial, calcOrigen, calcTrend, calcCampusRanking, calcTopUsers, useReportGenerator } from '../hooks/useReportGenerator';
-import { BarChart3, FileUp, Database, UploadCloud, Box, Filter, Search, ChevronLeft, ChevronRight, ExternalLink, FileText, AlertTriangle, MapPin, Share2, FileDown, Loader2 } from 'lucide-react';
+import { normalizeMention, normalizeMentions, type ReportRow } from '../utils/csvExport';
+import { calcPlatforms, calcRiskLevels, calcTimeline, calcTopics, calcScope, calcTrends, calcTopActors, calcTopicsByRisk, useReportGenerator } from '../hooks/useReportGenerator';
+import { BarChart3, Database, UploadCloud, Search, ChevronLeft, ChevronRight, FileText, AlertTriangle, Share2, FileDown, Loader2, Target, TrendingUp, Users, Layers } from 'lucide-react';
 import Papa from 'papaparse';
 
 ChartJS.register(ArcElement, BarElement, CategoryScale, LinearScale, LineElement, PointElement, Tooltip, Legend, Filler);
@@ -24,7 +24,22 @@ const CHART_OPTIONS = {
     scales: COMMON_SCALES
 };
 
-const RED_COLORS = ['#5b8def', '#e0485a', '#2fd9c4', '#f5a93f', '#4fd18b'];
+const PLATFORM_COLORS: Record<string, string> = {
+    'Facebook': '#1877F2',
+    'Instagram': '#E4405F',
+    'TikTok': '#000000',
+    'LinkedIn': '#0A66C2',
+    'YouTube': '#FF0000',
+    'X': '#1DA1F2',
+    'Medios Digitales': '#6366F1'
+};
+
+const RISK_COLORS: Record<string, string> = {
+    'Bajo': '#10B981',
+    'Medio': '#F59E0B',
+    'Alto': '#F97316',
+    'Crítico': '#EF4444'
+};
 
 export const ReportDashboard = ({ showToast, isAdmin, userRole }: any) => {
     const [allData, setAllData] = useState<ReportRow[]>([]);
@@ -32,14 +47,11 @@ export const ReportDashboard = ({ showToast, isAdmin, userRole }: any) => {
     const [sourceLabel, setSourceLabel] = useState('');
     const [fileInputKey, setFileInputKey] = useState(0);
     const [loadingDb, setLoadingDb] = useState(false);
-    const [filterYear, setFilterYear] = useState('');
-    const [filterMonth, setFilterMonth] = useState('');
     const [hasDbData, setHasDbData] = useState(false);
 
     const [searchTerm, setSearchTerm] = useState('');
-    const [filterTableSentiment, setFilterTableSentiment] = useState('');
-    const [filterTableRed, setFilterTableRed] = useState('');
-    const [filterTableCampus, setFilterTableCampus] = useState('');
+    const [filterPlatform, setFilterPlatform] = useState('');
+    const [filterRisk, setFilterRisk] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [isExportingPDF, setIsExportingPDF] = useState(false);
     const PAGE_SIZE = 10;
@@ -49,49 +61,26 @@ export const ReportDashboard = ({ showToast, isAdmin, userRole }: any) => {
 
     const isTrueAdmin = ['ADMIN_IT', 'ADMIN_CM'].includes(userRole);
 
-    const availableYears = useMemo(() => {
-        const years = new Set<string>();
-        allData.forEach(r => { const y = r.fechaInicio ? r.fechaInicio.split('-')[0] : ''; if (y) years.add(y); });
-        return Array.from(years).sort((a, b) => b.localeCompare(a));
-    }, [allData]);
+    const uniquePlatforms = useMemo(() => Array.from(new Set(rowData.map(r => r.fuenteDeteccion))).sort(), [rowData]);
+    const uniqueRisks = useMemo(() => ['Crítico', 'Alto', 'Medio', 'Bajo'].filter(r => rowData.some(row => row.nivelRiesgo === r)), [rowData]);
 
-    const availableMonths = useMemo(() => {
-        if (!filterYear) return [];
-        const months = new Set<string>();
-        allData.forEach(r => {
-            if (r.fechaInicio) {
-                const [y, m] = r.fechaInicio.split('-');
-                if (y === filterYear && m) months.add(m);
-            }
-        });
-        return Array.from(months).sort();
-    }, [allData, filterYear]);
-
-    const getMonthName = (m: string) => {
-        const names = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-        return names[parseInt(m, 10) - 1] || m;
-    };
-
-    const applyFilters = useCallback((data: ReportRow[], year: string, month: string) => {
+    const applyFilters = useCallback((data: ReportRow[], platform: string, risk: string) => {
         return data.filter(r => {
-            if (!r.fechaInicio) return !year && !month;
-            const [y, m] = r.fechaInicio.split('-');
-            if (year && y !== year) return false;
-            if (month && m !== month) return false;
+            if (platform && r.fuenteDeteccion !== platform) return false;
+            if (risk && r.nivelRiesgo !== risk) return false;
             return true;
         });
     }, []);
 
-    const handleYearChange = (year: string) => {
-        setFilterYear(year);
-        setFilterMonth('');
-        setRowData(applyFilters(allData, year, ''));
+    const handleFilterPlatformChange = (platform: string) => {
+        setFilterPlatform(platform);
+        setRowData(applyFilters(allData, platform, filterRisk));
         setCurrentPage(1);
     };
 
-    const handleMonthChange = (month: string) => {
-        setFilterMonth(month);
-        setRowData(applyFilters(allData, filterYear, month));
+    const handleFilterRiskChange = (risk: string) => {
+        setFilterRisk(risk);
+        setRowData(applyFilters(allData, filterPlatform, risk));
         setCurrentPage(1);
     };
 
@@ -110,32 +99,32 @@ export const ReportDashboard = ({ showToast, isAdmin, userRole }: any) => {
                 const data = results.data as any[];
                 if (!data.length) { showToast('CSV sin datos', true); return; }
                 
-                const required = ['Fecha Inicio', 'Red Social', 'Campus', 'Sentiment', 'Usuario', 'Comentario'];
-                const headers = Object.keys(data[0]);
-                const missing = required.filter(r => !headers.includes(r));
-                if (missing.length) { showToast(`Faltan columnas: ${missing.join(', ')}`, true); return; }
-
                 const parsed: ReportRow[] = data.map(vals => ({
-                    fechaInicio: vals['Fecha Inicio'] || '',
-                    fechaFin: vals['Fecha Fin'] || vals['Fecha Inicio'] || '',
-                    contenido: vals['Contenido Global'] || 'Orgánico',
-                    redSocial: vals['Red Social'] || 'Sin especificar',
-                    campus: vals['Campus'] || 'Sin especificar',
-                    sentiment: vals['Sentiment'] || 'Sin clasificar',
-                    usuario: vals['Usuario'] || 'Anónimo',
-                    comentario: vals['Comentario'] || '',
-                    posteoOriginal: vals['Posteo Original'] || '',
-                    evidencias: vals['Evidencias'] || ''
+                    id: vals['ID'] || '',
+                    fecha: vals['Fecha'] || vals['Fecha Inicio'] || '',
+                    fuenteDeteccion: vals['Plataforma'] || vals['Red Social'] || vals['Fuente Detección'] || 'Sin especificar',
+                    actorFuente: vals['Actor'] || vals['Usuario'] || vals['Fuente'] || 'Anónimo',
+                    tipoFuente: vals['Tipo'] || vals['Tipo Fuente'] || 'Sin clasificar',
+                    temaPrincipal: vals['Tema'] || vals['Tema Principal'] || 'Sin clasificar',
+                    nivelRiesgo: vals['Riesgo'] || vals['Nivel Riesgo'] || 'Bajo',
+                    alcanceActual: vals['Alcance'] || 'Sin especificar',
+                    tendencia: vals['Tendencia'] || 'Sin especificar',
+                    resumen: vals['Resumen'] || '',
+                    hallazgosClave: vals['Hallazgos'] || '',
+                    estado: vals['Estado'] || 'Monitoreo activo',
+                    area: vals['Área'] || vals['Area'] || 'Sin asignar',
+                    totalIncidencias: parseInt(vals['Total']) || 1,
+                    autor: vals['Autor'] || 'Administrador',
                 }));
                 
                 setAllData(parsed);
                 setRowData(parsed);
                 setHasDbData(false);
-                setFilterYear('');
-                setFilterMonth('');
+                setFilterPlatform('');
+                setFilterRisk('');
                 setSourceLabel(`CSV: ${file.name}`);
                 setCurrentPage(1);
-                showToast(`${parsed.length} registros cargados desde CSV`);
+                showToast(`${parsed.length} menciones cargadas desde CSV`);
             },
             error: () => showToast('Error al leer el CSV', true)
         });
@@ -148,19 +137,21 @@ export const ReportDashboard = ({ showToast, isAdmin, userRole }: any) => {
         if (!isTrueAdmin) { showToast('Permisos insuficientes', true); return; }
         setLoadingDb(true);
         try {
-            const commentsSnap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'comments'));
+            const incidentsSnap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'rrss_incidents'));
+            const mentions: ReportRow[] = [];
+            incidentsSnap.forEach(d => {
+                const data = d.data();
+                mentions.push(normalizeMention({ id: d.id, ...data }));
+            });
 
-            const comments: ReportRow[] = [];
-            commentsSnap.forEach(d => comments.push(...normalizeComments(d.data())));
-
-            setAllData(comments);
-            setRowData(comments);
+            setAllData(mentions);
+            setRowData(mentions);
             setHasDbData(true);
-            setFilterYear('');
-            setFilterMonth('');
-            setSourceLabel(`Firestore: ${comments.length} comentarios`);
+            setFilterPlatform('');
+            setFilterRisk('');
+            setSourceLabel(`Firestore: ${mentions.length} menciones`);
             setCurrentPage(1);
-            showToast(`${comments.length} registros de comentarios sincronizados`);
+            showToast(`${mentions.length} menciones sincronizadas`);
         } catch (err) {
             showToast('Error al conectar con la base de datos', true);
         } finally {
@@ -169,13 +160,13 @@ export const ReportDashboard = ({ showToast, isAdmin, userRole }: any) => {
     }, [isTrueAdmin, showToast]);
 
     const handleGeneratePDF = async () => {
-        if (!rowData.length) { showToast('No hay datos para estructurar el PDF', true); return; }
+        if (!rowData.length) { showToast('No hay datos para generar el PDF', true); return; }
         setIsExportingPDF(true);
         
         await new Promise(resolve => setTimeout(resolve, 1500));
         
         try {
-            await generatePDF(rowData, sourceLabel || 'Datos filtrados de la bitácora');
+            await generatePDF(rowData, sourceLabel || 'Datos filtrados de menciones');
             showToast('Reporte PDF generado exitosamente');
         } catch (error) {
             showToast('Hubo un error al compilar el documento', true);
@@ -184,79 +175,57 @@ export const ReportDashboard = ({ showToast, isAdmin, userRole }: any) => {
         }
     };
 
-    const uniqueSentiments = useMemo(() => Array.from(new Set(rowData.map(r => r.sentiment))).sort(), [rowData]);
-    const uniqueReds = useMemo(() => Array.from(new Set(rowData.map(r => r.redSocial))).sort(), [rowData]);
-    const uniqueCampus = useMemo(() => Array.from(new Set(rowData.map(r => r.campus))).sort(), [rowData]);
-
-    // 🔥 FIX DATA: Motor para la gráfica Agrupada (Side-by-Side) sin "Positivo"
-    const groupedSentiment = useMemo(() => {
-        const labels = uniqueReds;
-        const neuData: number[] = [];
-        const negData: number[] = [];
-
-        labels.forEach(network => {
-            const networkRows = rowData.filter(r => r.redSocial === network);
-            const total = networkRows.length;
-            if (total === 0) {
-                neuData.push(0); negData.push(0);
-                return;
-            }
-            const neu = networkRows.filter(r => r.sentiment === 'Neutral').length;
-            const neg = networkRows.filter(r => r.sentiment === 'Negativo').length;
-            
-            neuData.push(Math.round((neu / total) * 100));
-            negData.push(Math.round((neg / total) * 100));
-        });
-
-        return { labels, neuData, negData };
-    }, [rowData, uniqueReds]);
+    const platforms = calcPlatforms(rowData);
+    const riskLevels = calcRiskLevels(rowData);
+    const timeline = calcTimeline(rowData);
+    const topics = calcTopics(rowData);
+    const scope = calcScope(rowData);
+    const trends = calcTrends(rowData);
+    const topActors = calcTopActors(rowData);
+    const topicsByRisk = calcTopicsByRisk(rowData);
 
     const tableRows = useMemo(() => {
         return rowData.filter(r => {
-            if (filterTableSentiment && r.sentiment !== filterTableSentiment) return false;
-            if (filterTableRed && r.redSocial !== filterTableRed) return false;
-            if (filterTableCampus && r.campus !== filterTableCampus) return false;
             if (searchTerm) {
                 const s = searchTerm.toLowerCase();
-                return r.usuario.toLowerCase().includes(s) || r.comentario.toLowerCase().includes(s);
+                return r.actorFuente.toLowerCase().includes(s) || 
+                       r.resumen.toLowerCase().includes(s) ||
+                       r.tipoFuente.toLowerCase().includes(s) ||
+                       r.temaPrincipal.toLowerCase().includes(s);
             }
             return true;
-        }).sort((a, b) => (b.fechaInicio || '').localeCompare(a.fechaInicio || ''));
-    }, [rowData, searchTerm, filterTableSentiment, filterTableRed, filterTableCampus]);
+        }).sort((a, b) => (b.fecha || '').localeCompare(a.fecha || ''));
+    }, [rowData, searchTerm]);
 
     const totalPages = Math.max(1, Math.ceil(tableRows.length / PAGE_SIZE));
     const startIdx = (currentPage - 1) * PAGE_SIZE;
     const currentTableRows = tableRows.slice(startIdx, startIdx + PAGE_SIZE);
 
-    useEffect(() => { setCurrentPage(1); }, [searchTerm, filterTableSentiment, filterTableRed, filterTableCampus]);
-
-    const sentiment = calcSentiment(rowData);
-    const redSocial = calcRedSocial(rowData);
-    const origen = calcOrigen(rowData);
-    const trend = calcTrend(rowData);
-    const campusRank = calcCampusRanking(rowData);
-    const topUsers = calcTopUsers(rowData, 2, 8);
+    useEffect(() => { setCurrentPage(1); }, [searchTerm, filterPlatform, filterRisk]);
 
     const hasData = rowData.length > 0;
 
-    // 🔥 FIX UI: Dona con Porcentajes calculados para coincidir con tu captura
-    const doughnutData = useMemo(() => {
-        const total = sentiment.data.reduce((a, b) => a + b, 0) || 1;
-        const labelsWithPct = sentiment.labels.map((l, i) => {
-            const pct = Math.round((sentiment.data[i] / total) * 100);
-            return `${l}: ${pct}%`;
-        });
-        return {
-            labels: labelsWithPct,
-            datasets: [{ 
-                data: sentiment.data, 
-                backgroundColor: sentiment.colors, 
-                borderColor: 'transparent', 
-                borderWidth: 2, 
-                hoverOffset: 4 
-            }]
-        };
-    }, [sentiment]);
+    const platformDoughnutData = useMemo(() => ({
+        labels: platforms.labels,
+        datasets: [{ 
+            data: platforms.data, 
+            backgroundColor: platforms.labels.map(l => PLATFORM_COLORS[l] || '#6366F1'), 
+            borderColor: 'transparent', 
+            borderWidth: 2, 
+            hoverOffset: 4 
+        }]
+    }), [platforms]);
+
+    const riskDoughnutData = useMemo(() => ({
+        labels: riskLevels.labels,
+        datasets: [{ 
+            data: riskLevels.data, 
+            backgroundColor: riskLevels.colors, 
+            borderColor: 'transparent', 
+            borderWidth: 2, 
+            hoverOffset: 4 
+        }]
+    }), [riskLevels]);
 
     return (
         <div className="max-w-7xl mx-auto space-y-8 fade-in pb-20">
@@ -268,11 +237,11 @@ export const ReportDashboard = ({ showToast, isAdmin, userRole }: any) => {
                 <div className="relative z-10 flex flex-col md:flex-row md:items-start justify-between gap-6">
                     <div>
                         <p className="text-xs font-bold text-[var(--primary)] uppercase tracking-widest mb-3 flex items-center gap-2">
-                            <Database className="w-4 h-4" /> Módulo Analítico Avanzado
+                            <Database className="w-4 h-4" /> Módulo Analítico de Menciones
                         </p>
-                        <h2 className="text-4xl font-black theme-text-main mb-4 tracking-tight">Reportes de Comentarios</h2>
+                        <h2 className="text-4xl font-black theme-text-main mb-4 tracking-tight">Reportes de Menciones RRSS</h2>
                         <p className="theme-text-muted text-base max-w-2xl leading-relaxed">
-                            Genera informes visuales a partir de exportaciones de Comentarios. Sube un CSV o extrae los datos directamente desde el motor de Firebase.
+                            Análisis integral de menciones en redes sociales. Visualiza tendencias, riesgos y plataformas.
                         </p>
                     </div>
                     {hasData && (
@@ -282,7 +251,7 @@ export const ReportDashboard = ({ showToast, isAdmin, userRole }: any) => {
                             className="w-full md:w-auto py-3 px-6 rounded-xl bg-[var(--primary)] text-white font-bold text-sm hover:brightness-110 shadow-lg hover:shadow-[var(--primary)]/20 hover:-translate-y-1 transition-all duration-300 ease-out flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {isExportingPDF ? <Loader2 className="w-5 h-5 animate-spin"/> : <FileDown className="w-5 h-5" />}
-                            {isExportingPDF ? 'Validando Integridad...' : 'Generar PDF Ejecutivo'}
+                            {isExportingPDF ? 'Generando...' : 'Generar PDF Ejecutivo'}
                         </button>
                     )}
                 </div>
@@ -296,12 +265,12 @@ export const ReportDashboard = ({ showToast, isAdmin, userRole }: any) => {
                             <UploadCloud className="w-6 h-6" />
                         </div>
                         <div>
-                            <h3 className="font-bold theme-text-main text-base">Inyección por CSV</h3>
-                            <p className="text-xs theme-text-muted mt-1">Sube un archivo de Comentarios encriptado</p>
+                            <h3 className="font-bold theme-text-main text-base">Importar CSV de Menciones</h3>
+                            <p className="text-xs theme-text-muted mt-1">Sube un archivo con datos de menciones</p>
                         </div>
                     </div>
                     <button onClick={() => fileRef.current?.click()} className="w-full py-3.5 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-500 shadow-md transition-colors flex items-center justify-center gap-2">
-                        <FileUp className="w-4 h-4" /> Seleccionar Archivo CSV
+                        <UploadCloud className="w-4 h-4" /> Seleccionar Archivo CSV
                     </button>
                     <input key={fileInputKey} ref={fileRef} type="file" accept=".csv" onChange={handleFileUpload} className="hidden" />
                 </div>
@@ -313,89 +282,51 @@ export const ReportDashboard = ({ showToast, isAdmin, userRole }: any) => {
                                 <Database className="w-6 h-6" />
                             </div>
                             <div>
-                                <h3 className="font-bold theme-text-main text-base">Extracción en Vivo</h3>
-                                <p className="text-xs theme-text-muted mt-1">Comentarios desde Firestore en tiempo real</p>
+                                <h3 className="font-bold theme-text-main text-base">Sincronizar desde Firestore</h3>
+                                <p className="text-xs theme-text-muted mt-1">Menciones en tiempo real</p>
                             </div>
                         </div>
                         {!isTrueAdmin && <span className="px-2 py-1 bg-amber-500/10 text-amber-500 text-[10px] font-black uppercase rounded-md border border-amber-500/20">Bloqueado</span>}
                     </div>
                     <button onClick={loadFromFirestore} disabled={loadingDb || !isTrueAdmin} className="w-full py-3.5 rounded-xl bg-emerald-600 text-white font-bold text-sm hover:bg-emerald-500 shadow-md transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
-                        {loadingDb ? <><Box className="w-4 h-4 animate-spin" /> Escaneando motor...</> : <><Database className="w-4 h-4" /> Sincronizar Comentarios</>}
+                        {loadingDb ? <Loader2 className="w-4 h-4 animate-spin"/> : <Database className="w-4 h-4"/>}
+                        {loadingDb ? 'Sincronizando...' : 'Cargar desde Firestore'}
                     </button>
                 </div>
             </div>
 
-            {hasDbData && (
-                <div className="p-6 theme-bg-container border theme-border rounded-2xl shadow-sm border-l-[6px] border-l-[var(--accent-purple)]">
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-5">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2.5 bg-[var(--accent-purple)]/10 rounded-lg"><Filter className="w-5 h-5 text-[var(--accent-purple)]" /></div>
-                            <div>
-                                <h3 className="font-bold theme-text-main text-sm uppercase tracking-wider">Filtro de Temporalidad</h3>
-                                <p className="text-xs theme-text-muted mt-0.5">Aisla los datos por mes y año operativo</p>
-                            </div>
-                        </div>
-                        {filterYear && (
-                            <button onClick={() => { setFilterYear(''); setFilterMonth(''); setRowData(allData); }} className="text-xs font-bold text-[var(--accent-purple)] hover:text-[var(--accent-purple)]/80 transition-colors bg-[var(--accent-purple)]/10 px-3 py-1.5 rounded-md">Restablecer filtros</button>
-                        )}
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-1.5">
-                            <label className="text-xs font-bold theme-text-muted uppercase tracking-wider">Año Operativo</label>
-                            <select value={filterYear} onChange={(e) => handleYearChange(e.target.value)} className={inputStyles}>
-                                <option value="">Seleccionar Todo el Historial</option>
-                                {availableYears.map(y => <option key={y} value={y}>{y}</option>)}
-                            </select>
-                        </div>
-                        <div className="space-y-1.5">
-                            <label className="text-xs font-bold theme-text-muted uppercase tracking-wider">Mes Operativo</label>
-                            <select value={filterMonth} onChange={(e) => handleMonthChange(e.target.value)} disabled={!filterYear} className={`${inputStyles} disabled:opacity-50 disabled:cursor-not-allowed`}>
-                                <option value="">Todos los meses</option>
-                                {availableMonths.map(m => <option key={m} value={m}>{getMonthName(m)}</option>)}
-                            </select>
-                        </div>
-                    </div>
-                    <div className="mt-4 pt-4 border-t theme-border flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-[var(--accent-purple)] animate-pulse"></div>
-                        <p className="text-[11px] theme-text-muted font-bold">Base de datos segmentada: {rowData.length} de {allData.length} registros cargados en memoria.</p>
-                    </div>
-                </div>
-            )}
-
-            {!hasData && (
-                <div className="text-center py-24 theme-bg-container rounded-[2rem] border theme-border border-dashed shadow-sm">
-                    <div className="w-20 h-20 bg-black/5 dark:bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <BarChart3 className="w-10 h-10 theme-text-muted opacity-50" />
-                    </div>
-                    <h3 className="font-black theme-text-main text-xl mb-2">Lienzo en Blanco</h3>
-                    <p className="theme-text-muted text-sm max-w-md mx-auto">Sube un archivo CSV validado o sincroniza la base de datos de Firebase para encender el motor de reportes.</p>
-                </div>
-            )}
-
             {hasData && (
                 <>
-                    {/* KPIs TIPO STATCARD */}
+                    {/* KPIs */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <KpiCard icon={FileText} label="Total Registros" value={rowData.length} color="#5b8def" />
-                        <KpiCard icon={AlertTriangle} label="% Negativo" value={`${sentiment.data[0] !== undefined ? Math.round((rowData.filter(r => r.sentiment === 'Negativo').length / rowData.length) * 100) : 0}%`} color="#e0485a" />
-                        <KpiCard icon={MapPin} label="Campus Crítico" value={campusRank[0] ? campusRank[0][1] : '—'} sub={campusRank[0]?.[0]} color="#f5a93f" />
-                        <KpiCard icon={Share2} label="Red Dominante" value={redSocial.data[0] !== undefined ? redSocial.data[0] : '—'} sub={redSocial.labels[0]} color="#2fd9c4" />
+                        <KpiCard icon={FileText} label="Total Menciones" value={rowData.length} color="#5b8def" />
+                        <KpiCard icon={AlertTriangle} label="Riesgo Crítico" value={rowData.filter(r => r.nivelRiesgo === 'Crítico').length} color="#e0485a" />
+                        <KpiCard icon={Target} label="Plataforma Top" value={platforms.labels[0] || '—'} sub={`${platforms.data[0] || 0} menciones`} color="#2fd9c4" />
+                        <KpiCard icon={TrendingUp} label="Tendencia Top" value={trends.labels[0] || '—'} sub={`${trends.data[0] || 0} menciones`} color="#f5a93f" />
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <ChartCard title="Sentimiento Analítico" sub="Distribución global por tono (%)">
-                            <div className="h-56"><Doughnut data={doughnutData} options={{...CHART_OPTIONS, cutout: '65%'}} /></div>
+                    {/* GRÁFICAS PRINCIPALES */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <ChartCard title="Distribución por Plataforma" sub="Menciones por red social">
+                            <div className="h-64"><Doughnut data={platformDoughnutData} options={{...CHART_OPTIONS, cutout: '60%'}} /></div>
                         </ChartCard>
                         
-                        {/* 🔥 FIX UI: Gráfica de Barras Agrupadas sin Positivo, idéntica a tu captura */}
-                        <ChartCard title="Sentimiento x Plataforma" sub="Porcentaje de cada tono relativo al total de cada plataforma">
-                            <div className="h-56">
+                        <ChartCard title="Distribución por Nivel de Riesgo" sub="Clasificación de severidad">
+                            <div className="h-64"><Doughnut data={riskDoughnutData} options={{...CHART_OPTIONS, cutout: '60%'}} /></div>
+                        </ChartCard>
+                    </div>
+
+                    {/* EVOLUCIÓN TEMPORAL */}
+                    <div className="grid grid-cols-1 gap-6">
+                        <ChartCard title="Evolución Temporal de Menciones" sub="Volumen y distribución por riesgo en el tiempo">
+                            <div className="h-[320px]">
                                 <Bar 
                                     data={{ 
-                                        labels: groupedSentiment.labels, 
+                                        labels: timeline.labels, 
                                         datasets: [
-                                            { label: 'Negativo', data: groupedSentiment.negData, backgroundColor: '#e0485a', borderRadius: 4 },
-                                            { label: 'Neutral', data: groupedSentiment.neuData, backgroundColor: '#7c8db5', borderRadius: 4 }
+                                            { label: 'Total', data: timeline.totals, backgroundColor: '#5b8def', borderRadius: 4 },
+                                            { label: 'Crítico', data: timeline.criticos, backgroundColor: '#e0485a', borderRadius: 4 },
+                                            { label: 'Alto', data: timeline.altos, backgroundColor: '#f5a93f', borderRadius: 4 }
                                         ] 
                                     }} 
                                     options={{
@@ -403,179 +334,148 @@ export const ReportDashboard = ({ showToast, isAdmin, userRole }: any) => {
                                         plugins: { legend: { display: true, position: 'bottom', labels: { color: '#93a2c0', boxWidth: 10, boxHeight: 10, padding: 10 } } },
                                         scales: {
                                             x: { ...COMMON_SCALES.x },
-                                            y: { ...COMMON_SCALES.y, max: 100, ticks: { ...COMMON_SCALES.y.ticks, callback: (v: any) => v + '%' } }
+                                            y: { ...COMMON_SCALES.y, beginAtZero: true }
                                         }
                                     }} 
                                 />
                             </div>
                         </ChartCard>
-
-                        <ChartCard title="Origen del Contenido" sub="Métricas Orgánico vs Pautado">
-                            <div className="h-56"><Bar data={{ labels: origen.labels, datasets: [{ label: 'Registros', data: origen.totals, backgroundColor: '#5b8def', borderRadius: 6 }, { label: '% Negativo', data: origen.negPct, backgroundColor: '#e0485a', borderRadius: 6 }] }} options={{ ...CHART_OPTIONS, scales: { ...COMMON_SCALES, y: { ...COMMON_SCALES.y, beginAtZero: true } } }} /></div>
-                        </ChartCard>
                     </div>
 
+                    {/* TEMAS POR RIESGO */}
                     <div className="grid grid-cols-1 gap-6">
-                        <ChartCard title="Tendencia Cronológica" sub="Volumen y curva de negatividad por corte temporal">
-                            <div className="h-[380px]">
-                                <Line 
+                        <ChartCard title="Temas por Nivel de Riesgo" sub="Análisis cruzado de temas y severidad">
+                            <div className="h-[300px]">
+                                <Bar 
                                     data={{ 
-                                        labels: trend.labels, 
+                                        labels: topicsByRisk.labels, 
                                         datasets: [
-                                            { 
-                                                label: 'Comentarios Totales', 
-                                                data: trend.totals, 
-                                                backgroundColor: 'rgba(91,141,239,0.2)', 
-                                                borderColor: '#5b8def', 
-                                                borderWidth: 3,
-                                                fill: true, 
-                                                tension: 0.4, 
-                                                pointRadius: 5,
-                                                pointHoverRadius: 7,
-                                                pointBackgroundColor: '#5b8def',
-                                                pointBorderColor: '#101a2e',
-                                                pointBorderWidth: 2,
-                                                clip: false, 
-                                                yAxisID: 'y' 
-                                            }, 
-                                            { 
-                                                label: '% Negatividad', 
-                                                data: trend.negPct, 
-                                                borderColor: '#e0485a', 
-                                                backgroundColor: '#e0485a', 
-                                                borderWidth: 3,
-                                                tension: 0.4, 
-                                                borderDash: [6, 4], 
-                                                pointRadius: 5,
-                                                pointHoverRadius: 7,
-                                                pointBackgroundColor: '#e0485a',
-                                                pointBorderColor: '#101a2e',
-                                                pointBorderWidth: 2,
-                                                clip: false, 
-                                                yAxisID: 'y1' 
-                                            }
+                                            { label: 'Crítico', data: topicsByRisk.critico, backgroundColor: '#e0485a', borderRadius: 4 },
+                                            { label: 'Alto', data: topicsByRisk.alto, backgroundColor: '#f5a93f', borderRadius: 4 },
+                                            { label: 'Medio', data: topicsByRisk.medio, backgroundColor: '#7c8db5', borderRadius: 4 },
+                                            { label: 'Bajo', data: topicsByRisk.bajo, backgroundColor: '#10B981', borderRadius: 4 }
                                         ] 
                                     }} 
-                                    options={{ 
-                                        responsive: true, 
-                                        maintainAspectRatio: false, 
-                                        interaction: { mode: 'index', intersect: false },
-                                        layout: { padding: { top: 25, right: 25, left: 15, bottom: 5 } },
-                                        scales: { 
-                                            x: { 
-                                                ...COMMON_SCALES.x, 
-                                                ticks: { ...COMMON_SCALES.x.ticks, maxRotation: 0, minRotation: 0, autoSkip: true, maxTicksLimit: 12, font: { size: 10.5 }, padding: 10 } 
-                                            }, 
-                                            y: { 
-                                                ...COMMON_SCALES.y, position: 'left', grace: '25%' 
-                                            }, 
-                                            y1: { 
-                                                beginAtZero: true, max: 100, position: 'right', grid: { display: false }, ticks: { color: '#93a2c0' }, border: { display: false }, grace: '25%' 
-                                            } 
-                                        }, 
-                                        plugins: CHART_OPTIONS.plugins 
+                                    options={{
+                                        ...CHART_OPTIONS, 
+                                        indexAxis: 'y' as const,
+                                        plugins: { legend: { display: true, position: 'bottom', labels: { color: '#93a2c0', boxWidth: 10, boxHeight: 10, padding: 10 } } },
+                                        scales: {
+                                            x: { ...COMMON_SCALES.x, stacked: true, beginAtZero: true },
+                                            y: { ...COMMON_SCALES.y, stacked: true }
+                                        }
                                     }} 
                                 />
                             </div>
                         </ChartCard>
                     </div>
 
+                    {/* TOP ACTORES */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <ChartCard title="Radiografía de Campus" sub="Ranking descendente de incidencias">
-                            <div className="space-y-4 pt-2">
-                                {campusRank.slice(0, 8).map(([name, count], i) => {
-                                    const max = campusRank[0]?.[1] || 1;
-                                    const pct = Math.max(4, Math.round((count / max) * 100));
-                                    return (
-                                        <div key={name} className="flex items-center gap-3">
-                                            <span className="text-xs font-black theme-text-muted w-4">{i + 1}</span>
-                                            <span className="text-xs font-semibold theme-text-main w-36 truncate" title={name}>{name}</span>
-                                            <div className="flex-1 h-2.5 bg-black/5 dark:bg-white/5 rounded-full overflow-hidden shadow-inner">
-                                                <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${pct}%`, background: name === 'Sin especificar' ? '#f5a93f' : '#5b8def' }}></div>
-                                            </div>
-                                            <span className="text-xs font-black theme-text-main w-8 text-right">{count}</span>
+                        <ChartCard title="Top Actores / Fuentes" sub="Fuentes con más menciones registradas">
+                            <div className="space-y-3 pt-2">
+                                {topActors.length ? topActors.slice(0, 6).map((actor, i) => (
+                                    <div key={actor.name} className="flex items-center gap-3">
+                                        <span className="text-xs font-black theme-text-muted w-4">{i + 1}</span>
+                                        <span className="text-xs font-semibold theme-text-main w-32 truncate" title={actor.name}>{actor.name}</span>
+                                        <div className="flex-1 h-2.5 bg-black/5 dark:bg-white/5 rounded-full overflow-hidden shadow-inner">
+                                            <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${Math.max(4, (actor.count / (topActors[0]?.count || 1)) * 100)}%`, background: RISK_COLORS[actor.dominantRisk] || '#5b8def' }}></div>
                                         </div>
-                                    );
-                                })}
+                                        <span className="text-xs font-black theme-text-main w-8 text-right">{actor.count}</span>
+                                    </div>
+                                )) : <p className="text-sm font-medium theme-text-muted py-6 text-center">No hay actores registrados.</p>}
                             </div>
                         </ChartCard>
-                        <ChartCard title="Radar de Autores Recurrentes" sub="Usuarios con 2 o más interacciones en el periodo actual">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                                {topUsers.length ? topUsers.map(u => (
-                                    <div key={u.name} className="flex items-center justify-between p-4 theme-bg-low rounded-xl border theme-border hover:border-[var(--primary)]/50 transition-colors shadow-sm">
-                                        <div className="truncate pr-2">
-                                            <p className="text-sm font-bold theme-text-main truncate" title={u.name}>{u.name}</p>
-                                            <p className="text-[11px] font-semibold theme-text-muted mt-0.5">Tono: <span style={{ color: sentimentColor(u.dominant) }}>{u.dominant}</span></p>
+
+                        <ChartCard title="Alcance y Tendencia" sub="Distribución de alcance actual y tendencia">
+                            <div className="grid grid-cols-2 gap-4 pt-2">
+                                <div>
+                                    <p className="text-xs font-bold theme-text-muted mb-2 uppercase">Alcance</p>
+                                    {scope.labels.slice(0, 5).map((label, i) => (
+                                        <div key={label} className="flex items-center gap-2 mb-2">
+                                            <span className="text-[10px] font-semibold theme-text-main w-20 truncate">{label}</span>
+                                            <div className="flex-1 h-2 bg-black/5 dark:bg-white/5 rounded-full overflow-hidden">
+                                                <div className="h-full bg-[var(--primary)] rounded-full" style={{ width: `${(scope.data[i] / (scope.data[0] || 1)) * 100}%` }}></div>
+                                            </div>
+                                            <span className="text-[10px] font-bold theme-text-muted w-6 text-right">{scope.data[i]}</span>
                                         </div>
-                                        <span className="px-3 py-1 rounded-lg text-xs font-black border flex-shrink-0" style={{ background: `${sentimentColor(u.dominant)}15`, color: sentimentColor(u.dominant), borderColor: `${sentimentColor(u.dominant)}40` }}>{u.count}×</span>
-                                    </div>
-                                )) : <p className="text-sm font-medium theme-text-muted py-6 col-span-full">Ningún usuario con comportamiento recurrente detectado.</p>}
+                                    ))}
+                                </div>
+                                <div>
+                                    <p className="text-xs font-bold theme-text-muted mb-2 uppercase">Tendencia</p>
+                                    {trends.labels.map((label, i) => (
+                                        <div key={label} className="flex items-center gap-2 mb-2">
+                                            <span className="text-[10px] font-semibold theme-text-main w-20 truncate">{label}</span>
+                                            <div className="flex-1 h-2 bg-black/5 dark:bg-white/5 rounded-full overflow-hidden">
+                                                <div className="h-full rounded-full" style={{ width: `${(trends.data[i] / (trends.data[0] || 1)) * 100}%`, background: label === 'Aumentando' ? '#EF4444' : label === 'Estable' ? '#10B981' : '#3B82F6' }}></div>
+                                            </div>
+                                            <span className="text-[10px] font-bold theme-text-muted w-6 text-right">{trends.data[i]}</span>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         </ChartCard>
                     </div>
 
-                    {/* TABLA BITÁCORA PREMIUM ENGIE */}
+                    {/* TABLA BITÁCORA */}
                     <div className="p-6 sm:p-8 theme-bg-container border theme-border rounded-[2rem] shadow-sm overflow-hidden">
                         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-5 mb-6">
                             <div>
-                                <h3 className="font-black theme-text-main text-xl uppercase tracking-wider flex items-center gap-2"><FileText className="w-6 h-6 text-[var(--primary)]"/> Motor de Trazabilidad</h3>
-                                <p className="text-xs theme-text-muted mt-1 font-medium">Búsqueda rápida en la memoria de los {rowData.length} registros cargados</p>
+                                <h3 className="font-black theme-text-main text-xl uppercase tracking-wider flex items-center gap-2"><FileText className="w-6 h-6 text-[var(--primary)]"/> Bitácora de Menciones</h3>
+                                <p className="text-xs theme-text-muted mt-1 font-medium">Búsqueda rápida en {rowData.length} registros</p>
                             </div>
                             <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
                                 <div className="relative flex-1 sm:min-w-[220px]">
                                     <Search className="w-4 h-4 absolute left-3.5 top-3.5 theme-text-muted" />
-                                    <input type="text" placeholder="Filtrar por autor o comentario..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className={`${inputStyles} pl-10`} />
+                                    <input type="text" placeholder="Filtrar por actor, tema o tipo..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className={`${inputStyles} pl-10`} />
                                 </div>
-                                <select value={filterTableSentiment} onChange={e => setFilterTableSentiment(e.target.value)} className={inputStyles}>
-                                    <option value="">Sentimiento: Todos</option>
-                                    {uniqueSentiments.map(s => <option key={s} value={s}>{s}</option>)}
+                                <select value={filterPlatform} onChange={e => handleFilterPlatformChange(e.target.value)} className={inputStyles}>
+                                    <option value="">Plataforma: Todas</option>
+                                    {uniquePlatforms.map(p => <option key={p} value={p}>{p}</option>)}
                                 </select>
-                                <select value={filterTableRed} onChange={e => setFilterTableRed(e.target.value)} className={inputStyles}>
-                                    <option value="">Red Social: Todas</option>
-                                    {uniqueReds.map(r => <option key={r} value={r}>{r}</option>)}
-                                </select>
-                                <select value={filterTableCampus} onChange={e => setFilterTableCampus(e.target.value)} className={inputStyles}>
-                                    <option value="">Campus: Todos</option>
-                                    {uniqueCampus.map(c => <option key={c} value={c}>{c}</option>)}
+                                <select value={filterRisk} onChange={e => handleFilterRiskChange(e.target.value)} className={inputStyles}>
+                                    <option value="">Riesgo: Todos</option>
+                                    {uniqueRisks.map(r => <option key={r} value={r}>{r}</option>)}
                                 </select>
                             </div>
                         </div>
 
                         <div className="overflow-x-auto border theme-border rounded-xl custom-scrollbar">
-                            <table className="w-full text-left border-collapse min-w-[950px]">
+                            <table className="w-full text-left border-collapse min-w-[900px]">
                                 <thead>
                                     <tr className="theme-bg-low border-b theme-border text-[10.5px] theme-text-muted uppercase tracking-widest">
                                         <th className="p-4 font-bold rounded-tl-xl">Fecha</th>
-                                        <th className="p-4 font-bold">Campus</th>
-                                        <th className="p-4 font-bold">Red Social</th>
-                                        <th className="p-4 font-bold">Sentimiento</th>
-                                        <th className="p-4 font-bold">Origen</th>
-                                        <th className="p-4 font-bold">Usuario</th>
-                                        <th className="p-4 font-bold max-w-[300px]">Comentario</th>
-                                        <th className="p-4 font-bold text-center rounded-tr-xl">Evidencia</th>
+                                        <th className="p-4 font-bold">Plataforma</th>
+                                        <th className="p-4 font-bold">Tipo</th>
+                                        <th className="p-4 font-bold">Riesgo</th>
+                                        <th className="p-4 font-bold">Tema</th>
+                                        <th className="p-4 font-bold">Alcance</th>
+                                        <th className="p-4 font-bold">Actor</th>
+                                        <th className="p-4 font-bold text-center rounded-tr-xl">Estado</th>
                                     </tr>
                                 </thead>
                                 <tbody className="text-sm theme-text-secondary">
                                     {currentTableRows.length === 0 ? (
-                                        <tr><td colSpan={8} className="p-12 text-center font-bold theme-text-muted border-t theme-border bg-black/5 dark:bg-white/5">La combinación de filtros no devolvió ningún resultado.</td></tr>
+                                        <tr><td colSpan={8} className="p-12 text-center font-bold theme-text-muted border-t theme-border bg-black/5 dark:bg-white/5">No se encontraron resultados.</td></tr>
                                     ) : currentTableRows.map((r, i) => (
                                         <tr key={i} className="border-b theme-border hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
-                                            <td className="p-4 whitespace-nowrap font-mono text-xs font-semibold">{r.fechaInicio}</td>
-                                            <td className="p-4 whitespace-nowrap font-medium">{r.campus}</td>
-                                            <td className="p-4 whitespace-nowrap font-medium">{r.redSocial}</td>
+                                            <td className="p-4 whitespace-nowrap font-mono text-xs font-semibold">{r.fecha}</td>
                                             <td className="p-4 whitespace-nowrap">
-                                                <span className="px-2.5 py-1 text-[10px] font-black rounded-md uppercase border" style={{ background: `${sentimentColor(r.sentiment)}15`, color: sentimentColor(r.sentiment), borderColor: `${sentimentColor(r.sentiment)}40` }}>
-                                                    {r.sentiment}
+                                                <span className="px-2 py-1 text-[10px] font-bold rounded-md" style={{ background: `${PLATFORM_COLORS[r.fuenteDeteccion] || '#6366F1'}20`, color: PLATFORM_COLORS[r.fuenteDeteccion] || '#6366F1' }}>
+                                                    {r.fuenteDeteccion}
                                                 </span>
                                             </td>
-                                            <td className="p-4 whitespace-nowrap text-xs font-semibold">{r.contenido}</td>
-                                            <td className="p-4 font-bold theme-text-main text-xs">{r.usuario}</td>
-                                            <td className="p-4 max-w-[300px] truncate text-xs" title={r.comentario}>{r.comentario}</td>
+                                            <td className="p-4 whitespace-nowrap text-xs font-semibold">{r.tipoFuente}</td>
                                             <td className="p-4 whitespace-nowrap">
-                                                <div className="flex gap-2 justify-center">
-                                                    {r.posteoOriginal && <a href={r.posteoOriginal} target="_blank" rel="noreferrer" className="text-[var(--primary)] hover:brightness-125 flex items-center gap-1 text-[11px] font-bold transition-colors uppercase"><ExternalLink className="w-3.5 h-3.5"/> Post</a>}
-                                                    {r.evidencias && <a href={r.evidencias} target="_blank" rel="noreferrer" className="text-emerald-500 hover:text-emerald-400 flex items-center gap-1 text-[11px] font-bold transition-colors uppercase"><FileText className="w-3.5 h-3.5"/> Doc</a>}
-                                                </div>
+                                                <span className="px-2 py-1 text-[10px] font-bold rounded-md" style={{ background: `${RISK_COLORS[r.nivelRiesgo] || '#6B7280'}20`, color: RISK_COLORS[r.nivelRiesgo] || '#6B7280' }}>
+                                                    {r.nivelRiesgo}
+                                                </span>
+                                            </td>
+                                            <td className="p-4 whitespace-nowrap text-xs">{r.temaPrincipal}</td>
+                                            <td className="p-4 whitespace-nowrap text-xs">{r.alcanceActual}</td>
+                                            <td className="p-4 font-bold theme-text-main text-xs truncate max-w-[150px]" title={r.actorFuente}>{r.actorFuente}</td>
+                                            <td className="p-4 whitespace-nowrap text-center">
+                                                <span className="px-2 py-1 text-[10px] font-bold rounded-md bg-emerald-500/10 text-emerald-600">{r.estado}</span>
                                             </td>
                                         </tr>
                                     ))}
@@ -596,30 +496,28 @@ export const ReportDashboard = ({ showToast, isAdmin, userRole }: any) => {
     );
 };
 
-const KpiCard = ({ label, value, sub, color, icon: Icon }: any) => (
-    <div className="p-6 theme-bg-container rounded-2xl border theme-border shadow-sm relative overflow-hidden group">
-        <Icon className="w-16 h-16 absolute -right-3 -bottom-3 opacity-10 group-hover:scale-110 transition-transform duration-500" style={{ color }} />
-        <div className="relative z-10">
-            <p className="text-[10px] font-bold uppercase tracking-widest theme-text-muted">{label}</p>
-            <p className="text-4xl font-black theme-text-main mt-2 mb-1">{value}</p>
-            {sub && <p className="text-[11px] font-bold truncate tracking-wide" style={{ color }}>{sub}</p>}
+const KpiCard = ({ icon: Icon, label, value, sub, color }: any) => (
+    <div className="p-5 theme-bg-container border theme-border rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 group relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-24 h-24 opacity-5 group-hover:scale-110 transition-transform duration-500" style={{ background: `radial-gradient(circle, ${color} 0%, transparent 70%)` }}></div>
+        <div className="flex items-start justify-between relative z-10">
+            <div>
+                <p className="text-xs font-bold theme-text-muted uppercase tracking-wider mb-2">{label}</p>
+                <p className="text-3xl font-black theme-text-main" style={{ color }}>{value}</p>
+                {sub && <p className="text-xs font-semibold theme-text-muted mt-1">{sub}</p>}
+            </div>
+            <div className="p-3 rounded-xl" style={{ background: `${color}15` }}>
+                <Icon className="w-5 h-5" style={{ color }} />
+            </div>
         </div>
     </div>
 );
 
 const ChartCard = ({ title, sub, children }: any) => (
-    <div className="p-6 theme-bg-container border theme-border rounded-2xl shadow-sm h-full flex flex-col">
-        <h4 className="font-bold theme-text-main text-base">{title}</h4>
-        <p className="text-xs font-medium theme-text-muted mb-5 mt-0.5">{sub}</p>
-        <div className="flex-1 relative">
-            {children}
+    <div className="p-6 theme-bg-container border theme-border rounded-2xl shadow-sm">
+        <div className="mb-4">
+            <h3 className="font-bold theme-text-main text-sm">{title}</h3>
+            {sub && <p className="text-xs theme-text-muted mt-0.5">{sub}</p>}
         </div>
+        {children}
     </div>
 );
-
-const sentimentColor = (s: string) => {
-    if (s === 'Negativo') return '#e0485a';
-    if (s === 'Neutral') return '#7c8db5';
-    if (s === 'Positivo') return '#4fd18b';
-    return '#5b8def';
-};

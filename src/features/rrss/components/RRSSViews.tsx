@@ -48,7 +48,7 @@ export const NewRRSSIncidentView = ({ isAdmin, showToast, navigate, user, logAct
         actorFuente: '', fuenteDeteccion: 'Facebook', tipoFuente: 'Queja',
         temaPrincipal: 'Seguridad y regulación', nivelRiesgoReputacional: 'Bajo',
         alcanceActual: 'Aislado', tendencia: 'Estable',
-        campus: 'Atizapán', resumenIncidente: '', hallazgosClave: '',
+        resumenIncidente: '', hallazgosClave: '',
         enlacePublicacion: '', enlaceDrive: '', reporteTexto: '', estado: 'Monitoreo activo'
     });
 

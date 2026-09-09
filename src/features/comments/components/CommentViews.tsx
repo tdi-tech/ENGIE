@@ -699,18 +699,17 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
 
         setTimeout(() => {
             const headers = isAdmin 
-                ? ['Fecha Publicación,Hora Detección,Fuente Monitoreo,Evidencias,Red Social,Campus,Sentiment,Usuario,Tipo Posteo,Posteo Original,Comentario,Autor'] 
-                : ['Fecha Publicación,Hora Detección,Fuente Monitoreo,Evidencias,Red Social,Campus,Sentiment,Usuario,Tipo Posteo,Posteo Original,Comentario'];
+                ? ['Fecha Publicación,Hora Detección,Fuente Monitoreo,Evidencias,Canal,Usuario,Tipo de Actor,Sentimiento,Nivel de Riesgo,Estatus,Narrativa,Link Publicación,Hallazgo Reputacional,Autor'] 
+                : ['Fecha Publicación,Hora Detección,Fuente Monitoreo,Evidencias,Canal,Usuario,Tipo de Actor,Sentimiento,Nivel de Riesgo,Estatus,Narrativa,Link Publicación,Hallazgo Reputacional'];
             
             const rows = dataToExport.flatMap((i: any) => {
                 const list = getNormalizedComments(i);
                 return list.map((c: any) => {
                     const escape = (text: string) => `"${(text || '').toString().replace(/"/g, '""')}"`;
-                    const posteoOriginal = c.posteoTipo === 'url' ? c.posteoUrl : c.posteoTexto;
                     const baseData = [
                         escape(i.fechaPublicacion), escape(i.horaDeteccion), escape(i.fuenteMonitoreo), escape(i.evidencia),
-                        escape(c.redSocial), escape(c.campus), escape(c.sentiment || 'N/A'), escape(c.usuario),
-                        escape(c.posteoTipo), escape(posteoOriginal), escape(c.comentario)
+                        escape(c.canal || 'N/D'), escape(c.usuario), escape(c.tipoActor || ''), escape(c.sentiment || 'N/A'),
+                        escape(c.nivelRiesgo || ''), escape(c.estatus || ''), escape(c.comentario), escape(c.linkPublicacion), escape(c.hallazgo || '')
                     ].join(',');
                     return isAdmin ? `${baseData},${escape(i.autor || 'Admin')}` : baseData;
                 });
@@ -858,7 +857,7 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
                                                                             const list = getNormalizedComments(com);
                                                                             const firstComment = list[0];
                                                                             const hasMore = list.length > 1;
-                                                                            const uniqueNetworks = Array.from(new Set(list.map((c: any) => c.redSocial)));
+                                                                            const uniqueNetworks = Array.from(new Set(list.map((c: any) => c.canal)));
                                                                             const hasNegative = list.some((c: any) => c.sentiment === 'Negativo');
                                                                             const cardSentimentStatus = hasNegative ? 'Negativo' : (list.some((c: any) => c.sentiment === 'Neutral') ? 'Neutral' : '');
 
@@ -899,7 +898,7 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
                                                                                     </div>
                                                                                     <div className="text-sm theme-text-main line-clamp-2 min-h-[40px] opacity-90 mb-1 w-full"><span className="font-bold mr-1">{firstComment.usuario}:</span>{firstComment.comentario}</div>
                                                                                     {hasMore && <p className="text-[10px] font-bold text-blue-500 mb-2">+ {list.length - 1} comentario(s) más</p>}
-                                                                                    <div className="mt-auto pt-3 border-t theme-border flex flex-wrap gap-2 items-center w-full"><span className="px-2 py-1 text-[10px] font-bold rounded-md bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">{com.fuenteMonitoreo || com.contenido || 'Fuente de monitoreo'}</span><SentimentBadge sentiment={cardSentimentStatus} />{uniqueNetworks.map((net: any) => <span key={net} className={`px-2 py-1 text-[10px] font-bold rounded-md border ${isSelectionMode && isSelected ? 'bg-red-500/20 border-red-500/30 text-red-600 dark:text-red-400' : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 border-gray-200 dark:border-gray-700'}`}>{net}</span>)}</div>
+                                                                                    <div className="mt-auto pt-3 border-t theme-border flex flex-wrap gap-2 items-center w-full"><span className="px-2 py-1 text-[10px] font-bold rounded-md bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">{com.fuenteMonitoreo || 'Fuente de monitoreo'}</span><SentimentBadge sentiment={cardSentimentStatus} />{uniqueNetworks.map((net: any) => <span key={net} className={`px-2 py-1 text-[10px] font-bold rounded-md border ${isSelectionMode && isSelected ? 'bg-red-500/20 border-red-500/30 text-red-600 dark:text-red-400' : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 border-gray-200 dark:border-gray-700'}`}>{net}</span>)}</div>
                                                                                 </button>
                                                                             );
                                                                         })}
@@ -1054,7 +1053,7 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
                                 {getNormalizedComments(selectedComment).map((c: any, idx: number) => (
                                     <div key={c.id || idx} className={`p-4 theme-bg-low rounded-xl border space-y-3 ${c.sentiment === 'Negativo' ? 'border-red-500/30 bg-red-500/5' : 'theme-border'}`}>
                                         <div className="flex flex-wrap items-center gap-2 border-b theme-border pb-2 border-dashed">
-                                            <span className="flex items-center gap-1 text-[10px] font-bold text-gray-500 uppercase tracking-wider"><Share2 className="w-3 h-3"/> {c.fuenteMonitoreo === 'Medios digitales' ? 'Medio digital' : (c.redSocial || 'N/D')}</span>
+                                            <span className="flex items-center gap-1 text-[10px] font-bold text-gray-500 uppercase tracking-wider"><Share2 className="w-3 h-3"/> {c.fuenteMonitoreo === 'Medios digitales' ? 'Medio digital' : (c.canal || 'N/D')}</span>
                                             <span className="text-gray-300 dark:text-gray-600">|</span>
                                             {isUrl(c.usuario) ? (<a href={c.usuario} target="_blank" rel="noreferrer" title={c.usuario} className="font-bold text-sm text-blue-500 hover:underline inline-flex items-center gap-1"><LinkIcon className="w-3 h-3 flex-shrink-0" /> Enlace</a>) : (<span className="font-bold text-sm text-blue-500 break-all">{c.usuario}</span>)}
                                             {c.tipoActor && (<><span className="text-gray-300 dark:text-gray-600">|</span><span className="text-[10px] font-bold theme-text-muted uppercase tracking-wider">Actor: <span className="theme-text-main normal-case">{c.tipoActor}</span></span></>)}
@@ -1159,10 +1158,9 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
                                                     <div><label htmlFor={`er-estatus-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Estatus</label>
                                                         <select id={`er-estatus-${idx}`} value={c.estatus} onChange={(e) => updateEditRegistro(idx, 'estatus', e.target.value)} className={`${inputStyles} ${!c.estatus ? 'text-gray-400' : ''}`}>
                                                             <option value="" disabled>Seleccionar estatus...</option>
-                                                            <option value="Monitoreo activo" className="text-yellow-600 dark:text-yellow-400">🟡 Monitoreo activo</option>
-                                                            <option value="En revisión" className="text-orange-600 dark:text-orange-400">🟠 En revisión</option>
-                                                            <option value="Seguimiento activo" className="text-blue-600 dark:text-blue-400">🔵 Seguimiento activo</option>
-                                                            <option value="Resuelto / solucionado" className="text-green-600 dark:text-green-400">🟢 Resuelto / solucionado</option>
+                                                            <option value="Monitoreando" className="text-yellow-600 dark:text-yellow-400">🟡 Monitoreando</option>
+                                                            <option value="Escalado" className="text-red-600 dark:text-red-400">🔴 Escalado</option>
+                                                            <option value="Cerrado" className="text-green-600 dark:text-green-400">🟢 Cerrado</option>
                                                         </select>
                                                     </div>
 <div className="md:col-span-2"><label htmlFor={`er-narrativa-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Narrativa</label><textarea id={`er-narrativa-${idx}`} required rows={2} value={c.narrativa} onChange={(e) => updateEditRegistro(idx, 'narrativa', e.target.value)} className={`${inputStyles} resize-none leading-relaxed`}></textarea></div>
@@ -1189,11 +1187,11 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
                                                     <div><label htmlFor={`ed-sen-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Sentimiento de la Mención</label>
                                                         <select id={`ed-sen-${idx}`} required value={c.sentimiento} onChange={(e) => updateEditRegistroDigital(idx, 'sentimiento', e.target.value)} className={`${inputStyles} ${!c.sentimiento ? 'text-gray-400' : ''}`}>
                                                             <option value="" disabled>Seleccionar sentimiento...</option>
-<option value="Neutral" className="text-yellow-600 dark:text-yellow-400">🟡 Neutral</option>
+                                                            <option value="Positivo" className="text-green-600 dark:text-green-400">🟢 Positivo</option>
+                                                            <option value="Neutral" className="text-yellow-600 dark:text-yellow-400">🟡 Neutral</option>
                                                             <option value="Negativo" className="text-red-600 dark:text-red-400">🔴 Negativo</option>
                                                         </select>
                                                     </div>
-                                                            <option value="Positivo" className="text-green-600 dark:text-green-400">🟢 Positivo</option>
 <div><label htmlFor={`ed-nivelRiesgo-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Nivel de Riesgo</label>
                                                         <select id={`ed-nivelRiesgo-${idx}`} value={c.nivelRiesgo} onChange={(e) => updateEditRegistroDigital(idx, 'nivelRiesgo', e.target.value)} className={`${inputStyles} ${!c.nivelRiesgo ? 'text-gray-400' : ''}`}>
                                                             <option value="" disabled>Seleccionar nivel...</option>

@@ -7,15 +7,12 @@ export interface NormalizedMencion {
     id: string;
     usuario: string;
     comentario: string;
-    redSocial: string;
+    canal: string;
     sentiment: string;
     nivelRiesgo: string;
     estatus: string;
     tipoActor: string;
-    campus: string;
-    posteoTipo: string;
-    posteoUrl: string;
-    posteoTexto: string;
+    sitioWeb: string;
     linkPublicacion: string;
     hallazgo: string;
     metricas: { visualizaciones: string; reacciones: string; comentarios: string; compartidos: string };
@@ -30,17 +27,14 @@ export const normalizeMenciones = (com: any): NormalizedMencion[] => {
     if (Array.isArray(com.registrosList) && com.registrosList.length > 0) {
         return com.registrosList.map((r: any, i: number) => ({
             id: r.id || `${com.id}-${i}`,
-            usuario: r.usuarioSitioWeb || NA,
+                                    usuario: r.usuarioSitioWeb || NA,
             comentario: r.narrativa === 'Otro' && r.narrativaOtro ? `Otro: ${r.narrativaOtro}` : (r.narrativa || 'Sin narrativa'),
-            redSocial: r.canal || 'N/D',
+            canal: r.canal || 'N/D',
             sentiment: r.sentiment || '',
             nivelRiesgo: r.nivelRiesgo || '',
             estatus: r.estatus || '',
             tipoActor: r.tipoActor === 'Otro' && r.tipoActorOtro ? `Otro: ${r.tipoActorOtro}` : (r.tipoActor || ''),
-            campus: 'Sin especificar',
-            posteoTipo: 'url',
-            posteoUrl: r.linkPublicacion || '',
-            posteoTexto: '',
+            sitioWeb: r.usuarioSitioWeb || '',
             linkPublicacion: r.linkPublicacion || '',
             hallazgo: r.hallazgoReputacional || '',
             metricas: {
@@ -59,15 +53,12 @@ export const normalizeMenciones = (com: any): NormalizedMencion[] => {
             id: r.id || `${com.id}-${i}`,
             usuario: r.sitioWeb || NA,
             comentario: r.narrativa === 'Otro' && r.narrativaOtro ? `Otro: ${r.narrativaOtro}` : (r.narrativa || 'Sin narrativa'),
-            redSocial: r.sitioWeb || 'Medio digital',
+            canal: 'Medio digital',
             sentiment: r.sentimiento || '',
             nivelRiesgo: r.nivelRiesgo || '',
             estatus: r.estatus || '',
             tipoActor: r.tipoActor === 'Otro' && r.tipoActorOtro ? `Otro: ${r.tipoActorOtro}` : (r.tipoActor || ''),
-            campus: 'Sin especificar',
-            posteoTipo: 'url',
-            posteoUrl: r.linkPublicacion || '',
-            posteoTexto: '',
+            sitioWeb: r.sitioWeb || '',
             linkPublicacion: r.linkPublicacion || '',
             hallazgo: r.hallazgoReputacional || '',
             metricas: { visualizaciones: '', reacciones: '', comentarios: '', compartidos: '' },
@@ -82,28 +73,20 @@ export const normalizeMenciones = (com: any): NormalizedMencion[] => {
             id: com.id,
             usuario: com.usuario || NA,
             comentario: com.descripcion || 'Sin comentario',
-            redSocial: com.redSocial || 'Facebook comentario',
-            campus: com.campus || 'Sin especificar',
-            sentiment: com.sentiment || '',
-            posteoTipo: com.posteoTipo || 'url',
-            posteoUrl: com.posteoUrl || '',
-            posteoTexto: com.posteoTexto || ''
+            canal: com.canal || com.redSocial || NA,
+            sentiment: com.sentiment || ''
         }];
 
     return legacyList.map((c: any, i: number) => ({
         id: c.id || `${com.id}-${i}`,
         usuario: c.usuario || NA,
         comentario: c.comentario || 'Sin comentario',
-        redSocial: c.redSocial || 'Facebook comentario',
+        canal: c.canal || c.redSocial || 'N/D',
         sentiment: c.sentiment || '',
         nivelRiesgo: '',
         estatus: '',
         tipoActor: '',
-        campus: c.campus || com.campus || 'Sin especificar',
-        posteoTipo: c.posteoTipo || 'url',
-        posteoUrl: c.posteoUrl || '',
-        posteoTexto: c.posteoTexto || '',
-        linkPublicacion: c.posteoUrl || '',
+        linkPublicacion: c.linkPublicacion || c.posteoUrl || '',
         hallazgo: '',
         fuenteMonitoreo: 'Redes sociales',
         metricas: { visualizaciones: '', reacciones: '', comentarios: '', compartidos: '' }
@@ -147,7 +130,7 @@ export const calcCommentAnalytics = (comments: any[]): CommentAnalytics => {
     const byFuente = emptyCounters(['Redes sociales', 'Medios digitales'] as const);
     const bySentiment = emptyCounters(['Positivo', 'Neutro', 'Negativo'] as const);
     const byRiesgo = emptyCounters(['Bajo', 'Medio', 'Alto', 'Crítico'] as const);
-    const byEstatus = emptyCounters(['Monitoreo activo', 'En revisión', 'Seguimiento activo', 'Resuelto / solucionado'] as const);
+    const byEstatus = emptyCounters(['Monitoreando', 'Escalado', 'Cerrado'] as const);
     const sentimentVsRiesgo: Record<string, number> = {};
     const fuenteVsSentiment: Record<string, number> = {};
 
@@ -159,7 +142,7 @@ export const calcCommentAnalytics = (comments: any[]): CommentAnalytics => {
             bySentiment[sentimentKey as 'Positivo' | 'Neutro' | 'Negativo'] = (bySentiment[sentimentKey as 'Positivo' | 'Neutro' | 'Negativo'] || 0) + 1;
         }
         if (item.nivelRiesgo) byRiesgo[item.nivelRiesgo as 'Bajo' | 'Medio' | 'Alto' | 'Crítico'] = (byRiesgo[item.nivelRiesgo as 'Bajo' | 'Medio' | 'Alto' | 'Crítico'] || 0) + 1;
-        if (item.estatus) byEstatus[item.estatus as 'Monitoreo activo' | 'En revisión' | 'Seguimiento activo' | 'Resuelto / solucionado'] = (byEstatus[item.estatus as 'Monitoreo activo' | 'En revisión' | 'Seguimiento activo' | 'Resuelto / solucionado'] || 0) + 1;
+        if (item.estatus) byEstatus[item.estatus as 'Monitoreando' | 'Escalado' | 'Cerrado'] = (byEstatus[item.estatus as 'Monitoreando' | 'Escalado' | 'Cerrado'] || 0) + 1;
 
         const svKey = `${item.sentiment || 'Sin sentimiento'} / ${item.nivelRiesgo || 'Sin riesgo'}`;
         sentimentVsRiesgo[svKey] = (sentimentVsRiesgo[svKey] || 0) + 1;

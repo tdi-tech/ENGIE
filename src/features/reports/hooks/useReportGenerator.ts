@@ -1,17 +1,32 @@
 import { useCallback } from 'react';
 import type { ReportRow } from '../utils/csvExport';
 
-// 🔥 FIX: Importaciones estáticas para jsPDF y Chart.js
 import { jsPDF as JsPDFClass } from 'jspdf';
 import * as chartModule from 'chart.js';
 
-const SENTIMENT_COLORS: Record<string, string> = {
-    'Negativo': '#e0485a',
-    'Neutral': '#7c8db5',
-    'Positivo': '#4fd18b'
+const PLATFORM_COLORS: Record<string, string> = {
+    'Facebook': '#1877F2',
+    'Instagram': '#E4405F',
+    'TikTok': '#000000',
+    'LinkedIn': '#0A66C2',
+    'YouTube': '#FF0000',
+    'X': '#1DA1F2',
+    'Medios Digitales': '#6366F1'
 };
-const FALLBACK_COLOR = '#5b8def';
-const RED_COLORS = ['#5b8def', '#e0485a', '#2fd9c4', '#f5a93f', '#4fd18b'];
+const FALLBACK_COLOR = '#6366F1';
+
+const RISK_COLORS: Record<string, string> = {
+    'Bajo': '#10B981',
+    'Medio': '#F59E0B',
+    'Alto': '#F97316',
+    'Crítico': '#EF4444'
+};
+
+const TREND_COLORS: Record<string, string> = {
+    'Aumentando': '#EF4444',
+    'Estable': '#10B981',
+    'Disminuyendo': '#3B82F6'
+};
 
 type RGB = [number, number, number];
 const NAVY: RGB = [10, 17, 32];        
@@ -20,16 +35,12 @@ const TEXT_DARK: RGB = [232, 237, 247];
 const TEXT_GRAY: RGB = [147, 162, 192]; 
 const LINE: RGB = [34, 49, 77];        
 
-const AMBER_BG: RGB = [36, 26, 10];
-const AMBER_TEXT: RGB = [245, 169, 63];
 const COL = {
     critical: [224, 72, 90] as RGB,
     verify: [47, 217, 196] as RGB,
     alert: [245, 169, 63] as RGB,
     info: [91, 141, 239] as RGB
 };
-
-const sentimentColor = (s: string) => SENTIMENT_COLORS[s] || FALLBACK_COLOR;
 
 const hexToRgb = (hex: string): RGB => {
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -42,33 +53,147 @@ export const countBy = (arr: any[], keyFn: (item: any) => string) => {
     return map;
 };
 
-export const calcSentiment = (rows: ReportRow[]) => {
-    const counts = countBy(rows, r => r.sentiment);
+// Distribución por plataforma (fuenteDeteccion)
+export const calcPlatforms = (rows: ReportRow[]) => {
+    const counts = countBy(rows, r => r.fuenteDeteccion);
     const labels = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
     const data = labels.map(l => counts[l]);
-    const colors = labels.map(l => sentimentColor(l));
+    const colors = labels.map(l => PLATFORM_COLORS[l] || FALLBACK_COLOR);
     return { labels, data, colors };
 };
 
-export const calcRedSocial = (rows: ReportRow[]) => {
-    const counts = countBy(rows, r => r.redSocial);
+// Distribución por tipo de fuente
+export const calcSourceTypes = (rows: ReportRow[]) => {
+    const counts = countBy(rows, r => r.tipoFuente);
     const labels = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
     const data = labels.map(l => counts[l]);
     return { labels, data };
 };
 
-export const calcOrigen = (rows: ReportRow[]) => {
-    const groups: Record<string, { total: number; neg: number }> = {};
+// Distribución por tema principal
+export const calcTopics = (rows: ReportRow[]) => {
+    const counts = countBy(rows, r => r.temaPrincipal);
+    const labels = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
+    const data = labels.map(l => counts[l]);
+    return { labels, data };
+};
+
+// Distribución por nivel de riesgo
+export const calcRiskLevels = (rows: ReportRow[]) => {
+    const riskOrder = ['Crítico', 'Alto', 'Medio', 'Bajo'];
+    const counts = countBy(rows, r => r.nivelRiesgo);
+    const labels = riskOrder.filter(r => counts[r]);
+    const data = labels.map(l => counts[l]);
+    const colors = labels.map(l => RISK_COLORS[l] || '#6B7280');
+    return { labels, data, colors };
+};
+
+// Distribución por alcance
+export const calcScope = (rows: ReportRow[]) => {
+    const counts = countBy(rows, r => r.alcanceActual);
+    const labels = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
+    const data = labels.map(l => counts[l]);
+    return { labels, data };
+};
+
+// Distribución por tendencia
+export const calcTrends = (rows: ReportRow[]) => {
+    const counts = countBy(rows, r => r.tendencia);
+    const labels = Object.keys(counts);
+    const data = labels.map(l => counts[l]);
+    const colors = labels.map(l => TREND_COLORS[l] || '#6B7280');
+    return { labels, data, colors };
+};
+
+// Distribución por área responsable
+export const calcAreas = (rows: ReportRow[]) => {
+    const counts = countBy(rows, r => r.area);
+    const labels = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
+    const data = labels.map(l => counts[l]);
+    return { labels, data };
+};
+
+// Evolución temporal de menciones por fecha
+export const calcTimeline = (rows: ReportRow[]) => {
+    const groups: Record<string, { total: number; critico: number; alto: number; sortKey: string }> = {};
     rows.forEach(r => {
-        const k = r.contenido;
-        if (!groups[k]) groups[k] = { total: 0, neg: 0 };
-        groups[k].total++;
-        if (r.sentiment === 'Negativo') groups[k].neg++;
+        const fecha = r.fecha || 'Sin fecha';
+        if (!groups[fecha]) {
+            groups[fecha] = { total: 0, critico: 0, alto: 0, sortKey: fecha };
+        }
+        groups[fecha].total++;
+        if (r.nivelRiesgo === 'Crítico') groups[fecha].critico++;
+        if (r.nivelRiesgo === 'Alto') groups[fecha].alto++;
     });
-    const labels = Object.keys(groups);
-    const totals = labels.map(l => groups[l].total);
-    const negPct = labels.map(l => groups[l].total ? Math.round(groups[l].neg / groups[l].total * 100) : 0);
-    return { labels, totals, negPct };
+    
+    const sortedKeys = Object.keys(groups).sort((a, b) => groups[a].sortKey.localeCompare(groups[b].sortKey));
+    const labels = sortedKeys.map(k => formatShortDate(k));
+    const totals = sortedKeys.map(k => groups[k].total);
+    const criticos = sortedKeys.map(k => groups[k].critico);
+    const altos = sortedKeys.map(k => groups[k].alto);
+    
+    return { labels, totals, criticos, altos };
+};
+
+// Top actores/autores con más menciones
+export const calcTopActors = (rows: ReportRow[], minCount = 1, limit = 10) => {
+    const counts: Record<string, number> = {};
+    const riskDominant: Record<string, Record<string, number>> = {};
+    
+    rows.forEach(r => {
+        const actor = r.actorFuente || 'Anónimo';
+        counts[actor] = (counts[actor] || 0) + 1;
+        riskDominant[actor] = riskDominant[actor] || {};
+        riskDominant[actor][r.nivelRiesgo] = (riskDominant[actor][r.nivelRiesgo] || 0) + 1;
+    });
+    
+    return Object.entries(counts)
+        .filter(([, c]) => c >= minCount)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, limit)
+        .map(([name, count]) => ({
+            name, count,
+            dominantRisk: Object.entries(riskDominant[name]).sort((a, b) => b[1] - a[1])[0][0]
+        }));
+};
+
+// Cruzamiento: Plataforma x Riesgo
+export const calcPlatformRiskCross = (rows: ReportRow[]) => {
+    const platforms = [...new Set(rows.map(r => r.fuenteDeteccion))].sort();
+    const risks = ['Crítico', 'Alto', 'Medio', 'Bajo'];
+    
+    const crossData: Record<string, Record<string, number>> = {};
+    platforms.forEach(p => {
+        crossData[p] = {};
+        risks.forEach(r => crossData[p][r] = 0);
+    });
+    
+    rows.forEach(r => {
+        if (crossData[r.fuenteDeteccion] && crossData[r.fuenteDeteccion][r.nivelRiesgo] !== undefined) {
+            crossData[r.fuenteDeteccion][r.nivelRiesgo]++;
+        }
+    });
+    
+    return { platforms, risks, crossData };
+};
+
+// Top temas por riesgo
+export const calcTopicsByRisk = (rows: ReportRow[]) => {
+    const topics: Record<string, Record<string, number>> = {};
+    rows.forEach(r => {
+        const tema = r.temaPrincipal || 'Sin clasificar';
+        const riesgo = r.nivelRiesgo || 'Bajo';
+        if (!topics[tema]) topics[tema] = {};
+        topics[tema][riesgo] = (topics[tema][riesgo] || 0) + 1;
+    });
+    
+    const labels = Object.keys(topics);
+    const critico = labels.map(l => topics[l]['Crítico'] || 0);
+    const alto = labels.map(l => topics[l]['Alto'] || 0);
+    const medio = labels.map(l => topics[l]['Medio'] || 0);
+    const bajo = labels.map(l => topics[l]['Bajo'] || 0);
+    
+    return { labels, critico, alto, medio, bajo };
 };
 
 const formatShortDate = (dstr: string) => {
@@ -77,52 +202,6 @@ const formatShortDate = (dstr: string) => {
     if (parts.length !== 3) return dstr;
     const months = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
     return `${parts[2]} ${months[parseInt(parts[1], 10) - 1]}`;
-};
-
-export const calcTrend = (rows: ReportRow[]) => {
-    const groups: Record<string, { total: number; neg: number; sortKey: string; label: string }> = {};
-    rows.forEach(r => {
-        const sortKey = r.fechaInicio || '0000-00-00';
-        const rawKey = (r.fechaInicio && r.fechaFin) ? `${r.fechaInicio}|${r.fechaFin}` : 'Sin periodo';
-        
-        if (!groups[rawKey]) {
-            const label = (r.fechaInicio && r.fechaFin)
-                ? `${formatShortDate(r.fechaInicio)} - ${formatShortDate(r.fechaFin)}`
-                : 'Sin periodo';
-            groups[rawKey] = { total: 0, neg: 0, sortKey, label };
-        }
-        groups[rawKey].total++;
-        if (r.sentiment === 'Negativo') groups[rawKey].neg++;
-    });
-    
-    const sortedKeys = Object.keys(groups).sort((a, b) => groups[a].sortKey.localeCompare(groups[b].sortKey));
-    const labels = sortedKeys.map(k => groups[k].label);
-    const totals = sortedKeys.map(k => groups[k].total);
-    const negPct = sortedKeys.map(k => groups[k].total ? Math.round(groups[k].neg / groups[k].total * 100) : 0);
-    return { labels, totals, negPct };
-};
-
-export const calcCampusRanking = (rows: ReportRow[]) => {
-    const counts = countBy(rows, r => r.campus);
-    return Object.entries(counts).sort((a, b) => b[1] - a[1]);
-};
-
-export const calcTopUsers = (rows: ReportRow[], minCount = 2, limit = 8) => {
-    const counts: Record<string, number> = {};
-    const dominant: Record<string, Record<string, number>> = {};
-    rows.forEach(r => {
-        counts[r.usuario] = (counts[r.usuario] || 0) + 1;
-        dominant[r.usuario] = dominant[r.usuario] || {};
-        dominant[r.usuario][r.sentiment] = (dominant[r.usuario][r.sentiment] || 0) + 1;
-    });
-    return Object.entries(counts)
-        .filter(([, c]) => c >= minCount)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, limit)
-        .map(([name, count]) => ({
-            name, count,
-            dominant: Object.entries(dominant[name]).sort((a, b) => b[1] - a[1])[0][0]
-        }));
 };
 
 const spanishDate = (dstr: string) => {
@@ -141,12 +220,11 @@ const nowStamp = () => {
 };
 
 const computePeriod = (rows: ReportRow[]) => {
-    const withDates = rows.filter(r => r.fechaInicio && r.fechaFin);
+    const withDates = rows.filter(r => r.fecha);
     if (!withDates.length) return { start: null, end: null, cycles: 0 };
-    const starts = withDates.map(r => r.fechaInicio).sort();
-    const ends = withDates.map(r => r.fechaFin).sort();
-    const cycles = new Set(withDates.map(r => r.fechaInicio + '|' + r.fechaFin)).size;
-    return { start: starts[0], end: ends[ends.length - 1], cycles };
+    const dates = withDates.map(r => r.fecha).sort();
+    const cycles = new Set(rows.map(r => r.fecha)).size;
+    return { start: dates[0], end: dates[dates.length - 1], cycles };
 };
 
 const truncateToWidth = (doc: any, text: string, maxWidth: number) => {
@@ -186,10 +264,10 @@ const renderOffscreenChart = async (chartModuleRef: any, config: any, width: num
 };
 
 export interface ChartImages {
-    sentiment?: string | null;
-    red?: string | null;
-    origen?: string | null;
-    trend?: string | null;
+    platforms?: string | null;
+    risk?: string | null;
+    timeline?: string | null;
+    topics?: string | null;
 }
 
 export const useReportGenerator = () => {
@@ -202,134 +280,79 @@ export const useReportGenerator = () => {
         const contentW = pageW - margin * 2;
 
         const total = rows.length;
-        const neg = rows.filter(r => r.sentiment === 'Negativo').length;
-        const negPct = total ? Math.round(neg / total * 100) : 0;
-        const unclassified = rows.filter(r => r.campus === 'Sin especificar');
-        const campusRanking = calcCampusRanking(rows);
-        const topCampus = calcCampusRanking(rows.filter(r => r.campus !== 'Sin especificar'))[0];
-        const redAgg = calcRedSocial(rows);
+        const criticos = rows.filter(r => r.nivelRiesgo === 'Crítico').length;
+        const altos = rows.filter(r => r.nivelRiesgo === 'Alto').length;
         const period = computePeriod(rows);
         const periodText = period.start ? `${spanishDate(period.start)} – ${spanishDate(period.end)}` : 'No disponible';
+        const platformAgg = calcPlatforms(rows);
+        const riskAgg = calcRiskLevels(rows);
 
-        let imgSentiment = images?.sentiment;
-        let imgRed = images?.red;
-        let imgOrigen = images?.origen;
-        let imgTrend = images?.trend;
+        let imgPlatforms = images?.platforms;
+        let imgRisk = images?.risk;
+        let imgTimeline = images?.timeline;
+        let imgTopics = images?.topics;
 
-        if (!imgSentiment || !imgRed || !imgOrigen || !imgTrend) {
-            
-            const origenAgg = calcOrigen(rows);
-            const trendAgg = calcTrend(rows);
+        if (!imgPlatforms || !imgRisk || !imgTimeline || !imgTopics) {
+            const timelineAgg = calcTimeline(rows);
+            const topicsAgg = calcTopicsByRisk(rows);
 
-            // Dona Analítica con cálculo de porcentajes en las etiquetas
-            const sentAgg = calcSentiment(rows);
-            const totalSent = sentAgg.data.reduce((a, b) => a + b, 0) || 1;
-            const sentLabels = sentAgg.labels.map((l, i) => `${l}: ${Math.round((sentAgg.data[i] / totalSent) * 100)}%`);
-
-            imgSentiment = imgSentiment || await renderOffscreenChart(chartModule, {
+            imgPlatforms = imgPlatforms || await renderOffscreenChart(chartModule, {
                 type: 'doughnut',
-                data: { labels: sentLabels, datasets: [{ data: sentAgg.data, backgroundColor: sentAgg.colors, borderColor: '#101a2e', borderWidth: 2 }] },
-                options: { cutout: '65%', plugins: { legend: { position: 'bottom', labels: { color: '#93a2c0', font: { size: 13 }, boxWidth: 11, boxHeight: 11, padding: 12 } } } }
+                data: { 
+                    labels: platformAgg.labels, 
+                    datasets: [{ data: platformAgg.data, backgroundColor: platformAgg.colors, borderColor: '#101a2e', borderWidth: 2 }] 
+                },
+                options: { cutout: '65%', plugins: { legend: { position: 'bottom', labels: { color: '#93a2c0', font: { size: 11 }, boxWidth: 10, boxHeight: 10, padding: 10 } } } }
             }, 480, 480);
 
-            // Barras Agrupadas por Plataforma (Sin Positivos, solo Negativo y Neutral, topado a 100%)
-            const uniqueReds = Array.from(new Set(rows.map(r => r.redSocial))).sort();
-            const neuData: number[] = [];
-            const negData: number[] = [];
-
-            uniqueReds.forEach(network => {
-                const networkRows = rows.filter(r => r.redSocial === network);
-                const nTotal = networkRows.length;
-                if (nTotal === 0) {
-                    neuData.push(0); negData.push(0);
-                    return;
-                }
-                const neu = networkRows.filter(r => r.sentiment === 'Neutral').length;
-                const rNeg = networkRows.filter(r => r.sentiment === 'Negativo').length;
-                
-                neuData.push(Math.round((neu / nTotal) * 100));
-                negData.push(Math.round((rNeg / nTotal) * 100));
-            });
-
-            imgRed = imgRed || await renderOffscreenChart(chartModule, {
-                type: 'bar',
+            imgRisk = imgRisk || await renderOffscreenChart(chartModule, {
+                type: 'doughnut',
                 data: { 
-                    labels: uniqueReds, 
+                    labels: riskAgg.labels, 
+                    datasets: [{ data: riskAgg.data, backgroundColor: riskAgg.colors, borderColor: '#101a2e', borderWidth: 2 }] 
+                },
+                options: { cutout: '65%', plugins: { legend: { position: 'bottom', labels: { color: '#93a2c0', font: { size: 11 }, boxWidth: 10, boxHeight: 10, padding: 10 } } } }
+            }, 480, 480);
+
+            imgTimeline = imgTimeline || await renderOffscreenChart(chartModule, {
+                type: 'bar',
+                data: {
+                    labels: timelineAgg.labels,
                     datasets: [
-                        { label: 'Negativo', data: negData, backgroundColor: '#e0485a', borderRadius: 4 },
-                        { label: 'Neutral', data: neuData, backgroundColor: '#7c8db5', borderRadius: 4 }
-                    ] 
-                },
-                options: { 
-                    plugins: { legend: { display: true, position: 'bottom', labels: { color: '#93a2c0', font: { size: 11 }, boxWidth: 10, boxHeight: 10, padding: 10 } } }, 
-                    scales: { 
-                        x: { grid: { display: false }, ticks: { color: '#93a2c0' } }, 
-                        y: { max: 100, grid: { color: 'rgba(147, 162, 192, 0.1)' }, beginAtZero: true, ticks: { precision: 0, color: '#93a2c0', callback: (v: any) => v + '%' }, border: { display: false } } 
-                    } 
-                }
-            }, 560, 380);
-
-            imgOrigen = imgOrigen || await renderOffscreenChart(chartModule, {
-                data: {
-                    labels: origenAgg.labels, datasets: [
-                        { type: 'bar', label: 'Registros', data: origenAgg.totals, backgroundColor: '#5b8def', borderRadius: 5, yAxisID: 'y' },
-                        { type: 'bar', label: '% Negativo', data: origenAgg.negPct, backgroundColor: '#e0485a', borderRadius: 5, yAxisID: 'y1' }
+                        { label: 'Total Menciones', data: timelineAgg.totals, backgroundColor: '#5b8def', borderRadius: 4 },
+                        { label: 'Crítico', data: timelineAgg.criticos, backgroundColor: '#e0485a', borderRadius: 4 },
+                        { label: 'Alto', data: timelineAgg.altos, backgroundColor: '#f5a93f', borderRadius: 4 }
                     ]
                 },
                 options: {
-                    plugins: { legend: { position: 'bottom', labels: { color: '#93a2c0', font: { size: 11 } } } },
-                    scales: { x: { grid: { display: false }, ticks: { color: '#93a2c0' } }, y: { position: 'left', grid: { color: 'rgba(147, 162, 192, 0.1)' }, beginAtZero: true, ticks: { color: '#93a2c0' }, border: { display: false } }, y1: { position: 'right', grid: { display: false }, border: { display: false }, beginAtZero: true, max: 100, ticks: { color: '#93a2c0', callback: (v: any) => v + '%' } } }
-                }
-            }, 560, 380);
-
-            imgTrend = imgTrend || await renderOffscreenChart(chartModule, {
-                type: 'line',
-                data: {
-                    labels: trendAgg.labels, datasets: [
-                        { 
-                            label: 'Comentarios Totales', 
-                            data: trendAgg.totals, 
-                            backgroundColor: 'rgba(91,141,239,0.2)', 
-                            borderColor: '#5b8def', 
-                            borderWidth: 3,
-                            fill: true, 
-                            tension: 0.4, 
-                            pointRadius: 5,
-                            pointHoverRadius: 7,
-                            pointBackgroundColor: '#5b8def',
-                            pointBorderColor: '#101a2e',
-                            pointBorderWidth: 2,
-                            clip: false,
-                            yAxisID: 'y' 
-                        }, 
-                        { 
-                            label: '% Negatividad', 
-                            data: trendAgg.negPct, 
-                            borderColor: '#e0485a', 
-                            backgroundColor: '#e0485a', 
-                            borderWidth: 3,
-                            tension: 0.4, 
-                            borderDash: [6, 4], 
-                            pointRadius: 5,
-                            pointHoverRadius: 7,
-                            pointBackgroundColor: '#e0485a',
-                            pointBorderColor: '#101a2e',
-                            pointBorderWidth: 2,
-                            clip: false,
-                            yAxisID: 'y1' 
-                        }
-                    ]
-                },
-                options: {
-                    plugins: { legend: { position: 'bottom', labels: { color: '#93a2c0', font: { size: 11 } } } },
-                    layout: { padding: { top: 25, right: 25, left: 15, bottom: 5 } },
+                    plugins: { legend: { position: 'bottom', labels: { color: '#93a2c0', font: { size: 10 }, boxWidth: 10, boxHeight: 10, padding: 8 } } },
                     scales: { 
-                        x: { grid: { display: false }, ticks: { maxRotation: 0, minRotation: 0, autoSkip: true, maxTicksLimit: 12, color: '#93a2c0', font: { size: 10.5 }, padding: 10 } }, 
-                        y: { position: 'left', grid: { color: 'rgba(147, 162, 192, 0.1)' }, beginAtZero: true, ticks: { color: '#93a2c0' }, border: { display: false }, grace: '25%' }, 
-                        y1: { position: 'right', grid: { display: false }, border: { display: false }, beginAtZero: true, max: 100, ticks: { color: '#93a2c0', callback: (v: any) => v + '%' }, grace: '25%' } 
+                        x: { grid: { display: false }, ticks: { color: '#93a2c0', maxRotation: 45 } }, 
+                        y: { grid: { color: 'rgba(147, 162, 192, 0.1)' }, beginAtZero: true, ticks: { color: '#93a2c0', precision: 0 }, border: { display: false } } 
                     }
                 }
-            }, 900, 380);
+            }, 700, 350);
+
+            imgTopics = imgTopics || await renderOffscreenChart(chartModule, {
+                type: 'bar',
+                data: {
+                    labels: topicsAgg.labels,
+                    datasets: [
+                        { label: 'Crítico', data: topicsAgg.critico, backgroundColor: '#e0485a', borderRadius: 4 },
+                        { label: 'Alto', data: topicsAgg.alto, backgroundColor: '#f5a93f', borderRadius: 4 },
+                        { label: 'Medio', data: topicsAgg.medio, backgroundColor: '#7c8db5', borderRadius: 4 },
+                        { label: 'Bajo', data: topicsAgg.bajo, backgroundColor: '#10B981', borderRadius: 4 }
+                    ]
+                },
+                options: {
+                    indexAxis: 'y' as const,
+                    plugins: { legend: { position: 'bottom', labels: { color: '#93a2c0', font: { size: 10 }, boxWidth: 10, boxHeight: 10, padding: 8 } } },
+                    scales: { 
+                        x: { stacked: true, grid: { color: 'rgba(147, 162, 192, 0.1)' }, ticks: { color: '#93a2c0', precision: 0 }, border: { display: false } }, 
+                        y: { stacked: true, grid: { display: false }, ticks: { color: '#93a2c0' } } 
+                    }
+                }
+            }, 700, 350);
         }
 
         let page = 1;
@@ -339,7 +362,7 @@ export const useReportGenerator = () => {
             doc.setTextColor(255, 255, 255); doc.setFont('helvetica', 'bold'); doc.setFontSize(15);
             doc.text('ENGIE MANAGEMENT', margin, 11);
             doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
-            doc.text('Reporte Analítico · Comentarios', margin, 17.5);
+            doc.text('Reporte Analítico · Menciones RRSS', margin, 17.5);
             doc.setFontSize(7.5);
             doc.text('Generado: ' + nowStamp(), pageW - margin, 10, { align: 'right' });
             doc.text('Fuente: ' + sourceLabel, pageW - margin, 15.5, { align: 'right' });
@@ -348,7 +371,7 @@ export const useReportGenerator = () => {
         const drawFooter = (pageNum: number) => {
             doc.setDrawColor(LINE[0], LINE[1], LINE[2]); doc.setLineWidth(0.2); doc.line(margin, pageH - 12, pageW - margin, pageH - 12);
             doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(TEXT_GRAY[0], TEXT_GRAY[1], TEXT_GRAY[2]);
-            doc.text('ENGIE Management · Reporte Ejecutivo Estructurado', margin, pageH - 8);
+            doc.text('ENGIE Management · Reporte de Menciones', margin, pageH - 8);
             doc.text('Página ' + pageNum, pageW - margin, pageH - 8, { align: 'right' });
         };
         const checkPageBreak = (neededHeight: number, redrawFn?: () => void) => {
@@ -374,14 +397,14 @@ export const useReportGenerator = () => {
         doc.text('Período Analizado: ' + periodText, margin, y);
         y += 6;
         doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(TEXT_GRAY[0], TEXT_GRAY[1], TEXT_GRAY[2]);
-        doc.text(`${total} registros de comentarios  ·  ${period.cycles} ciclo(s) de reporte`, margin, y);
+        doc.text(`${total} menciones registradas  ·  ${period.cycles} fecha(s) distinta(s)`, margin, y);
         y += 10;
 
         const kpiData = [
-            { label: 'TOTAL DE REGISTROS', value: String(total), sub: 'Registros analizados', color: COL.info },
-            { label: '% SENTIMIENTO NEGATIVO', value: negPct + '%', sub: `${neg} de ${total}`, color: COL.critical },
-            { label: 'CAMPUS CRÍTICO', value: topCampus ? String(topCampus[1]) : '—', sub: topCampus ? topCampus[0] : 'Sin datos', color: COL.alert },
-            { label: 'RED SOCIAL DOMINANTE', value: redAgg.data[0] !== undefined ? String(redAgg.data[0]) : '—', sub: redAgg.labels[0] || '—', color: COL.verify }
+            { label: 'TOTAL MENCIONES', value: String(total), sub: 'Registros analizados', color: COL.info },
+            { label: 'RIESGO CRÍTICO', value: String(criticos), sub: `${total ? Math.round(criticos / total * 100) : 0}% del total`, color: COL.critical },
+            { label: 'RIESGO ALTO', value: String(altos), sub: `${total ? Math.round(altos / total * 100) : 0}% del total`, color: COL.alert },
+            { label: 'PLATAFORMA TOP', value: platformAgg.data[0] !== undefined ? String(platformAgg.data[0]) : '—', sub: platformAgg.labels[0] || '—', color: COL.verify }
         ];
         const kpiGap = 4, kpiW = (contentW - kpiGap * 3) / 4, kpiH = 25;
         kpiData.forEach((k, i) => {
@@ -397,89 +420,53 @@ export const useReportGenerator = () => {
         });
         y += kpiH + 8;
 
-        if (unclassified.length) {
-            const uSent = calcSentiment(unclassified);
-            const uRed = calcRedSocial(unclassified);
-            const boxH = 21;
-            checkPageBreak(boxH + 4);
-            doc.setFillColor(AMBER_BG[0], AMBER_BG[1], AMBER_BG[2]); doc.roundedRect(margin, y, contentW, boxH, 2, 2, 'F');
-            doc.setTextColor(AMBER_TEXT[0], AMBER_TEXT[1], AMBER_TEXT[2]); doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5);
-            doc.text(`${unclassified.length} comentarios (${Math.round(unclassified.length / total * 100)}%) no tienen campus especificado`, margin + 4, y + 6);
-            doc.setFont('helvetica', 'normal'); doc.setFontSize(7.3); doc.setTextColor(TEXT_GRAY[0], TEXT_GRAY[1], TEXT_GRAY[2]);
-            doc.text('Ya están incluidos en las métricas generales; requieren clasificación manual para asignarse a un plantel.', margin + 4, y + 11);
-            doc.text('Sentimiento — ' + uSent.labels.map((l, i) => `${l}: ${uSent.data[i]}`).join('   ·   '), margin + 4, y + 16);
-            doc.text('Red social — ' + uRed.labels.map((l, i) => `${l}: ${uRed.data[i]}`).join('   ·   '), margin + 4, y + 20);
-            y += boxH + 10;
-        }
-
-        // 🔥 FIX UI PDF: Rediseño de Layout para que las gráficas se aprecien en tamaño decente (2 Filas)
-        sectionTitle('Panorama General de Monitoreo');
-        checkPageBreak(120); // Reservamos espacio amplio para evitar cortes
+        sectionTitle('Distribución por Plataforma y Nivel de Riesgo');
+        checkPageBreak(70);
         
-        if (imgSentiment) {
-            // Fila 1: Dona a la izquierda, Barras a la derecha
-            const donutW = 65, donutH = 65; 
-            doc.addImage(imgSentiment, 'PNG', margin, y, donutW, donutH);
+        if (imgPlatforms) {
+            const donutW = 85, donutH = 85; 
+            doc.addImage(imgPlatforms, 'PNG', margin, y, donutW, donutH);
             
-            const redW = contentW - donutW - 10; // ~105mm para las barras (gran legibilidad)
-            const redH = redW * (380 / 560);
-            const redY = y + (donutH > redH ? (donutH - redH) / 2 : 0); // Centrado vertical relativo a la dona
-            
-            if (imgRed) doc.addImage(imgRed, 'PNG', margin + donutW + 10, redY, redW, redH);
-            
-            y += Math.max(donutH, redH) + 12; // Brinco a la siguiente fila
-            
-            // Fila 2: Origen del contenido (centrado y ancho)
-            if (imgOrigen) {
-                checkPageBreak(70);
-                const origenW = 130; 
-                const origenH = origenW * (380 / 560);
-                const centerOffsetX = margin + (contentW - origenW) / 2;
-                doc.addImage(imgOrigen, 'PNG', centerOffsetX, y, origenW, origenH);
-                y += origenH + 10;
+            if (imgRisk) {
+                const riskW = contentW - donutW - 10;
+                const riskH = riskW * (480 / 480);
+                const riskY = y + (donutH > riskH ? (donutH - riskH) / 2 : 0);
+                doc.addImage(imgRisk, 'PNG', margin + donutW + 10, riskY, riskW, riskH);
             }
+            
+            y += 95;
         }
 
-        sectionTitle('Tendencia Cronológica de Interacciones');
-        if (imgTrend) {
-            const trendDispW = contentW, trendDispH = trendDispW * (380 / 900);
-            checkPageBreak(trendDispH + 6);
-            doc.addImage(imgTrend, 'PNG', margin, y, trendDispW, trendDispH);
-            y += trendDispH + 10;
+        sectionTitle('Evolución Temporal de Menciones');
+        if (imgTimeline) {
+            const timeW = contentW, timeH = timeW * (350 / 700);
+            checkPageBreak(timeH + 6);
+            doc.addImage(imgTimeline, 'PNG', margin, y, timeW, timeH);
+            y += timeH + 10;
         }
 
-        sectionTitle('Comentarios por Campus');
-        const campusMax = campusRanking.length ? campusRanking[0][1] : 1;
-        campusRanking.forEach(([name, count]) => {
-            checkPageBreak(7);
-            const barMaxW = 68;
-            const barW = Math.max(2, (count / campusMax) * barMaxW);
-            const isUnspecified = name === 'Sin especificar';
-            const barCol: RGB = isUnspecified ? COL.alert : COL.info;
-            doc.setFont('helvetica', 'normal'); doc.setFontSize(8.3); doc.setTextColor(TEXT_DARK[0], TEXT_DARK[1], TEXT_DARK[2]);
-            doc.text(truncateToWidth(doc, name, 58), margin, y + 3.6);
-            doc.setFillColor(CARD_BG[0], CARD_BG[1], CARD_BG[2]); doc.rect(margin + 62, y, barMaxW, 3, 'F');
-            doc.setFillColor(barCol[0], barCol[1], barCol[2]); doc.rect(margin + 62, y, barW, 3, 'F');
-            doc.setFont('helvetica', 'bold'); doc.setFontSize(8);
-            doc.text(String(count), margin + 62 + barMaxW + 5, y + 3.4);
-            y += 6.8;
-        });
-        y += 5;
+        sectionTitle('Temas por Nivel de Riesgo');
+        if (imgTopics) {
+            const topicsW = contentW, topicsH = topicsW * (350 / 700);
+            checkPageBreak(topicsH + 6);
+            doc.addImage(imgTopics, 'PNG', margin, y, topicsW, topicsH);
+            y += topicsH + 10;
+        }
 
-        sectionTitle('Radar de Autores Recurrentes');
-        const topUsers = calcTopUsers(rows);
-        if (!topUsers.length) {
+        sectionTitle('Top Actores / Fuentes');
+        const topActors = calcTopActors(rows);
+        if (!topActors.length) {
             doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.setTextColor(TEXT_GRAY[0], TEXT_GRAY[1], TEXT_GRAY[2]);
-            doc.text('Ningún usuario tiene un comportamiento recurrente registrado.', margin, y);
+            doc.text('No hay actores registrados en este periodo.', margin, y);
             y += 8;
         } else {
-            topUsers.forEach(u => {
+            topActors.forEach(u => {
                 checkPageBreak(7);
-                const dominantCol: RGB = SENTIMENT_COLORS[u.dominant] ? hexToRgb(SENTIMENT_COLORS[u.dominant]) : COL.info;
+                const riskCol: RGB = RISK_COLORS[u.dominantRisk] ? hexToRgb(RISK_COLORS[u.dominantRisk]) : COL.info;
                 doc.setFont('helvetica', 'normal'); doc.setFontSize(8.3); doc.setTextColor(TEXT_DARK[0], TEXT_DARK[1], TEXT_DARK[2]);
                 doc.text(truncateToWidth(doc, u.name, 100), margin, y + 3.6);
-                doc.setTextColor(dominantCol[0], dominantCol[1], dominantCol[2]); doc.setFontSize(7.3);
-                doc.text(u.dominant, margin + 105, y + 3.6);
+                doc.setTextColor(riskCol[0], riskCol[1], riskCol[2]); doc.setFontSize(7.3);
+                doc.text(u.dominantRisk, margin + 105, y + 3.6);
                 doc.setTextColor(TEXT_DARK[0], TEXT_DARK[1], TEXT_DARK[2]); doc.setFont('helvetica', 'bold'); doc.setFontSize(8.3);
                 doc.text(u.count + '×', pageW - margin, y + 3.6, { align: 'right' });
                 y += 6.6;
@@ -487,18 +474,18 @@ export const useReportGenerator = () => {
         }
         y += 4;
 
-        sectionTitle('Motor de Trazabilidad — Bitácora de Comentarios');
+        sectionTitle('Detalle de Menciones');
         doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(TEXT_GRAY[0], TEXT_GRAY[1], TEXT_GRAY[2]);
-        doc.text(`${rows.length} comentarios extraídos bajo los filtros seleccionados`, margin, y);
+        doc.text(`${rows.length} menciones bajo los filtros seleccionados`, margin, y);
         y += 6;
 
         const cols = [
-            { label: 'Fecha', width: 16 },
-            { label: 'Campus', width: 28 },
-            { label: 'Red', width: 18 },
-            { label: 'Tono', width: 18 },
-            { label: 'Usuario', width: 28 },
-            { label: 'Comentario', width: 72 }
+            { label: 'Fecha', width: 22 },
+            { label: 'Plataforma', width: 26 },
+            { label: 'Tipo', width: 22 },
+            { label: 'Riesgo', width: 18 },
+            { label: 'Tema', width: 40 },
+            { label: 'Actor', width: 42 }
         ];
         const drawTableHeader = () => {
             doc.setFillColor(CARD_BG[0], CARD_BG[1], CARD_BG[2]); doc.rect(margin, y, contentW, 6, 'F');
@@ -510,21 +497,21 @@ export const useReportGenerator = () => {
         checkPageBreak(14);
         drawTableHeader();
 
-        const sortedRows = rows.slice().sort((a, b) => (a.fechaInicio || '').localeCompare(b.fechaInicio || ''));
+        const sortedRows = rows.slice().sort((a, b) => (a.fecha || '').localeCompare(b.fecha || ''));
         sortedRows.forEach(r => {
             checkPageBreak(6, drawTableHeader);
             let cx = margin + 2;
-            const sentCol: RGB = SENTIMENT_COLORS[r.sentiment] ? hexToRgb(SENTIMENT_COLORS[r.sentiment]) : COL.info;
+            const riskCol: RGB = RISK_COLORS[r.nivelRiesgo] ? hexToRgb(RISK_COLORS[r.nivelRiesgo]) : COL.info;
             doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(TEXT_DARK[0], TEXT_DARK[1], TEXT_DARK[2]);
-            doc.text(r.fechaInicio || '-', cx, y + 3.8); cx += cols[0].width;
-            doc.text(truncateToWidth(doc, r.campus, cols[1].width - 2), cx, y + 3.8); cx += cols[1].width;
-            doc.text(truncateToWidth(doc, r.redSocial, cols[2].width - 2), cx, y + 3.8); cx += cols[2].width;
-            doc.setTextColor(sentCol[0], sentCol[1], sentCol[2]);
-            doc.text(truncateToWidth(doc, r.sentiment, cols[3].width - 2), cx, y + 3.8);
+            doc.text(r.fecha || '-', cx, y + 3.8); cx += cols[0].width;
+            doc.text(truncateToWidth(doc, r.fuenteDeteccion, cols[1].width - 2), cx, y + 3.8); cx += cols[1].width;
+            doc.text(truncateToWidth(doc, r.tipoFuente, cols[2].width - 2), cx, y + 3.8); cx += cols[2].width;
+            doc.setTextColor(riskCol[0], riskCol[1], riskCol[2]);
+            doc.text(truncateToWidth(doc, r.nivelRiesgo, cols[3].width - 2), cx, y + 3.8);
             doc.setTextColor(TEXT_DARK[0], TEXT_DARK[1], TEXT_DARK[2]);
             cx += cols[3].width;
-            doc.text(truncateToWidth(doc, r.usuario, cols[4].width - 2), cx, y + 3.8); cx += cols[4].width;
-            doc.text(truncateToWidth(doc, r.comentario.replace(/\s+/g, ' ').trim(), cols[5].width - 2), cx, y + 3.8);
+            doc.text(truncateToWidth(doc, r.temaPrincipal, cols[4].width - 2), cx, y + 3.8); cx += cols[4].width;
+            doc.text(truncateToWidth(doc, r.actorFuente, cols[5].width - 2), cx, y + 3.8);
             doc.setDrawColor(LINE[0], LINE[1], LINE[2]); doc.setLineWidth(0.1);
             doc.line(margin, y + 5.4, pageW - margin, y + 5.4);
             y += 6;
@@ -533,7 +520,7 @@ export const useReportGenerator = () => {
         drawFooter(page);
 
         const fileDate = new Date().toISOString().slice(0, 10);
-        const filename = `ENGIE-Reporte-Comentarios-${fileDate}.pdf`;
+        const filename = `ENGIE-Menciones-${fileDate}.pdf`;
 
         const blob = doc.output('blob');
         const blobUrl = URL.createObjectURL(blob);

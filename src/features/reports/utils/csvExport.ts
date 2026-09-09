@@ -1,41 +1,52 @@
 export interface ReportRow {
-    fechaInicio: string;
-    fechaFin: string;
-    contenido: string;
-    redSocial: string;
-    campus: string;
-    sentiment: string;
-    usuario: string;
-    comentario: string;
-    posteoOriginal: string;
-    evidencias: string;
+    id: string;
+    fecha: string;
+    fuenteDeteccion: string;
+    actorFuente: string;
+    tipoFuente: string;
+    temaPrincipal: string;
+    nivelRiesgo: string;
+    alcanceActual: string;
+    tendencia: string;
+    resumen: string;
+    hallazgosClave: string;
+    estado: string;
+    area: string;
+    totalIncidencias: number;
+    autor: string;
 }
 
-export const normalizeComments = (com: any): ReportRow[] => {
-    if (com.comentariosList && com.comentariosList.length > 0) {
-        return com.comentariosList.map((c: any) => ({
-            fechaInicio: com.fechaInicio || '',
-            fechaFin: com.fechaFin || '',
-            contenido: com.contenido || 'Orgánico',
-            redSocial: c.redSocial || 'Facebook comentario',
-            campus: c.campus || 'Sin especificar',
-            sentiment: c.sentiment || 'Sin clasificar',
-            usuario: c.usuario || 'Anónimo',
-            comentario: c.comentario || '',
-            posteoOriginal: c.posteoTipo === 'url' ? c.posteoUrl : c.posteoTexto,
-            evidencias: com.evidencia || ''
+export const normalizeMention = (inc: any): ReportRow => {
+    return {
+        id: inc.id || '',
+        fecha: inc.fecha || '',
+        fuenteDeteccion: inc.fuenteDeteccion || inc.medio || 'Sin especificar',
+        actorFuente: inc.actorFuente || inc.usuario || 'Anónimo',
+        tipoFuente: inc.tipoFuente || 'Sin clasificar',
+        temaPrincipal: inc.temaPrincipal || 'Sin clasificar',
+        nivelRiesgo: inc.nivelRiesgoReputacional || inc.nivelRiesgo || 'Bajo',
+        alcanceActual: inc.alcanceActual || 'Sin especificar',
+        tendencia: inc.tendencia || 'Sin especificar',
+        resumen: inc.resumenIncidente || inc.resumen || inc.descripcion || '',
+        hallazgosClave: inc.hallazgosClave || '',
+        estado: inc.estado || 'Monitoreo activo',
+        area: inc.area || 'Sin asignar',
+        totalIncidencias: Number(inc.totalIncidencias) || 1,
+        autor: inc.autor || 'Administrador',
+    };
+};
+
+export const normalizeMentions = (data: any): ReportRow[] => {
+    if (Array.isArray(data)) {
+        return data.map(normalizeMention);
+    }
+    if (data.comentariosList && data.comentariosList.length > 0) {
+        return data.comentariosList.map((c: any) => normalizeMention({
+            ...data,
+            ...c,
+            id: c.id || data.id,
+            fecha: data.fecha || c.fecha
         }));
     }
-    return [{
-        fechaInicio: com.fechaInicio || '',
-        fechaFin: com.fechaFin || '',
-        contenido: com.contenido || 'Orgánico',
-        redSocial: com.redSocial || 'Facebook comentario',
-        campus: com.campus || 'Sin especificar',
-        sentiment: com.sentiment || 'Sin clasificar',
-        usuario: com.usuario || 'Anónimo',
-        comentario: com.descripcion || com.comentario || '',
-        posteoOriginal: com.posteoTipo === 'url' ? com.posteoUrl : com.posteoTexto,
-        evidencias: com.evidencia || ''
-    }];
+    return [normalizeMention(data)];
 };
