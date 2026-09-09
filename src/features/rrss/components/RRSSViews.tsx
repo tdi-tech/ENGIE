@@ -260,7 +260,6 @@ export const HistorialRRSSView = ({ showToast, isAdmin, updateRrssIncident, dele
     const [exportFuente, setExportFuente] = useState('');
     const [exportTema, setExportTema] = useState('');
     const [exportRiesgo, setExportRiesgo] = useState('');
-    const [exportEstatus, setExportEstatus] = useState('');
     const [exportAlcance, setExportAlcance] = useState('');
     const [exportTendencia, setExportTendencia] = useState('');
     const [isExporting, setIsExporting] = useState(false);
@@ -291,7 +290,7 @@ export const HistorialRRSSView = ({ showToast, isAdmin, updateRrssIncident, dele
     }, [exportType, exportYear]);
 
     const clearCustomExportFilters = () => {
-        setExportFuente(''); setExportTema(''); setExportRiesgo(''); setExportEstatus(''); setExportAlcance(''); setExportTendencia('');
+        setExportFuente(''); setExportTema(''); setExportRiesgo(''); setExportAlcance(''); setExportTendencia('');
     };
 
     const availableYears = useMemo(() => {
@@ -515,7 +514,7 @@ const handleDownloadDocx = (inc: any) => {
                 filenameSuffix = filenameSuffix === 'Todo' ? exportMonth : `${filenameSuffix}_${exportMonth}`;
             }
         } else if (exportType === 'custom') {
-            if (!exportYear && !exportMonth && !exportFuente && !exportTema && !exportRiesgo && !exportEstatus && !exportAlcance && !exportTendencia) {
+            if (!exportYear && !exportMonth && !exportFuente && !exportTema && !exportRiesgo && !exportAlcance && !exportTendencia) {
                 return showToast('Configura al menos un criterio para la combinación personalizada', true);
             }
             if (exportYear) {
@@ -529,7 +528,6 @@ const handleDownloadDocx = (inc: any) => {
             if (exportFuente) { dataToExport = dataToExport.filter((i: any) => norm(i).fuenteDeteccion === exportFuente); filenameSuffix += `_F-${exportFuente}`; }
             if (exportTema) { dataToExport = dataToExport.filter((i: any) => norm(i).temaPrincipal === exportTema); filenameSuffix += `_T-${exportTema}`; }
             if (exportRiesgo) { dataToExport = dataToExport.filter((i: any) => riesgoValue(norm(i).nivelRiesgo) === exportRiesgo); filenameSuffix += `_R-${exportRiesgo}`; }
-            if (exportEstatus) { dataToExport = dataToExport.filter((i: any) => (i.estado || 'Monitoreo activo') === exportEstatus); filenameSuffix += `_E-${exportEstatus}`; }
             if (exportAlcance) { dataToExport = dataToExport.filter((i: any) => norm(i).alcanceActual === exportAlcance); filenameSuffix += `_A-${exportAlcance}`; }
             if (exportTendencia) { dataToExport = dataToExport.filter((i: any) => norm(i).tendencia === exportTendencia); filenameSuffix += `_Ten-${exportTendencia}`; }
             filenameSuffix = filenameSuffix.replace(/[\/\s:]+/g, '-');
@@ -544,16 +542,15 @@ const handleDownloadDocx = (inc: any) => {
             // El Análisis Interno se guarda como HTML (editor enriquecido): se exporta como texto plano
             const htmlToText = (v: any) => String(v ?? '').replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim();
             const headers = isAdmin
-                ? ['Fecha,Volumen,Actor o Fuente,Fuente de Deteccion,Tipo de Fuente,Tema Principal,Nivel de Riesgo,Alcance Actual,Tendencia,Estatus,Resumen del Incidente,Hallazgos Clave,Analisis Interno,Enlace Publicacion,Enlace Drive,Area Responsable,Autor']
-                : ['Fecha,Volumen,Actor o Fuente,Fuente de Deteccion,Tipo de Fuente,Tema Principal,Nivel de Riesgo,Alcance Actual,Tendencia,Estatus,Resumen del Incidente,Hallazgos Clave,Analisis Interno,Enlace Publicacion,Enlace Drive,Area Responsable'];
+                ? ['Fecha,Volumen,Actor o Fuente,Fuente de Deteccion,Tipo de Fuente,Tema Principal,Nivel de Riesgo,Alcance Actual,Tendencia,Resumen del Incidente,Hallazgos Clave,Analisis Interno,Enlace Publicacion,Enlace Drive,Autor']
+                : ['Fecha,Volumen,Actor o Fuente,Fuente de Deteccion,Tipo de Fuente,Tema Principal,Nivel de Riesgo,Alcance Actual,Tendencia,Resumen del Incidente,Hallazgos Clave,Analisis Interno,Enlace Publicacion,Enlace Drive'];
             const rows = dataToExport.map((i: any) => {
                 const n = norm(i);
                 const baseData = [
                     esc(i.fecha), esc(i.totalIncidencias), esc(n.actorFuente), esc(n.fuenteDeteccion), esc(n.tipoFuente),
                     esc(n.temaPrincipal), esc(n.nivelRiesgo), esc(n.alcanceActual), esc(n.tendencia),
-                    esc(i.estado || 'Monitoreo activo'),
                     esc(n.resumen), esc(n.hallazgosClave), esc(htmlToText(n.reporteTexto)),
-                    esc(n.enlacePublicacion), esc(n.enlaceDrive), esc(n.area)
+                    esc(n.enlacePublicacion), esc(n.enlaceDrive)
                 ].map(v => `"${v}"`).join(',');
                 return isAdmin ? `${baseData},"${esc(i.autor || 'Administrador')}"` : baseData;
             });
@@ -910,13 +907,6 @@ const handleDownloadDocx = (inc: any) => {
                                                 <select aria-label="Filtrar por riesgo" value={exportRiesgo} onChange={(e) => setExportRiesgo(e.target.value)} className={`${inputStyles} py-2`}>
                                                     <option className={optionStyles} value="">Todo riesgo</option>
                                                     {NIVELES_RIESGO.map(r => <option className={optionStyles} key={r} value={r}>{r}</option>)}
-                                                </select>
-                                                <select aria-label="Filtrar por estatus" value={exportEstatus} onChange={(e) => setExportEstatus(e.target.value)} className={`${inputStyles} py-2`}>
-                                                    <option className={optionStyles} value="">Todo estatus</option>
-                                                    <option className={optionStyles} value="Monitoreo activo">🔴 Monitoreo activo</option>
-                                                    <option className={optionStyles} value="En revisión">🟡 En revisión</option>
-                                                    <option className={optionStyles} value="Seguimiento activo">🟠 Seguimiento activo</option>
-                                                    <option className={optionStyles} value="Resuelto / solucionado">🟢 Resuelto</option>
                                                 </select>
                                                 <select aria-label="Filtrar por alcance" value={exportAlcance} onChange={(e) => setExportAlcance(e.target.value)} className={`${inputStyles} py-2`}>
                                                     <option className={optionStyles} value="">Todo alcance</option>
