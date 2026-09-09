@@ -464,6 +464,8 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
     const [exportMonth, setExportMonth] = useState('');
     const [exportFuente, setExportFuente] = useState('');
     const [isExporting, setIsExporting] = useState(false);
+    const [editingNarrativaIdx, setEditingNarrativaIdx] = useState<number | null>(null);
+    const [editingNarrativaValue, setEditingNarrativaValue] = useState('');
 
     useEffect(() => {
         if (IS_MOCK) { setIsLoading(false); return; }
@@ -608,6 +610,35 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
         setEditData({ ...editData, registrosDigitalesList: list });
     };
     const handleDelete = () => { setIsDetailOpen(false); deleteComment(selectedComment.id); };
+
+    const startEditNarrativa = (idx: number, currentValue: string) => {
+        setEditingNarrativaIdx(idx);
+        setEditingNarrativaValue(currentValue);
+    };
+
+    const saveEditNarrativa = () => {
+        if (editingNarrativaIdx === null || !selectedComment) return;
+        const isRedes = selectedComment.fuenteMonitoreo !== 'Medios digitales';
+        const listKey = isRedes ? 'registrosList' : 'registrosDigitalesList';
+        const updatedList = [...(selectedComment[listKey] || [])];
+        if (updatedList[editingNarrativaIdx]) {
+            updatedList[editingNarrativaIdx] = { ...updatedList[editingNarrativaIdx], narrativa: editingNarrativaValue };
+            const payload: any = {
+                fechaPublicacion: selectedComment.fechaPublicacion || '',
+                horaDeteccion: selectedComment.horaDeteccion || '',
+                fuenteMonitoreo: selectedComment.fuenteMonitoreo || 'Redes sociales',
+                evidencia: selectedComment.evidencia || '',
+                autor: selectedComment.autor || 'Administrador',
+                timestamp: selectedComment.timestamp || new Date().toISOString()
+            };
+            payload[listKey] = updatedList;
+            updateComment(selectedComment.id, payload);
+            setSelectedComment({ ...selectedComment, [listKey]: updatedList });
+            showToast('Narrativa actualizada');
+        }
+        setEditingNarrativaIdx(null);
+    };
+
     const handleEditUpdate = (e: React.FormEvent) => {
         e.preventDefault();
         // La regla isValidCommentReport usa hasOnly: el payload debe contener
@@ -1063,7 +1094,22 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
                                             {c.nivelRiesgo && <span title="Nivel de Riesgo" className={`px-2.5 py-1 text-[10px] font-bold rounded-md uppercase tracking-wider ${getRiesgoDot(c.nivelRiesgo).badge}`}><span className={`inline-block w-2 h-2 rounded-full mr-1 ${getRiesgoDot(c.nivelRiesgo).dot}`}></span>Riesgo: {c.nivelRiesgo}</span>}
                                             {c.estatus && <span title="Estatus de la Mención" className={`px-2.5 py-1 text-[10px] font-bold rounded-md uppercase tracking-wider border ${getEstatusDot(c.estatus).badge}`}><span className={`inline-block w-2 h-2 rounded-full mr-1 ${getEstatusDot(c.estatus).dot}`}></span>Estatus: {c.estatus}</span>}
                                         </div>
-                                        <p className="text-sm theme-text-main whitespace-pre-wrap">{c.comentario}</p>
+                                        <div>
+                                            <p className="text-[10px] font-bold text-blue-500 uppercase tracking-wider mb-1">Narrativa</p>
+                                            {editingNarrativaIdx === idx ? (
+                                                <div className="flex flex-col gap-2">
+                                                    <select value={editingNarrativaValue} onChange={(e) => setEditingNarrativaValue(e.target.value)} className={inputStyles}>
+                                                        {['Seguridad y regulación', 'Inversión y desarrollo regional', 'Avances de obra e infraestructura', 'Legal y derechos humanos', 'Medio ambiente', 'Difusión informativa', 'Otro'].map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                                    </select>
+                                                    <div className="flex gap-2">
+                                                        <button type="button" onClick={saveEditNarrativa} className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-500 transition-colors flex items-center gap-1"><Check className="w-3 h-3"/> Guardar</button>
+                                                        <button type="button" onClick={() => setEditingNarrativaIdx(null)} className="px-3 py-1.5 theme-bg-low theme-text-muted rounded-lg text-xs font-bold hover:bg-black/10 dark:hover:bg-white/10 transition-colors">Cancelar</button>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <p className="text-sm theme-text-main whitespace-pre-wrap cursor-pointer hover:bg-blue-500/5 dark:hover:bg-blue-500/10 p-1.5 rounded-lg transition-colors" onClick={() => startEditNarrativa(idx, c.comentario === 'Sin narrativa' ? '' : c.comentario)} title="Click para editar narrativa">{c.comentario || 'Sin narrativa'}</p>
+                                            )}
+                                        </div>
                                         {c.hallazgo && (
                                             <div className="p-3 bg-orange-500/5 border border-orange-500/20 rounded-lg">
                                                 <p className="text-[10px] font-bold text-orange-500 uppercase tracking-wider mb-1">Hallazgo Reputacional</p>
@@ -1163,7 +1209,8 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
                                                             <option value="Cerrado" className="text-green-600 dark:text-green-400">🟢 Cerrado</option>
                                                         </select>
                                                     </div>
-<div className="md:col-span-2"><label htmlFor={`er-narrativa-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Narrativa</label><textarea id={`er-narrativa-${idx}`} required rows={2} value={c.narrativa} onChange={(e) => updateEditRegistro(idx, 'narrativa', e.target.value)} className={`${inputStyles} resize-none leading-relaxed`}></textarea></div>
+<div className="md:col-span-2"><label htmlFor={`er-narrativa-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Narrativa</label><select id={`er-narrativa-${idx}`} value={c.narrativa} onChange={(e) => updateEditRegistro(idx, 'narrativa', e.target.value)} className={`${inputStyles} ${!c.narrativa ? 'text-gray-400' : ''}`}><option value="" disabled>Seleccionar narrativa...</option>{['Seguridad y regulación', 'Inversión y desarrollo regional', 'Avances de obra e infraestructura', 'Legal y derechos humanos', 'Medio ambiente', 'Difusión informativa', 'Otro'].map(opt => <option key={opt} value={opt}>{opt}</option>)}</select></div>
+                                                    {c.narrativa === 'Otro' && <div className="md:col-span-2"><label htmlFor={`er-narrativaOtro-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Especificar Narrativa</label><input id={`er-narrativaOtro-${idx}`} type="text" required placeholder="Describe la narrativa..." value={c.narrativaOtro || ''} onChange={(e) => updateEditRegistro(idx, 'narrativaOtro', e.target.value)} className={inputStyles} /></div>}
                                                     <div className="md:col-span-2"><label htmlFor={`er-hallazgo-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Hallazgo reputacional</label><textarea id={`er-hallazgo-${idx}`} rows={2} value={c.hallazgoReputacional} onChange={(e) => updateEditRegistro(idx, 'hallazgoReputacional', e.target.value)} className={`${inputStyles} resize-none leading-relaxed`}></textarea></div>
                                                     <div className="md:col-span-2"><label htmlFor={`er-link-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Link de la publicación original</label><input id={`er-link-${idx}`} type="url" placeholder="https://..." value={c.linkPublicacion} onChange={(e) => updateEditRegistro(idx, 'linkPublicacion', e.target.value)} className={inputStyles} /></div>
                                                 </div>
@@ -1208,7 +1255,8 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
                                                             <option value="Cerrado" className="text-green-600 dark:text-green-400">🟢 Cerrado</option>
                                                         </select>
                                                     </div>
-                                                    <div className="md:col-span-2"><label htmlFor={`ed-narrativa-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Narrativa</label><textarea id={`ed-narrativa-${idx}`} required rows={2} value={c.narrativa} onChange={(e) => updateEditRegistroDigital(idx, 'narrativa', e.target.value)} className={`${inputStyles} resize-none leading-relaxed`}></textarea></div>
+                                                    <div className="md:col-span-2"><label htmlFor={`ed-narrativa-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Narrativa</label><select id={`ed-narrativa-${idx}`} value={c.narrativa} onChange={(e) => updateEditRegistroDigital(idx, 'narrativa', e.target.value)} className={`${inputStyles} ${!c.narrativa ? 'text-gray-400' : ''}`}><option value="" disabled>Seleccionar narrativa...</option>{['Seguridad y regulación', 'Inversión y desarrollo regional', 'Avances de obra e infraestructura', 'Legal y derechos humanos', 'Medio ambiente', 'Difusión informativa', 'Otro'].map(opt => <option key={opt} value={opt}>{opt}</option>)}</select></div>
+                                                    {c.narrativa === 'Otro' && <div className="md:col-span-2"><label htmlFor={`ed-narrativaOtro-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Especificar Narrativa</label><input id={`ed-narrativaOtro-${idx}`} type="text" required placeholder="Describe la narrativa..." value={c.narrativaOtro || ''} onChange={(e) => updateEditRegistroDigital(idx, 'narrativaOtro', e.target.value)} className={inputStyles} /></div>}
                                                     <div className="md:col-span-2"><label htmlFor={`ed-hallazgo-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Hallazgo reputacional</label><textarea id={`ed-hallazgo-${idx}`} rows={2} value={c.hallazgoReputacional} onChange={(e) => updateEditRegistroDigital(idx, 'hallazgoReputacional', e.target.value)} className={`${inputStyles} resize-none leading-relaxed`}></textarea></div>
                                                     <div className="md:col-span-2"><label htmlFor={`ed-link-${idx}`} className="text-xs font-bold theme-text-muted uppercase tracking-wider">Link de la publicación original</label><input id={`ed-link-${idx}`} type="url" placeholder="Link de la publicación original" value={c.linkPublicacion} onChange={(e) => updateEditRegistroDigital(idx, 'linkPublicacion', e.target.value)} className={inputStyles} /></div>
                                                 </div>
