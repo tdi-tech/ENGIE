@@ -541,16 +541,19 @@ const handleDownloadDocx = (inc: any) => {
 
         setTimeout(() => {
             const esc = (v: any) => String(v ?? '').replace(/"/g, '""');
+            // El Análisis Interno se guarda como HTML (editor enriquecido): se exporta como texto plano
+            const htmlToText = (v: any) => String(v ?? '').replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim();
             const headers = isAdmin
-                ? ['Fecha,Volumen,Actor o Fuente,Fuente de Deteccion,Tipo de Fuente,Tema Principal,Nivel de Riesgo,Alcance Actual,Tendencia,Resumen del Incidente,Hallazgos Clave,Estatus,Enlace Publicacion,Enlace Drive,Comentarios,Autor']
-                : ['Fecha,Volumen,Actor o Fuente,Fuente de Deteccion,Tipo de Fuente,Tema Principal,Nivel de Riesgo,Alcance Actual,Tendencia,Resumen del Incidente,Hallazgos Clave,Estatus,Enlace Publicacion,Enlace Drive,Comentarios'];
+                ? ['Fecha,Volumen,Actor o Fuente,Fuente de Deteccion,Tipo de Fuente,Tema Principal,Nivel de Riesgo,Alcance Actual,Tendencia,Estatus,Resumen del Incidente,Hallazgos Clave,Analisis Interno,Enlace Publicacion,Enlace Drive,Area Responsable,Autor']
+                : ['Fecha,Volumen,Actor o Fuente,Fuente de Deteccion,Tipo de Fuente,Tema Principal,Nivel de Riesgo,Alcance Actual,Tendencia,Estatus,Resumen del Incidente,Hallazgos Clave,Analisis Interno,Enlace Publicacion,Enlace Drive,Area Responsable'];
             const rows = dataToExport.map((i: any) => {
                 const n = norm(i);
                 const baseData = [
                     esc(i.fecha), esc(i.totalIncidencias), esc(n.actorFuente), esc(n.fuenteDeteccion), esc(n.tipoFuente),
                     esc(n.temaPrincipal), esc(n.nivelRiesgo), esc(n.alcanceActual), esc(n.tendencia),
-                    esc(n.resumen), esc(n.hallazgosClave), esc(i.estado || 'Monitoreo activo'),
-                    esc(n.enlacePublicacion), esc(n.enlaceDrive), esc(i.comentarios)
+                    esc(i.estado || 'Monitoreo activo'),
+                    esc(n.resumen), esc(n.hallazgosClave), esc(htmlToText(n.reporteTexto)),
+                    esc(n.enlacePublicacion), esc(n.enlaceDrive), esc(n.area)
                 ].map(v => `"${v}"`).join(',');
                 return isAdmin ? `${baseData},"${esc(i.autor || 'Administrador')}"` : baseData;
             });

@@ -729,26 +729,33 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
             }
         }
 
-        if (dataToExport.length === 0) return showToast('No hay datos registrados con esos filtros', true);
+        // Desglose por registro: el filtro de fuente se aplica a NIVEL REGISTRO
+        // (solo se exportan los registros de la fuente seleccionada, no el reporte completo)
+        const fuenteFilter = exportType === 'custom' ? exportFuente : '';
+        const registros = dataToExport.flatMap((i: any) => {
+            let list = getNormalizedComments(i);
+            if (fuenteFilter) list = list.filter((c: any) => c.fuenteMonitoreo === fuenteFilter);
+            return list.map((c: any) => ({ i, c }));
+        });
+        if (registros.length === 0) return showToast('No hay datos registrados con esos filtros', true);
 
         setIsExporting(true);
 
         setTimeout(() => {
-            const headers = isAdmin 
-                ? ['Fecha Publicación,Hora Detección,Fuente Monitoreo,Evidencias,Canal,Usuario,Tipo de Actor,Sentimiento,Nivel de Riesgo,Estatus,Narrativa,Link Publicación,Hallazgo Reputacional,Autor'] 
-                : ['Fecha Publicación,Hora Detección,Fuente Monitoreo,Evidencias,Canal,Usuario,Tipo de Actor,Sentimiento,Nivel de Riesgo,Estatus,Narrativa,Link Publicación,Hallazgo Reputacional'];
-            
-            const rows = dataToExport.flatMap((i: any) => {
-                const list = getNormalizedComments(i);
-                return list.map((c: any) => {
-                    const escape = (text: string) => `"${(text || '').toString().replace(/"/g, '""')}"`;
-                    const baseData = [
-                        escape(i.fechaPublicacion), escape(i.horaDeteccion), escape(i.fuenteMonitoreo), escape(i.evidencia),
-                        escape(c.canal || 'N/D'), escape(c.usuario), escape(c.tipoActor || ''), escape(c.sentiment || 'N/A'),
-                        escape(c.nivelRiesgo || ''), escape(c.estatus || ''), escape(c.comentario), escape(c.linkPublicacion), escape(c.hallazgo || '')
-                    ].join(',');
-                    return isAdmin ? `${baseData},${escape(i.autor || 'Admin')}` : baseData;
-                });
+            const headers = isAdmin
+                ? ['Fecha Publicación,Hora Detección,Fuente Monitoreo,Evidencias,Canal,Usuario o Sitio Web,Tipo de Actor,Sentimiento,Nivel de Riesgo,Estatus,Narrativa,Link Publicación,Hallazgo Reputacional,Visualizaciones,Reacciones,Comentarios,Compartidos,Autor']
+                : ['Fecha Publicación,Hora Detección,Fuente Monitoreo,Evidencias,Canal,Usuario o Sitio Web,Tipo de Actor,Sentimiento,Nivel de Riesgo,Estatus,Narrativa,Link Publicación,Hallazgo Reputacional,Visualizaciones,Reacciones,Comentarios,Compartidos'];
+
+            const rows = registros.map(({ i, c }: any) => {
+                const escape = (text: any) => `"${(text ?? '').toString().replace(/"/g, '""')}"`;
+                const baseData = [
+                    escape(i.fechaPublicacion), escape(i.horaDeteccion), escape(i.fuenteMonitoreo), escape(i.evidencia),
+                    escape(c.canal || 'N/D'), escape(c.usuario), escape(c.tipoActor || ''), escape(c.sentiment || 'N/A'),
+                    escape(c.nivelRiesgo || ''), escape(c.estatus || ''), escape(c.comentario), escape(c.linkPublicacion), escape(c.hallazgo || ''),
+                    escape(c.metricas?.visualizaciones || ''), escape(c.metricas?.reacciones || ''),
+                    escape(c.metricas?.comentarios || ''), escape(c.metricas?.compartidos || '')
+                ].join(',');
+                return isAdmin ? `${baseData},${escape(i.autor || 'Admin')}` : baseData;
             });
 
             const link = document.createElement("a"); 
