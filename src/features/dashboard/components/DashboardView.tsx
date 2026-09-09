@@ -70,23 +70,37 @@ export const DashboardView = ({ showToast, user }: any) => {
     const commentsStats = useMemo(() => {
         let totalMenciones = 0, positivo = 0, negativo = 0, neutral = 0;
         const canalCounts: Record<string, number> = {};
-        const fuenteCounts: Record<string, number> = {};
+        const riesgoCounts: Record<string, number> = { Bajo: 0, Medio: 0, Alto: 0, 'Crítico': 0 };
+        const actoresCriticos: Record<string, number> = {};
         comments.forEach((com: any) => {
             normalizeMenciones(com).forEach((m: any) => {
                 const s = (m.sentiment || '').toLowerCase();
                 if (s.includes('pos')) positivo++; else if (s.includes('neg')) negativo++; else neutral++;
                 totalMenciones++;
-                if (m.redSocial && m.redSocial !== 'N/D' && m.redSocial !== 'N/A') canalCounts[m.redSocial] = (canalCounts[m.redSocial] || 0) + 1;
-                fuenteCounts[m.fuenteMonitoreo] = (fuenteCounts[m.fuenteMonitoreo] || 0) + 1;
+                if (m.canal && m.canal !== 'N/D' && m.canal !== 'N/A' && m.canal !== 'Medio digital') canalCounts[m.canal] = (canalCounts[m.canal] || 0) + 1;
+                const r = m.nivelRiesgo || '';
+                if (r in riesgoCounts) riesgoCounts[r]++;
+                // Actor crítico: registro con riesgo Alto o Crítico → cuenta por actor/fuente
+                if (r === 'Alto' || r === 'Crítico') {
+                    const actor = (m.tipoActor && m.tipoActor !== 'N/A' ? m.tipoActor : '') || (m.usuario && m.usuario !== 'N/A' ? m.usuario : '') || 'Actor sin identificar';
+                    actoresCriticos[actor] = (actoresCriticos[actor] || 0) + 1;
+                }
             });
         });
+        const topActoresCriticos = Object.entries(actoresCriticos)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 5);
         return {
             totalMenciones,
-            fuentesActivas: Object.keys(fuenteCounts).length,
+            positivo,
+            neutral,
+            negativo,
             positivityRate: totalMenciones ? Math.round((positivo / totalMenciones) * 100) : 0,
             sentimentCounts: { Positivo: positivo, Neutral: neutral, Negativo: negativo },
+            riesgoCounts,
+            actoresCriticosCount: Object.values(actoresCriticos).reduce((a: number, b: number) => a + b, 0),
+            topActoresCriticos,
             topCanal: Object.keys(canalCounts).sort((a, b) => canalCounts[b] - canalCounts[a])[0] || 'N/D',
-            fuentePrincipal: Object.keys(fuenteCounts).sort((a, b) => fuenteCounts[b] - fuenteCounts[a])[0] || 'N/D',
         };
     }, [comments]);
 
@@ -137,11 +151,12 @@ export const DashboardView = ({ showToast, user }: any) => {
             doc.setFontSize(10);
 
             const lines: [string, string][] = activeTab === 'menciones' ? [
-                ['Menciones monitoreadas:', String(commentsStats.totalMenciones)],
-                ['Fuentes activas:', String(commentsStats.fuentesActivas)],
-                ['Sentimiento positivo:', commentsStats.positivityRate + '%'],
-                ['Canal principal:', commentsStats.topCanal],
-                ['Fuente principal:', commentsStats.fuentePrincipal]
+                ['Menciones verificadas:', String(commentsStats.totalMenciones)],
+                ['Menciones positivas:', String(commentsStats.positivo)],
+                ['Menciones neutrales:', String(commentsStats.neutral)],
+                ['Menciones negativas:', String(commentsStats.negativo)],
+                ['Actores críticos (Alto/Crítico):', String(commentsStats.actoresCriticosCount)],
+                ['Canal principal:', commentsStats.topCanal]
             ] : [
                 ['Reportes creados:', String(rrssStats.totalReportes)],
                 ['Total incidencias:', String(rrssStats.totalIncidencias)],
@@ -204,13 +219,16 @@ return (
             <div className="space-y-6">
                 {activeTab === 'menciones' && (
                     <div className="fade-in space-y-6">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                            <StatCard title="Menciones Monitoreadas" value={commentsStats.totalMenciones} color="blue" icon={<MessageSquare className="w-12 h-12 opacity-10 absolute -right-2 -bottom-2" />} />
-                            <StatCard title="Fuentes Activas" value={commentsStats.fuentesActivas} color="emerald" icon={<Globe className="w-12 h-12 opacity-10 absolute -right-2 -bottom-2" />} />
-                            <StatCard title="Sentimiento Positivo" value={`${commentsStats.positivityRate}%`} color="primary" icon={<TrendingUp className="w-12 h-12 opacity-10 absolute -right-2 -bottom-2" />} />
+                        {/* Fila 1: Totales por sentimiento */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <StatCard title="Menciones Verificadas" value={commentsStats.totalMenciones} color="blue" icon={<MessageSquare className="w-12 h-12 opacity-10 absolute -right-2 -bottom-2" />} />
+                            <StatCard title="Menciones Positivas" value={commentsStats.positivo} color="emerald" icon={<TrendingUp className="w-12 h-12 opacity-10 absolute -right-2 -bottom-2" />} />
+                            <StatCard title="Menciones Neutrales" value={commentsStats.neutral} color="primary" icon={<Minus className="w-12 h-12 opacity-10 absolute -right-2 -bottom-2" />} />
+                            <StatCard title="Menciones Negativas" value={commentsStats.negativo} color="red" icon={<TrendingDown className="w-12 h-12 opacity-10 absolute -right-2 -bottom-2" />} />
                         </div>
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                            <div className="lg:col-span-2 p-5 theme-bg-container border theme-border rounded-xl shadow-sm">
+                        {/* Fila 2: Semáforo de sentimiento + Analítica de nivel de riesgo */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div className="p-5 theme-bg-container border theme-border rounded-xl shadow-sm engie-card-hover">
                                 <h4 className="text-xs font-bold theme-text-muted uppercase tracking-wider mb-4 flex items-center gap-2"><TrendingUp className="w-4 h-4" style={{ color: 'var(--engie-primary-cyan)' }} /> Semáforo de Sentimiento</h4>
                                 <div className="space-y-2.5">
                                     {Object.entries(commentsStats.sentimentCounts).map(([name, count]) => {
@@ -225,11 +243,49 @@ return (
                                     })}
                                 </div>
                             </div>
-                            <div className="p-5 theme-bg-container border theme-border rounded-xl shadow-sm flex flex-col justify-center items-center text-center gap-2">
+                            <div className="p-5 theme-bg-container border theme-border rounded-xl shadow-sm engie-card-hover">
+                                <h4 className="text-xs font-bold theme-text-muted uppercase tracking-wider mb-4 flex items-center gap-2"><AlertTriangle className="w-4 h-4" style={{ color: 'var(--warning)' }} /> Analítica de Nivel de Riesgo</h4>
+                                <div className="space-y-2.5">
+                                    {Object.entries(commentsStats.riesgoCounts).map(([name, count]) => {
+                                        const percent = commentsStats.totalMenciones ? Math.round((Number(count) / commentsStats.totalMenciones) * 100) : 0;
+                                        const barColor = name === 'Crítico' ? 'var(--error)' : name === 'Alto' ? 'rgba(249,115,22,0.9)' : name === 'Medio' ? 'var(--warning)' : 'var(--success)';
+                                        return (
+                                            <div key={name}>
+                                                <div className="flex justify-between text-xs mb-1"><span className="font-bold theme-text-main pr-2">{name}</span><span className="theme-text-muted">{Number(count)} ({percent}%)</span></div>
+                                                <div className="h-2 w-full bg-black/5 dark:bg-white/5 rounded-full overflow-hidden"><div className="h-full rounded-full transition-all duration-1000 ease-out" style={{ width: mounted ? `${percent}%` : '0%', backgroundColor: barColor }}></div></div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        </div>
+                        {/* Fila 3: Actores críticos + Canal principal */}
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <div className="lg:col-span-2 p-5 theme-bg-container border theme-border rounded-xl shadow-sm engie-card-hover">
+                                <div className="flex items-center justify-between mb-4">
+                                    <h4 className="text-xs font-bold theme-text-muted uppercase tracking-wider flex items-center gap-2"><AlertTriangle className="w-4 h-4" style={{ color: 'var(--error)' }} /> Analítica de Actores Críticos</h4>
+                                    <span className="text-[11px] font-bold rounded-full px-3 py-1" style={{ backgroundColor: 'rgba(225,29,72,0.12)', color: 'var(--error)' }}>{commentsStats.actoresCriticosCount} registros de riesgo Alto/Crítico</span>
+                                </div>
+                                {commentsStats.topActoresCriticos.length ? (
+                                    <div className="space-y-2.5">
+                                        {commentsStats.topActoresCriticos.map(([actor, count]) => {
+                                            const percent = commentsStats.actoresCriticosCount ? Math.round((count / commentsStats.actoresCriticosCount) * 100) : 0;
+                                            return (
+                                                <div key={actor}>
+                                                    <div className="flex justify-between text-xs mb-1"><span className="font-bold theme-text-main pr-2 truncate">{actor}</span><span className="theme-text-muted">{count} ({percent}%)</span></div>
+                                                    <div className="h-2 w-full bg-black/5 dark:bg-white/5 rounded-full overflow-hidden"><div className="h-full rounded-full transition-all duration-1000 ease-out" style={{ width: mounted ? `${percent}%` : '0%', backgroundColor: 'var(--error)' }}></div></div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                ) : (
+                                    <p className="text-sm theme-text-muted text-center py-6">Sin actores críticos registrados hasta la fecha</p>
+                                )}
+                            </div>
+                            <div className="p-5 theme-bg-container border theme-border rounded-xl shadow-sm flex flex-col justify-center items-center text-center gap-2 engie-card-hover">
                                 <div className="p-3 rounded-full mb-2" style={{ backgroundColor: 'rgba(0,163,224,0.1)', color: 'var(--engie-primary-cyan)' }}><Activity className="w-8 h-8" /></div>
                                 <p className="text-xs font-bold theme-text-muted uppercase tracking-wider">Canal Principal</p>
                                 <p className="text-2xl font-black theme-text-main">{commentsStats.topCanal}</p>
-                                <span className="text-[11px] font-bold rounded-md px-2 py-0.5" style={{ backgroundColor: 'rgba(0,163,224,0.1)', color: 'var(--engie-primary-cyan)' }}>{commentsStats.fuentePrincipal}</span>
                             </div>
                         </div>
                     </div>
