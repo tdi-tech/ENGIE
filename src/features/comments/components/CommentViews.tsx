@@ -4,12 +4,14 @@ import {
     Save, Download, Trash2, MessageSquare, Printer, X, Edit3, 
     Link as LinkIcon, Calendar, PlusCircle, Share2, MapPin, 
     Frown, Meh, Smile, Search, ChevronDown, ChevronRight, ChevronLeft, Loader2,
-    CheckSquare, Check, Filter
+    CheckSquare, Check, Filter, FileDown
 } from 'lucide-react';
 import { collection, addDoc, onSnapshot } from 'firebase/firestore';
 import { db, appId, IS_MOCK } from '../../../services/firebase/config';
 import { getMonthName } from '../../../shared/utils/date';
 import { calcCommentAnalytics, normalizeMenciones, isRegistroVacio } from '../../../shared/utils/menciones';
+import { useCommentsPdfExport } from '../hooks/useCommentsPdfExport';
+import { normalizeMencionRow } from '../../reports/utils/csvExport';
 
 const inputStyles = "w-full p-3 rounded-xl theme-bg-low border theme-border theme-text-main focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all text-sm";
 const radioLabelStyles = "flex items-center gap-2 text-sm font-medium theme-text-main cursor-pointer";
@@ -469,6 +471,8 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
     const [exportMonth, setExportMonth] = useState('');
     const [exportFuente, setExportFuente] = useState('');
     const [isExporting, setIsExporting] = useState(false);
+    const [isExportingPDF, setIsExportingPDF] = useState(false);
+    const { generateCommentsHistoryPDF } = useCommentsPdfExport();
     const [editingNarrativaIdx, setEditingNarrativaIdx] = useState<number | null>(null);
     const [editingNarrativaValue, setEditingNarrativaValue] = useState('');
 
@@ -769,6 +773,41 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
         }, 1500);
     };
 
+    // 📄 PDF Ejecutivo — mismo formato premium que el reporte de Analíticas
+    // (portada navy + KPIs + gráficas Chart.js + tabla zebra). Reutiliza los
+    // filtros del modal (año/mes/fuente) a nivel registro.
+    const handleExecuteExportPDF = async () => {
+        let dataToExport = comments;
+        if (exportType === 'month') {
+            if (!exportYear && !exportMonth) return showToast('Selecciona al menos un año o un mes para exportar', true);
+            if (exportYear) dataToExport = dataToExport.filter((i: any) => i.fechaPublicacion && i.fechaPublicacion.split('-')[0] === exportYear);
+            if (exportMonth) dataToExport = dataToExport.filter((i: any) => i.fechaPublicacion && i.fechaPublicacion.split('-')[1] === exportMonth);
+        } else if (exportType === 'custom') {
+            if (!exportYear && !exportMonth && !exportFuente) return showToast('Configura al menos un criterio para la combinación personalizada', true);
+            if (exportYear) dataToExport = dataToExport.filter((i: any) => i.fechaPublicacion && i.fechaPublicacion.split('-')[0] === exportYear);
+            if (exportMonth) dataToExport = dataToExport.filter((i: any) => i.fechaPublicacion && i.fechaPublicacion.split('-')[1] === exportMonth);
+            if (exportFuente) dataToExport = dataToExport.filter((i: any) => getNormalizedComments(i).some((c: any) => c.fuenteMonitoreo === exportFuente));
+        }
+        const fuenteFilter = exportType === 'custom' ? exportFuente : '';
+        const rows = dataToExport.flatMap((docItem: any) => {
+            let list = getNormalizedComments(docItem);
+            if (fuenteFilter) list = list.filter((c: any) => c.fuenteMonitoreo === fuenteFilter);
+            return list.map((c: any) => normalizeMencionRow({ ...c, fuenteMonitoreo: (c as any).fuenteMonitoreo || docItem.fuenteMonitoreo }, docItem));
+        });
+        if (rows.length === 0) return showToast('No hay datos registrados con esos filtros', true);
+        setIsExportingPDF(true);
+        try {
+            await generateCommentsHistoryPDF(rows, 'Historial de Menciones · Filtros de exportación');
+            setIsExportModalOpen(false);
+            showToast('PDF ejecutivo generado exitosamente');
+        } catch (err) {
+            console.error('Error al generar el PDF de menciones:', err);
+            showToast('Hubo un error al compilar el documento', true);
+        } finally {
+            setIsExportingPDF(false);
+        }
+    };
+
     return (
         <>
             <div className="space-y-6 fade-in pb-24 relative">
@@ -1054,9 +1093,13 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
                         </div>
                         <div className="p-4 border-t theme-border flex justify-end gap-3 bg-black/5 dark:bg-white/5">
                             <button type="button" onClick={() => setIsExportModalOpen(false)} className="px-5 py-2.5 rounded-xl font-bold theme-text-main hover:bg-black/10 dark:hover:bg-white/10 transition-colors">Cancelar</button>
-                            <button type="button" onClick={handleExecuteExport} disabled={isExporting} className="px-5 py-2.5 rounded-xl font-bold bg-blue-600 text-white hover:bg-blue-500 flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
-                                {isExporting ? <Loader2 className="w-4 h-4 animate-spin"/> : <Download className="w-4 h-4"/>} 
+                            <button type="button" onClick={handleExecuteExport} disabled={isExporting || isExportingPDF} className="px-5 py-2.5 rounded-xl font-bold bg-blue-600 text-white hover:bg-blue-500 flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                                {isExporting ? <Loader2 className="w-4 h-4 animate-spin"/> : <Download className="w-4 h-4"/>}
                                 {isExporting ? 'Generando...' : 'Generar CSV'}
+                            </button>
+                            <button type="button" onClick={handleExecuteExportPDF} disabled={isExporting || isExportingPDF} className="px-5 py-2.5 rounded-xl font-bold bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:brightness-110 flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                                {isExportingPDF ? <Loader2 className="w-4 h-4 animate-spin"/> : <FileDown className="w-4 h-4"/>}
+                                {isExportingPDF ? 'Generando...' : 'PDF Ejecutivo'}
                             </button>
                         </div>
                     </div>

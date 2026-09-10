@@ -9,7 +9,9 @@ import { collection, addDoc, onSnapshot } from 'firebase/firestore';
 import { db, appId, IS_MOCK } from '../../../services/firebase/config';
 import { getMonthName } from '../../../shared/utils/date';
 import { normalizeIncidencia, riesgoValue } from '../../../shared/utils/incidencias';
-import DOMPurify from 'dompurify'; 
+import DOMPurify from 'dompurify';
+import { useRrssPdfExport } from '../hooks/useRrssPdfExport';
+import { normalizeMention } from '../../reports/utils/csvExport'; 
 
 const inputStyles = "w-full p-3 rounded-xl theme-bg-low border theme-border theme-text-main focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none transition-all text-sm";
 const optionStyles = "theme-bg-container theme-text-main font-medium";
@@ -263,6 +265,8 @@ export const HistorialRRSSView = ({ showToast, isAdmin, updateRrssIncident, dele
     const [exportAlcance, setExportAlcance] = useState('');
     const [exportTendencia, setExportTendencia] = useState('');
     const [isExporting, setIsExporting] = useState(false);
+    const [isExportingPDF, setIsExportingPDF] = useState(false);
+    const { generateRRSSHistoryPDF } = useRrssPdfExport();
 
     useEffect(() => {
         if (IS_MOCK) { setIsLoading(false); return; }
@@ -566,6 +570,43 @@ const handleDownloadDocx = (inc: any) => {
             setIsExportModalOpen(false);
             showToast('Exportación completada exitosamente');
         }, 1500);
+    };
+
+    // 📄 PDF Ejecutivo — mismo formato premium que el reporte de Analíticas
+    // (portada navy + KPIs + gráficas Chart.js + tabla zebra). Reutiliza los
+    // filtros del modal (año/mes/fuente/tema/riesgo/alcance/tendencia).
+    const handleExecuteExportPDF = async () => {
+        const norm = (i: any) => normalizeIncidencia(i);
+        let dataToExport = rrssIncidents;
+        if (exportType === 'month') {
+            if (!exportYear && !exportMonth) return showToast('Selecciona al menos un año o un mes para exportar', true);
+            if (exportYear) dataToExport = dataToExport.filter((i: any) => i.fecha && i.fecha.split('-')[0] === exportYear);
+            if (exportMonth) dataToExport = dataToExport.filter((i: any) => i.fecha && i.fecha.split('-')[1] === exportMonth);
+        } else if (exportType === 'custom') {
+            if (!exportYear && !exportMonth && !exportFuente && !exportTema && !exportRiesgo && !exportAlcance && !exportTendencia) {
+                return showToast('Configura al menos un criterio para la combinación personalizada', true);
+            }
+            if (exportYear) dataToExport = dataToExport.filter((i: any) => i.fecha && i.fecha.split('-')[0] === exportYear);
+            if (exportMonth) dataToExport = dataToExport.filter((i: any) => i.fecha && i.fecha.startsWith(`${exportYear}-${exportMonth}`));
+            if (exportFuente) dataToExport = dataToExport.filter((i: any) => norm(i).fuenteDeteccion === exportFuente);
+            if (exportTema) dataToExport = dataToExport.filter((i: any) => norm(i).temaPrincipal === exportTema);
+            if (exportRiesgo) dataToExport = dataToExport.filter((i: any) => riesgoValue(norm(i).nivelRiesgo) === exportRiesgo);
+            if (exportAlcance) dataToExport = dataToExport.filter((i: any) => norm(i).alcanceActual === exportAlcance);
+            if (exportTendencia) dataToExport = dataToExport.filter((i: any) => norm(i).tendencia === exportTendencia);
+        }
+        if (dataToExport.length === 0) return showToast('No hay datos registrados con esos criterios', true);
+        setIsExportingPDF(true);
+        try {
+            const rows = dataToExport.map((i: any) => normalizeMention({ ...i, nivelRiesgo: riesgoValue(norm(i).nivelRiesgo) }));
+            await generateRRSSHistoryPDF(rows, 'Historial RRSS · Filtros de exportación');
+            setIsExportModalOpen(false);
+            showToast('PDF ejecutivo generado exitosamente');
+        } catch (err) {
+            console.error('Error al generar el PDF de incidencias:', err);
+            showToast('Hubo un error al compilar el documento', true);
+        } finally {
+            setIsExportingPDF(false);
+        }
     };
 
     return (
@@ -925,9 +966,13 @@ const handleDownloadDocx = (inc: any) => {
                         </div>
                         <div className="p-4 border-t theme-border flex justify-end gap-3 bg-black/5 dark:bg-white/5">
                             <button type="button" onClick={() => setIsExportModalOpen(false)} className="px-5 py-2.5 rounded-xl font-bold theme-text-main hover:bg-black/10 dark:hover:bg-white/10 transition-colors">Cancelar</button>
-                            <button type="button" onClick={handleExecuteExport} disabled={isExporting} className="px-5 py-2.5 rounded-xl font-bold bg-orange-600 text-white hover:bg-orange-500 flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                            <button type="button" onClick={handleExecuteExport} disabled={isExporting || isExportingPDF} className="px-5 py-2.5 rounded-xl font-bold bg-orange-600 text-white hover:bg-orange-500 flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
                                 {isExporting ? <Loader2 className="w-4 h-4 animate-spin"/> : <Download className="w-4 h-4"/>} 
                                 {isExporting ? 'Generando...' : 'Generar CSV'}
+                            </button>
+                            <button type="button" onClick={handleExecuteExportPDF} disabled={isExporting || isExportingPDF} className="px-5 py-2.5 rounded-xl font-bold bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:brightness-110 flex items-center gap-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                                {isExportingPDF ? <Loader2 className="w-4 h-4 animate-spin"/> : <FileText className="w-4 h-4"/>}
+                                {isExportingPDF ? 'Generando...' : 'PDF Ejecutivo'}
                             </button>
                         </div>
                     </div>
