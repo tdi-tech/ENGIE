@@ -100,6 +100,8 @@ export const ConfigView = ({
     // 🔥 NUEVOS ESTADOS PARA EL CRONJOB
     const [cronFreq, setCronFreq] = useState('manual');
     const [isSettingCron, setIsSettingCron] = useState(false);
+    // Latido reportado por el microservicio PHP (null = aún sin actividad)
+    const [cronStatus, setCronStatus] = useState<any>(null);
 
     const [stats, setStats] = useState<any>({
         operativeCount: null,
@@ -166,11 +168,24 @@ export const ConfigView = ({
                 syncTime: new Date().toLocaleTimeString()
             });
 
-            // 🔥 NUEVO: Leer la configuración del CronJob actual
+            // 🔥 NUEVO: Leer la configuración del CronJob actual + su latido
             try {
                 const cronSnap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'config', 'devops_cron'));
                 if(cronSnap.exists()) {
                     setCronFreq(cronSnap.data().frecuencia || 'manual');
+                    // El microservicio PHP escribe estos campos en cada pasada:
+                    // lastRunAt, lastRunStatus ('ok'|'skip'|'error') y lastRunDetail.
+                    const d: any = cronSnap.data();
+                    if (d.lastRunAt) {
+                        setCronStatus({
+                            lastRunAt: d.lastRunAt,
+                            lastRunStatus: d.lastRunStatus || 'ok',
+                            lastRunDetail: d.lastRunDetail || '',
+                            purgedCount: d.purgedCount ?? null,
+                        });
+                    } else {
+                        setCronStatus(null);
+                    }
                 }
             } catch (cronError: any) {
                 console.log("No hay configuración previa del CronJob" + (cronError?.code ? ` (${cronError.code})` : ''));
@@ -419,6 +434,18 @@ export const ConfigView = ({
                                         <div>
                                             <p className="text-sm font-black theme-text-main text-[var(--accent-purple)] uppercase tracking-wider">Automatización de Purga</p>
                                             <p className="text-xs text-[var(--accent-purple)]/80 max-w-sm leading-relaxed mt-1">Programa el microservicio en Hostinger para ejecutar la purga en segundo plano según tus reglas.</p>
+                                            {/* 🔥 Latido: confirma que tu Cron Job de Hostinger está despertando al PHP */}
+                                            {cronStatus ? (
+                                                <div className="mt-2 flex items-center gap-2 text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                                                    <span className="relative flex h-2.5 w-2.5">
+                                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                                                    </span>
+                                                    <span>Cron activo · última pasada: {cronStatus.lastRunAt}{cronStatus.lastRunStatus ? ` (${cronStatus.lastRunStatus})` : ''}{cronStatus.purgedCount != null ? ` · ${cronStatus.purgedCount} docs` : ''}</span>
+                                                </div>
+                                            ) : (
+                                                <p className="text-[11px] text-amber-600 dark:text-amber-400 font-bold mt-2">⏳ Sin señal del Cron Job todavía — el microservicio PHP reportará aquí su última pasada.</p>
+                                            )}
                                         </div>
                                     </div>
                                     <select 
@@ -432,6 +459,15 @@ export const ConfigView = ({
                                         <option value="semanal">Purga Semanal</option>
                                         <option value="mensual">Purga Mensual</option>
                                     </select>
+                                    <button
+                                        type="button"
+                                        onClick={fetchGlobalServerStats}
+                                        disabled={isFetchingLocal}
+                                        className="p-3 theme-bg-container border theme-border rounded-xl hover:border-[var(--accent-purple)]/50 transition-colors disabled:opacity-50"
+                                        title="Refrescar estado del Cron Job"
+                                    >
+                                        <RefreshCw className={`w-4 h-4 ${isFetchingLocal ? 'animate-spin' : ''}`}/>
+                                    </button>
                                 </div>
 
                             </div>
