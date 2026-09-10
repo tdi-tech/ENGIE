@@ -28,6 +28,16 @@ const TREND_COLORS: Record<string, string> = {
     'Disminuyendo': '#3B82F6'
 };
 
+const SENTIMENT_COLORS: Record<string, string> = {
+    'Positivo': '#10B981',
+    'Neutral': '#F59E0B',
+    'Negativo': '#EF4444'
+};
+
+const ESTATUS_COLORS: Record<string, string> = {
+    'Monitoreo activo': '#3B82F6', 'En revisión': '#F59E0B', 'Seguimiento activo': '#8B5CF6', 'Escalado': '#EF4444', 'Resuelto': '#10B981'
+};
+
 type RGB = [number, number, number];
 const NAVY: RGB = [10, 17, 32];        
 const CARD_BG: RGB = [16, 26, 46];     
@@ -45,6 +55,36 @@ const COL = {
 const hexToRgb = (hex: string): RGB => {
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
     return result ? [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)] : [91, 141, 239];
+};
+
+const rgbToHex = (c: RGB) => '#' + c.map(v => Math.round(v).toString(16).padStart(2, '0')).join('');
+
+// Luminancia relativa y ratio de contraste (WCAG 2.2 · 1.4.3)
+const relLum = (c: RGB) => {
+    const f = (v: number) => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+    return 0.2126 * f(c[0]) + 0.7152 * f(c[1]) + 0.0722 * f(c[2]);
+};
+const contrastRatio = (a: RGB, b: RGB) => {
+    const l1 = relLum(a), l2 = relLum(b);
+    return (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
+};
+// Texto legible sobre CARD_BG: aclara el color hasta ≥4.5:1 (AA para texto pequeño del PDF)
+const readableOnDark = (hex: string): RGB => {
+    const base = hexToRgb(hex);
+    for (let t = 0; t <= 1.0001; t += 0.06) {
+        const m: RGB = [base[0] + (255 - base[0]) * t, base[1] + (255 - base[1]) * t, base[2] + (255 - base[2]) * t];
+        if (contrastRatio(m, CARD_BG) >= 5) return m.map(Math.round) as RGB;
+    }
+    return [255, 255, 255];
+};
+// Relleno de gráficas: garantiza ≥3:1 vs CARD_BG (1.4.11 componentes gráficos — evita segmentos negros invisibles)
+const chartFillOnDark = (hex: string): string => {
+    const base = hexToRgb(hex);
+    for (let t = 0; t <= 1.0001; t += 0.06) {
+        const m: RGB = [base[0] + (255 - base[0]) * t, base[1] + (255 - base[1]) * t, base[2] + (255 - base[2]) * t];
+        if (contrastRatio(m, CARD_BG) >= 3) return rgbToHex(m.map(Math.round) as RGB);
+    }
+    return '#ffffff';
 };
 
 export const countBy = (arr: any[], keyFn: (item: any) => string) => {
@@ -276,6 +316,15 @@ export const useReportGenerator = () => {
         if (!rows.length) return;
 
         const doc = new JsPDFClass({ unit: 'mm', format: 'a4' });
+        // Metadatos e idioma del documento (WCAG 3.1.1 · robustez para lectores de PDF)
+        doc.setLanguage('es');
+        doc.setProperties({
+            title: `Reporte Analítico de Menciones — ENGIE (${nowStamp()})`,
+            subject: 'Reporte Analítico · Menciones RRSS',
+            author: 'ENGIE Management',
+            keywords: 'menciones, rrss, analiticas, engie',
+            creator: 'ENGIE Management'
+        });
         const pageW = 210, pageH = 297, margin = 15;
         const contentW = pageW - margin * 2;
 
@@ -300,7 +349,7 @@ export const useReportGenerator = () => {
                 type: 'doughnut',
                 data: { 
                     labels: platformAgg.labels, 
-                    datasets: [{ data: platformAgg.data, backgroundColor: platformAgg.colors, borderColor: '#101a2e', borderWidth: 2 }] 
+                    datasets: [{ data: platformAgg.data, backgroundColor: platformAgg.colors.map(chartFillOnDark), borderColor: '#101a2e', borderWidth: 2 }] 
                 },
                 options: { cutout: '65%', plugins: { legend: { position: 'bottom', labels: { color: '#93a2c0', font: { size: 11 }, boxWidth: 10, boxHeight: 10, padding: 10 } } } }
             }, 480, 480);
@@ -309,7 +358,7 @@ export const useReportGenerator = () => {
                 type: 'doughnut',
                 data: { 
                     labels: riskAgg.labels, 
-                    datasets: [{ data: riskAgg.data, backgroundColor: riskAgg.colors, borderColor: '#101a2e', borderWidth: 2 }] 
+                    datasets: [{ data: riskAgg.data, backgroundColor: riskAgg.colors.map(chartFillOnDark), borderColor: '#101a2e', borderWidth: 2 }] 
                 },
                 options: { cutout: '65%', plugins: { legend: { position: 'bottom', labels: { color: '#93a2c0', font: { size: 11 }, boxWidth: 10, boxHeight: 10, padding: 10 } } } }
             }, 480, 480);
@@ -462,7 +511,7 @@ export const useReportGenerator = () => {
         } else {
             topActors.forEach(u => {
                 checkPageBreak(7);
-                const riskCol: RGB = RISK_COLORS[u.dominantRisk] ? hexToRgb(RISK_COLORS[u.dominantRisk]) : COL.info;
+                const riskCol: RGB = readableOnDark(RISK_COLORS[u.dominantRisk] || '#5b8def');
                 doc.setFont('helvetica', 'normal'); doc.setFontSize(8.3); doc.setTextColor(TEXT_DARK[0], TEXT_DARK[1], TEXT_DARK[2]);
                 doc.text(truncateToWidth(doc, u.name, 100), margin, y + 3.6);
                 doc.setTextColor(riskCol[0], riskCol[1], riskCol[2]); doc.setFontSize(7.3);
@@ -479,13 +528,16 @@ export const useReportGenerator = () => {
         doc.text(`${rows.length} menciones bajo los filtros seleccionados`, margin, y);
         y += 6;
 
+        // Columnas alineadas con la tabla del dashboard (campos reales del formulario de menciones)
         const cols = [
-            { label: 'Fecha', width: 22 },
-            { label: 'Plataforma', width: 26 },
-            { label: 'Tipo', width: 22 },
-            { label: 'Riesgo', width: 18 },
-            { label: 'Tema', width: 40 },
-            { label: 'Actor', width: 42 }
+            { label: 'Fecha', width: 20 },
+            { label: 'Canal', width: 24 },
+            { label: 'Tipo Actor', width: 18 },
+            { label: 'Riesgo', width: 15 },
+            { label: 'Narrativa', width: 33 },
+            { label: 'Sentimiento', width: 17 },
+            { label: 'Usuario/Sitio', width: 35 },
+            { label: 'Estatus', width: 18 }
         ];
         const drawTableHeader = () => {
             doc.setFillColor(CARD_BG[0], CARD_BG[1], CARD_BG[2]); doc.rect(margin, y, contentW, 6, 'F');
@@ -498,10 +550,16 @@ export const useReportGenerator = () => {
         drawTableHeader();
 
         const sortedRows = rows.slice().sort((a, b) => (a.fecha || '').localeCompare(b.fecha || ''));
-        sortedRows.forEach(r => {
+        sortedRows.forEach((r, idx) => {
             checkPageBreak(6, drawTableHeader);
+            // Zebra striping: alterna el fondo de filas para facilitar el escaneo visual
+            if (idx % 2 === 1) {
+                doc.setFillColor(22, 32, 54); doc.rect(margin, y, contentW, 5.6, 'F');
+            }
             let cx = margin + 2;
-            const riskCol: RGB = RISK_COLORS[r.nivelRiesgo] ? hexToRgb(RISK_COLORS[r.nivelRiesgo]) : COL.info;
+            const riskCol: RGB = readableOnDark(RISK_COLORS[r.nivelRiesgo] || '#6B7280');
+            const sentCol: RGB = readableOnDark(SENTIMENT_COLORS[r.sentimiento || ''] || '#6B7280');
+            const estCol: RGB = readableOnDark(ESTATUS_COLORS[r.estado] || '#6B7280');
             doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(TEXT_DARK[0], TEXT_DARK[1], TEXT_DARK[2]);
             doc.text(r.fecha || '-', cx, y + 3.8); cx += cols[0].width;
             doc.text(truncateToWidth(doc, r.fuenteDeteccion, cols[1].width - 2), cx, y + 3.8); cx += cols[1].width;
@@ -511,7 +569,13 @@ export const useReportGenerator = () => {
             doc.setTextColor(TEXT_DARK[0], TEXT_DARK[1], TEXT_DARK[2]);
             cx += cols[3].width;
             doc.text(truncateToWidth(doc, r.temaPrincipal, cols[4].width - 2), cx, y + 3.8); cx += cols[4].width;
-            doc.text(truncateToWidth(doc, r.actorFuente, cols[5].width - 2), cx, y + 3.8);
+            doc.setTextColor(sentCol[0], sentCol[1], sentCol[2]);
+            doc.text(truncateToWidth(doc, r.sentimiento || '—', cols[5].width - 2), cx, y + 3.8);
+            doc.setTextColor(TEXT_DARK[0], TEXT_DARK[1], TEXT_DARK[2]);
+            cx += cols[5].width;
+            doc.text(truncateToWidth(doc, r.actorFuente, cols[6].width - 2), cx, y + 3.8); cx += cols[6].width;
+            doc.setTextColor(estCol[0], estCol[1], estCol[2]);
+            doc.text(truncateToWidth(doc, r.estado || '—', cols[7].width - 2), cx, y + 3.8);
             doc.setDrawColor(LINE[0], LINE[1], LINE[2]); doc.setLineWidth(0.1);
             doc.line(margin, y + 5.4, pageW - margin, y + 5.4);
             y += 6;
