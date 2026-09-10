@@ -42,9 +42,10 @@ service cloud.firestore {
     function isITAdmin(appId) { return hasRole(appId, 'ADMIN_IT'); }
     function isCMAdmin(appId) { return hasRole(appId, 'ADMIN_CM'); }
 
-    // ADMIN_IT y ADMIN_CM son los dos únicos roles válidos. El ADMIN_CM no
-    // es IT Admin: NO tiene acceso a Backups Core, Auditoría SIEM ni a la
-    // configuración del Microservicio.
+    // ADMIN_IT y ADMIN_CM son los dos únicos roles válidos. El ADMIN_CM
+    // es un administrador de contenido: SÍ tiene acceso a Backups Core
+    // (crear/restaurar) e incidencias/menciones, pero NO es IT Admin:
+    // no tiene Auditoría SIEM ni configuración del Microservicio.
     function isContentAdmin(appId) {
       return isITAdmin(appId) || isCMAdmin(appId);
     }
@@ -205,34 +206,24 @@ service cloud.firestore {
       // ── INCIDENCIAS REPUTACIONALES (rrss_incidents) ─────────────────────
       match /rrss_incidents/{incidentId} {
         allow read: if true;
-        // Restauración desde Backups Core (exclusiva de ADMIN_IT): los respaldos
+        // Restauración desde Backups Core (ADMIN_IT y ADMIN_CM): los respaldos
         // pueden traer esquemas de versiones anteriores del formulario, por eso
-        // IT inyecta sin el validador estricto. IT ya tiene delete sobre la
-        // colección, la sobreescritura es coherente. ADMIN_CM sigue estricto.
-        allow create: if isITAdmin(appId)
-                      || (isCMAdmin(appId) && isValidRRSSIncident());
-        allow update: if isITAdmin(appId)
-                      || (isCMAdmin(appId)
-                      && isValidRRSSIncident()
-                      && request.resource.data.autor == resource.data.autor
-                      && request.resource.data.timestamp == resource.data.timestamp);
-                      // Nota: 'fecha' SÍ es editable desde el form (Fecha de Recepción),
-                      // por eso no se exige igualdad con el doc original.
+        // ambos perfiles inyectan sin el validador estricto. Ambos ya tienen
+        // delete sobre la colección, la sobreescritura es coherente.
+        // El dashboard sigue validando el esquema actual en el formulario.
+        // Nota: 'fecha' SÍ es editable desde el form (Fecha de Recepción).
+        allow create: if isContentAdmin(appId);
+        allow update: if isContentAdmin(appId);
         allow delete: if isITAdmin(appId) || isCMAdmin(appId);
       }
 
       // ── REPORTES DE MENCIONES (comments) ────────────────────────────────
       match /comments/{commentId} {
         allow read: if true;
-        // Mismo criterio que rrss_incidents: IT restaura desde Backups Core
-        // sin validador estricto (esquemas de versiones anteriores); CM estricto.
-        allow create: if isITAdmin(appId)
-                      || (isCMAdmin(appId) && isValidCommentReport());
-        allow update: if isITAdmin(appId)
-                      || (isCMAdmin(appId)
-                      && isValidCommentReport()
-                      && request.resource.data.autor == resource.data.autor
-                      && request.resource.data.timestamp == resource.data.timestamp);
+        // Mismo criterio que rrss_incidents: ADMIN_IT y ADMIN_CM restauran
+        // desde Backups Core sin validador estricto (esquemas anteriores).
+        allow create: if isContentAdmin(appId);
+        allow update: if isContentAdmin(appId);
         allow delete: if isITAdmin(appId) || isCMAdmin(appId);
       }
 
