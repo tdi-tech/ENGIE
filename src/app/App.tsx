@@ -54,7 +54,7 @@ const AppContent = () => {
         }
 
         if ((userRole as string) === 'ADMIN_CM') {
-            const allowedViews = ['dashboard', 'roles', 'ayuda', 'config', 'historial-comentario'];
+            const allowedViews = ['dashboard', 'roles', 'ayuda', 'config', 'historial-comentario', 'nuevo-comentario', 'nuevo-rss', 'historial-rss', 'reportes'];
             if (!allowedViews.includes(view)) {
                 showToast('Acceso denegado. Tu rol (Administrador CM) no tiene permisos para esta área.', true);
                 return navigate('dashboard');
@@ -116,7 +116,7 @@ const AppContent = () => {
         } else if (access === 'GUEST_ONLY' && user) {
             finalView = 'dashboard';
         } else if ((userRole as string) === 'ADMIN_CM') {
-            const allowedViews = ['dashboard', 'roles', 'ayuda', 'config', 'historial-comentario'];
+            const allowedViews = ['dashboard', 'roles', 'ayuda', 'config', 'historial-comentario', 'nuevo-comentario', 'nuevo-rss', 'historial-rss', 'reportes'];
             if (!allowedViews.includes(currentView)) finalView = 'dashboard';
         } else if (access === 'ADMIN_IT' && userRole !== 'ADMIN_IT') {
             finalView = 'dashboard';
