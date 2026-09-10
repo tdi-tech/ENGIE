@@ -118,7 +118,6 @@ export const useUsersManager = (user: any, userRole: any, showToast: any, openCo
         } catch (error: any) {
             if (error.code === 'permission-denied') {
                 showToast('Acceso bloqueado: No tienes permisos.', true);
-                // 🔥 FIX: Llamada directa a logAuditEvent
                 logAuditEvent(`Alerta RBAC/DOM: Intento ilegal de cambiar estado al usuario ${email}`)
                     .catch(err => console.error("Error al disparar auditoría:", err));
             } else {

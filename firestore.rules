@@ -188,12 +188,13 @@ service cloud.firestore {
         ) || (
           isITAdmin(appId)
           && resource.data.get('isProtected', false) != true
+          && resource.data.get('role', '') != 'ADMIN_IT'
           && isValidUser()
         ) || (
           isCMAdmin(appId)
           && resource.data.get('isProtected', false) != true
           && resource.data.get('role', '') != 'ADMIN_IT'
-          && request.resource.data.get('role', '') != 'ADMIN_IT'
+          && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'isProtected'])
           && isValidUser()
         );
 

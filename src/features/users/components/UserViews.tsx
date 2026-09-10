@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ShieldAlert, Trash2, UserX, UserCheck, Users, Info, Plus, Save, X } from 'lucide-react';
 import { ALLOWED_EMAIL_DOMAIN_MAIL } from '../../../services/firebase/config';
 
-export const UserManagementView = ({ appUsers, userRole, updateUserRole, toggleUserStatus, deleteUserRecord, addManualUser }: any) => {
+export const UserManagementView = ({ appUsers, userRole, updateUserRole, toggleUserStatus, deleteUserRecord, addManualUser, user }: any) => {
 
     const [isAdding, setIsAdding] = useState(false);
     const [newEmail, setNewEmail] = useState('');
@@ -138,9 +138,13 @@ export const UserManagementView = ({ appUsers, userRole, updateUserRole, toggleU
                         </thead>
                         <tbody className="divide-y theme-border">
                             {sortedUsers.map((u: any) => {
-                                const isSuperUser = u.role === 'ADMIN_IT';
-                                // ADMIN_IT: nadie puede editarlo ni eliminarlo
-                                const canEdit = !isSuperUser;
+                                const isTargetAdminIT = u.role === 'ADMIN_IT';
+                                // El rol de Admin_IT nunca es editable por nadie
+                                const canEditRole = !isTargetAdminIT;
+                                // Solo Admin_IT puede eliminar, pero nunca a otro Admin_IT
+                                const canDelete = userRole === 'ADMIN_IT' && !isTargetAdminIT;
+                                // Cualquier admin puede habilitar/deshabilitar
+                                const canToggleStatus = true;
 
                                 return (
                                     <tr key={u.email} className={`transition-colors hover:bg-black/5 dark:hover:bg-white/5 ${u.disabled ? 'opacity-50' : ''}`}>
@@ -156,7 +160,7 @@ export const UserManagementView = ({ appUsers, userRole, updateUserRole, toggleU
                                                 <div>
                                                     <p className="text-sm font-bold theme-text-main flex items-center gap-2">
                                                         {u.displayName}
-                                                        {isSuperUser && <span title="Administrador IT Protegido" className="flex"><ShieldAlert className="w-3 h-3 text-[var(--primary)]" /></span>}
+                                                        {isTargetAdminIT && <span title="Administrador IT Protegido" className="flex"><ShieldAlert className="w-3 h-3 text-[var(--primary)]" /></span>}
                                                     </p>
                                                     <p className="text-xs theme-text-muted">{u.email}</p>
                                                 </div>
@@ -167,13 +171,13 @@ export const UserManagementView = ({ appUsers, userRole, updateUserRole, toggleU
                                             <select
                                                 value={u.role}
                                                 onChange={(e) => updateUserRole(u.email, e.target.value)}
-                                                disabled={!canEdit || u.disabled}
+                                                disabled={!canEditRole || u.disabled}
                                                 className="w-full max-w-[200px] p-2 text-sm rounded-lg theme-bg-low border theme-border theme-text-main outline-none focus:border-[var(--primary)] disabled:opacity-50 disabled:cursor-not-allowed"
                                             >
                                                 <option value="ADMIN_IT">Administrador IT</option>
                                                 <option value="ADMIN_CM">Administrador CM</option>
                                             </select>
-                                            {isSuperUser && (
+                                            {isTargetAdminIT && (
                                                 <p className="text-[10px] text-[var(--primary)] font-bold mt-1 flex items-center gap-1">
                                                     <ShieldAlert className="w-3 h-3" /> Escudo del Sistema Activo
                                                 </p>
@@ -190,19 +194,18 @@ export const UserManagementView = ({ appUsers, userRole, updateUserRole, toggleU
                                             <div className="flex items-center justify-end gap-2">
                                                 <button
                                                     onClick={() => toggleUserStatus(u.email, u.disabled)}
-                                                    disabled={!canEdit}
-                                                    title={!canEdit ? "Nivel de privilegios intocable" : (u.disabled ? "Habilitar Cuenta" : "Deshabilitar Cuenta")}
+                                                    disabled={!canToggleStatus}
+                                                    title={!canToggleStatus ? "No tienes permisos para cambiar el estado de este usuario" : (u.disabled ? "Habilitar Cuenta" : "Deshabilitar Cuenta")}
                                                     className={`p-2 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed ${u.disabled ? 'text-emerald-500 hover:bg-emerald-500/10' : 'text-orange-500 hover:bg-orange-500/10'}`}
                                                 >
                                                     {u.disabled ? <UserCheck className="w-4 h-4" /> : <UserX className="w-4 h-4" />}
                                                 </button>
 
-                                                {userRole === 'ADMIN_IT' && (
+                                                {canDelete && (
                                                     <button
                                                         onClick={() => deleteUserRecord(u.email)}
-                                                        disabled={!canEdit}
-                                                        title={!canEdit ? "Nivel de privilegios intocable" : "Eliminar permanentemente"}
-                                                        className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                                                        title="Eliminar permanentemente"
+                                                        className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
                                                     >
                                                         <Trash2 className="w-4 h-4" />
                                                     </button>
