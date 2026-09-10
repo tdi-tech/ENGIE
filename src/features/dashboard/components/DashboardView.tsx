@@ -136,82 +136,136 @@ export const DashboardView = ({ showToast, user }: any) => {
         if (isExportingPDF) return;
         setIsExportingPDF(true);
         try {
+const tituloReporte = activeTab === 'menciones' ? 'Menciones y Sentimiento' : 'Incidencias y Riesgo Reputacional';
             const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+            (doc as any).setProperties?.({ title: 'Reporte ' + tituloReporte + ' — ENGIE', subject: 'Panel de Control', author: 'ENGIE Management', keywords: 'panel, reporte, engie', creator: 'ENGIE Management' });
             const pageW = 210, pageH = 297, margin = 15;
+            const contentW = pageW - margin * 2;
             const now = new Date().toLocaleString('es-ES', { dateStyle: 'long', timeStyle: 'short' });
 
-            // Cabecera
-            doc.setFillColor(10, 17, 32);
-            doc.rect(0, 0, pageW, 28, 'F');
-            doc.setTextColor(0, 163, 224);
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(16);
-            doc.text('ENGIE – Panel de Control', margin, 14);
-            doc.setFont('helvetica', 'normal');
-            doc.setFontSize(9);
-            doc.setTextColor(180, 200, 230);
-            const tituloReporte = activeTab === 'menciones' ? 'Menciones y Sentimiento' : 'Incidencias y Riesgo Reputacional';
-            doc.text('Reporte de ' + tituloReporte, margin, 21);
-            doc.text('Generado: ' + now, pageW - margin, 21, { align: 'right' });
+            // Paleta corporativa + contraste WCAG (texto >=4.5:1 sobre fondo claro)
+            const TEXT_MAIN = [28, 40, 66];
+            const TEXT_MUTED = [109, 122, 145];
+            const CARD_BG = [247, 249, 252];
+            const LINE = [214, 220, 230];
+            const TRACK = [231, 235, 241];
+            const ACCENT = { blue: [55, 125, 245], emerald: [16, 185, 129], purple: [139, 92, 246], orange: [242, 120, 42], red: [224, 72, 90] };
+            const STATUS_COLORS: Record<string, string> = { 'Positivo': '#10b981', 'Neutral': '#94a3b8', 'Negativo': '#e0485a', 'Bajo': '#10b981', 'Medio': '#f5a93f', 'Alto': '#f97316', 'Crítico': '#e0485a' };
+            const PALETTE = ['#5b8def', '#10b981', '#f5a93f', '#e0485a', '#8b5cf6', '#0ea5e9', '#14b8a6', '#f97316', '#6366f1', '#ec4899', '#84cc16', '#f59e0b'];
+            const hexToRgb = (h: string): number[] => { const r = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(h); return r ? [parseInt(r[1], 16), parseInt(r[2], 16), parseInt(r[3], 16)] : [91, 141, 239]; };
+            const trunc = (s: string, w: number): string => { s = String(s || ''); if (!s) return ''; const lines = doc.splitTextToSize(s, w); return lines.length > 1 ? lines[0].replace(/\s+\S*$/, '') + '…' : (lines[0] || ''); };
 
-            let y = 40;
-            doc.setTextColor(20, 30, 50);
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(12);
-            doc.text('Resumen', margin, y); y += 6;
-            doc.setFont('helvetica', 'normal');
-            doc.setFontSize(10);
+            // Cabecera estilizada (banda navy + línea accent)
+            const HEADER_H = 26;
+            const drawHeader = () => {
+                doc.setFillColor(10, 17, 32); doc.rect(0, 0, pageW, HEADER_H, 'F');
+                doc.setFillColor(ACCENT.blue[0], ACCENT.blue[1], ACCENT.blue[2]); doc.rect(0, HEADER_H, pageW, 2, 'F');
+                doc.setTextColor(255, 255, 255); doc.setFont('helvetica', 'bold'); doc.setFontSize(15);
+                doc.text('ENGIE MANAGEMENT', margin, 13);
+                doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
+                doc.text('Panel de Control · ' + tituloReporte, margin, 20);
+                doc.setFontSize(7.5);
+                doc.text('Generado: ' + now, pageW - margin, 13, { align: 'right' });
+                doc.text('Fuente: Historial en vivo · Firestore', pageW - margin, 20, { align: 'right' });
+            };
+            drawHeader();
 
-            const lines: [string, string][] = activeTab === 'menciones' ? [
-                ['Menciones verificadas:', String(commentsStats.totalMenciones)],
-                ['Menciones positivas:', String(commentsStats.positivo)],
-                ['Menciones neutrales:', String(commentsStats.neutral)],
-                ['Menciones negativas:', String(commentsStats.negativo)],
-                ['Actores críticos (Alto/Crítico):', String(commentsStats.actoresCriticosCount)],
-                ['Canal principal:', commentsStats.topCanal]
-            ] : [
-                ['Reportes creados:', String(rrssStats.totalReportes)],
-                ['Fuentes de detección:', String(Object.keys(rrssStats.fuenteCounts).length)],
-                ['Fuente principal:', rrssStats.topFuente],
-                ['Reportes en riesgo de escalada:', String(rrssStats.enEscalada)]
-            ];
-            lines.forEach(([k, v]) => {
-                doc.setFont('helvetica', 'bold'); doc.text(k, margin, y);
-                doc.setFont('helvetica', 'normal'); doc.text(v, margin + 55, y);
-                y += 5.5;
+            let page = 1;
+            let y = HEADER_H + 14;
+            const checkBreak = (need: number) => {
+                if (y + need > pageH - 16) { doc.addPage(); page++; drawHeader(); y = HEADER_H + 14; }
+            };
+            const sectionTitle = (t: string) => {
+                checkBreak(18);
+                doc.setFont('helvetica', 'bold'); doc.setFontSize(12); doc.setTextColor(TEXT_MAIN[0], TEXT_MAIN[1], TEXT_MAIN[2]);
+                doc.text(t.toUpperCase(), margin, y);
+                doc.setDrawColor(LINE[0], LINE[1], LINE[2]); doc.setLineWidth(0.4); doc.line(margin, y + 2, pageW - margin, y + 2);
+                y += 9;
+            };
+            const drawBar = (label: string, value: number, total: number, colorHex: string, maxV: number) => {
+                const trackW = contentW - 78, barX = margin + 62, bh = 4;
+                const m = maxV && maxV > 0 ? maxV : Math.max(total || 1, 1);
+                const frac = Math.max(0, Math.min(1, value / m));
+                const pct = total > 0 ? Math.round((value / total) * 100) : 0;
+                doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(TEXT_MAIN[0], TEXT_MAIN[1], TEXT_MAIN[2]);
+                doc.text(trunc(label, 58), margin, y - 1.4);
+                doc.setFillColor(TRACK[0], TRACK[1], TRACK[2]); doc.roundedRect(barX, y - bh, trackW, bh, 0.9, 0.9, 'F');
+                if (frac > 0) { const c = hexToRgb(colorHex); doc.setFillColor(c[0], c[1], c[2]); doc.roundedRect(barX, y - bh, Math.max(trackW * frac, 1.4), bh, 0.9, 0.9, 'F'); }
+                doc.setFontSize(7.5); doc.setTextColor(TEXT_MUTED[0], TEXT_MUTED[1], TEXT_MUTED[2]);
+                doc.text(pct + '% · ' + value, pageW - margin, y - 1.4, { align: 'right' });
+                y += 7;
+            };
+            const colorFor = (bucket: string, key: string): string => {
+                const mp = bucket.includes('Sentimiento') || bucket.includes('Riesgo') ? STATUS_COLORS : null;
+                if (mp && mp[key]) return mp[key];
+                let acc = 0; for (const ch of key) acc = (acc + ch.charCodeAt(0)) % PALETTE.length;
+                return PALETTE[acc];
+            };// Resumen Ejecutivo (KPIs) — tarjetas con barra de acento
+            sectionTitle('Resumen Ejecutivo');
+            const kpiData: any[] = activeTab === 'menciones'
+                ? [
+                    ['MEN. MENCIONES', String(commentsStats.totalMenciones), 'Registros verificados', ACCENT.blue],
+                    ['POSITIVAS', String(commentsStats.positivo), commentsStats.positivityRate + '% del total', ACCENT.emerald],
+                    ['NEGATIVAS', String(commentsStats.negativo), 'Canal principal: ' + (commentsStats.topCanal || '—'), ACCENT.red],
+                    ['RIESGO CRÍT. + ALTO', String(commentsStats.actoresCriticosCount), 'Actores detectados', ACCENT.orange]
+                ]
+                : [
+                    ['REPORTES CREADOS', String(rrssStats.totalReportes), 'Incidencias registradas', ACCENT.blue],
+                    ['FUENTES DETECTADAS', String(Object.keys(rrssStats.fuenteCounts).length), rrssStats.topFuente || '—', ACCENT.purple],
+                    ['RIESGO CRÍT. + ALTO', String((rrssStats.riesgoCounts['Crítico'] || 0) + (rrssStats.riesgoCounts['Alto'] || 0)), 'Requieren atención', ACCENT.red],
+                    ['EN ESCALADA', String(rrssStats.enEscalada), 'Con tendencia creciente', ACCENT.orange]
+                ];
+            const kpiW = (contentW - 12) / 4, kpiGap = 4, kpiH = 25;
+            kpiData.forEach((k, i) => {
+                const x = margin + i * (kpiW + kpiGap);
+                doc.setFillColor(CARD_BG[0], CARD_BG[1], CARD_BG[2]); doc.roundedRect(x, y, kpiW, kpiH, 2, 2, 'F');
+                doc.setFillColor(k[3][0], k[3][1], k[3][2]); doc.rect(x, y, 1.6, kpiH, 'F');
+                doc.setFont('helvetica', 'bold'); doc.setFontSize(6.8); doc.setTextColor(TEXT_MUTED[0], TEXT_MUTED[1], TEXT_MUTED[2]);
+                doc.text(k[0], x + 5, y + 6, { maxWidth: kpiW - 6 });
+                doc.setFontSize(16); doc.setTextColor(TEXT_MAIN[0], TEXT_MAIN[1], TEXT_MAIN[2]); doc.text(k[1], x + 5, y + 15.5);
+                doc.setFont('helvetica', 'normal'); doc.setFontSize(6.6); doc.setTextColor(TEXT_MUTED[0], TEXT_MUTED[1], TEXT_MUTED[2]);
+                doc.text(trunc(k[2], kpiW - 7), x + 5, y + 21);
             });
-            y += 4;
+            y += kpiH + 8;// Distribuciones (barras horizontales con color)
+            const buckets: any[] = activeTab === 'menciones'
+                ? [
+                    ['Distribución de Sentimiento', commentsStats.sentimentCounts, ['Positivo', 'Neutral', 'Negativo']],
+                    ['Distribución por Nivel de Riesgo', commentsStats.riesgoCounts, ['Bajo', 'Medio', 'Alto', 'Crítico']]
+                ]
+                : [
+                    ['Distribución por Nivel de Riesgo', rrssStats.riesgoCounts, ['Bajo', 'Medio', 'Alto', 'Crítico']],
+                    ['Distribución por Alcance', rrssStats.alcanceCounts, Object.keys(rrssStats.alcanceCounts)],
+                    ['Distribución por Tendencia', rrssStats.tendenciaCounts, Object.keys(rrssStats.tendenciaCounts)]
+                ];
+            buckets.forEach(([bt, obj, order]) => {
+                const entries = (order || Object.keys(obj)).filter((k: string) => obj[k]).map((k: string) => [k, obj[k]]);
+                checkBreak(14 + entries.length * 7 + 4);
+                sectionTitle(bt);
+                const sum = entries.reduce((a: number, e: any) => a + e[1], 0);
+                const maxV = entries.reduce((a: number, e: any) => Math.max(a, e[1]), 1);
+                entries.forEach(([k, v]: any) => drawBar(k, v, sum, colorFor(bt, k), maxV));
+                y += 4;
+            });
 
-            doc.setFont('helvetica', 'bold');
-            doc.text(activeTab === 'menciones' ? 'Distribución de sentimiento' : 'Distribuciones (Riesgo · Alcance · Tendencia)', margin, y); y += 6;
-            doc.setFont('helvetica', 'normal');
-            if (activeTab === 'menciones') {
-                Object.entries(commentsStats.sentimentCounts).forEach(([k, v]) => {
-                    doc.text('• ' + k + ': ' + v, margin, y); y += 5;
-                });
-            } else {
-                (['riesgoCounts', 'alcanceCounts', 'tendenciaCounts'] as const).forEach((bucket, i) => {
-                    const titulo = i === 0 ? 'Nivel de Riesgo Reputacional:' : i === 1 ? 'Alcance Actual:' : 'Tendencia:';
-                    doc.setFont('helvetica', 'bold'); doc.text(titulo, margin, y); y += 5;
-                    doc.setFont('helvetica', 'normal');
-                    Object.entries(rrssStats[bucket]).forEach(([k, v]) => {
-                        doc.text('   - ' + k + ': ' + v, margin, y); y += 5;
-                    });
-                    y += 2;
-                });
-                doc.setFont('helvetica', 'bold'); doc.text('Temas en riesgo de escalada:', margin, y); y += 5;
-                doc.setFont('helvetica', 'normal');
-                if (rrssStats.temasEscaladaTop.length === 0) { doc.text('   - Sin temas en riesgo de escalada', margin, y); y += 5; }
-                else rrssStats.temasEscaladaTop.forEach(([k, v]) => { doc.text('   - ' + k + ': ' + v + ' reporte(s)', margin, y); y += 5; });
+            // Ranking adicional por módulo
+            if (activeTab === 'menciones' && commentsStats.topActoresCriticos && commentsStats.topActoresCriticos.length) {
+                checkBreak(14 + commentsStats.topActoresCriticos.length * 7);
+                sectionTitle('Actores Críticos (Alto / Crítico)');
+                const maxV = commentsStats.topActoresCriticos.reduce((a: number, e: any) => Math.max(a, e[1]), 1);
+                commentsStats.topActoresCriticos.forEach(([k, v]: any) => { drawBar(k, v, commentsStats.actoresCriticosCount, '#e0485a', maxV); });
+                y += 4;
+            } else if (activeTab !== 'menciones' && rrssStats.temasEscaladaTop && rrssStats.temasEscaladaTop.length) {
+                checkBreak(14 + rrssStats.temasEscaladaTop.length * 7);
+                sectionTitle('Temas en Riesgo de Escalada');
+                const maxV = rrssStats.temasEscaladaTop.reduce((a: number, e: any) => Math.max(a, e[1]), 1);
+                rrssStats.temasEscaladaTop.forEach(([k, v]: any) => { drawBar(k, v, rrssStats.enEscalada || 1, '#f97316', maxV); });
+                y += 4;
             }
 
-            const totalPages = (doc as any).internal.getNumberOfPages();
-            for (let p = 1; p <= totalPages; p++) {
-                doc.setPage(p);
-                doc.setFontSize(8);
-                doc.setTextColor(120, 135, 160);
-                doc.text('ENGIE — Social Listening · Página ' + p + ' de ' + totalPages, pageW / 2, pageH - 8, { align: 'center' });
-            }
+            // Pie de página
+            doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(120, 135, 160);
+            doc.text('ENGIE — Social Listening · Página ' + page + ' de ' + (doc.getNumberOfPages?.() || page), pageW / 2, pageH - 8, { align: 'center' });
+            doc.setDrawColor(LINE[0], LINE[1], LINE[2]); doc.setLineWidth(0.2); doc.line(margin, pageH - 12, pageW - margin, pageH - 12);
 
             const filename = 'ENGIE_' + activeTab + '_' + new Date().toISOString().slice(0, 10) + '.pdf';
             doc.save(filename);
