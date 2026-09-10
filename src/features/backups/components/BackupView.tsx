@@ -198,26 +198,50 @@ export const BackupView = ({ showToast }: any) => {
 
         try {
             let restoredRrss = 0; let restoredComments = 0;
+            let skipped = 0;
+            let failed = 0; let failReason = '';
             const { rrss, comentarios } = backupInfo.modules;
+
+            // Los docs del respaldo traen el campo 'id' (del snapshot de exportación:
+            // { id: doc.id, ...doc.data() }). Firestore lo rechaza como campo del
+            // documento, por eso se usa como ID del doc y se elimina del payload.
+            const injectDoc = async (collectionName: string, item: any) => {
+                const payload: any = { ...item };
+                delete payload.id;
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', collectionName, item.id), payload);
+            };
+            const describeError = (err: any) => {
+                const code = err?.code || '';
+                if (code === 'permission-denied') return 'permisos denegados por las reglas de Firestore';
+                if (code === 'unavailable' || code === 'cancelled') return 'canal bloqueado (desactive bloqueadores de anuncios/extensión del navegador para este sitio)';
+                return 'error desconocido';
+            };
 
             if (rrss && Array.isArray(rrss)) {
                 for (const item of rrss) {
-                    const exists = rrssIncidents.some((i: any) => i.id === item.id);
-                    if (!exists) { await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'rrss_incidents', item.id), item); restoredRrss++; }
+                    if (rrssIncidents.some((i: any) => i.id === item.id)) { skipped++; continue; }
+                    try { await injectDoc('rrss_incidents', item); restoredRrss++; }
+                    catch (err: any) { failed++; failReason = describeError(err); }
                 }
             }
 
             if (comentarios && Array.isArray(comentarios)) {
                 for (const item of comentarios) {
-                    const exists = comments.some((i: any) => i.id === item.id);
-                    if (!exists) { await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'comments', item.id), item); restoredComments++; }
+                    if (comments.some((i: any) => i.id === item.id)) { skipped++; continue; }
+                    try { await injectDoc('comments', item); restoredComments++; }
+                    catch (err: any) { failed++; failReason = describeError(err); }
                 }
             }
 
-            showToast(`Restauración exitosa: +${restoredRrss} Incidencias, +${restoredComments} Menciones`);
-            setBackupInfo(null);
-            
-            setTimeout(() => window.location.reload(), 1500);
+            const injected = restoredRrss + restoredComments;
+            const skippedNote = skipped ? ` · ${skipped} duplicados omitidos` : '';
+            if (failed === 0) {
+                showToast(`Restauración exitosa: +${restoredRrss} Incidencias, +${restoredComments} Menciones${skippedNote}`);
+                setBackupInfo(null);
+                setTimeout(() => window.location.reload(), 1500);
+            } else {
+                showToast(`Restauración parcial: ${injected} inyectados, ${failed} fallidos (${failReason})${skippedNote}`, true);
+            }
         } catch (error) {
             showToast('Error crítico durante la reinyección de datos', true);
         } finally {

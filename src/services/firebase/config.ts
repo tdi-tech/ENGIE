@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { initializeFirestore } from "firebase/firestore";
 import type { Auth } from "firebase/auth";
 import type { User } from "firebase/auth";
 import type { FirebaseApp } from "firebase/app";
@@ -99,7 +99,10 @@ const mockDb = new Proxy({ _isMockFirestore: true }, {
 
 export const app: FirebaseApp = IS_MOCK ? mockApp : initializeApp(firebaseConfig);
 export const auth: Auth = IS_MOCK ? mockAuth : getAuth(app);
-export const db: Firestore = IS_MOCK ? mockDb : getFirestore(app);
+// experimentalAutoDetectLongPolling: si la red/navegador bloquea el WebChannel
+// streaming (bloqueadores de anuncios → net::ERR_BLOCKED_BY_CLIENT), el SDK
+// detecta el fallo y degrada a long-polling HTTP estándar automáticamente.
+export const db: Firestore = IS_MOCK ? mockDb : initializeFirestore(app, { experimentalAutoDetectLongPolling: true });
 // appId = projectId de Firebase. Define el path raíz en Firestore:
 //   artifacts/{appId}/public/data/...
 // Debe coincidir con el {appId} de firestore.rules y con la ruta de los docs.
