@@ -875,7 +875,7 @@ export const ProtocoloRRSSView = () => {
                     </div>
                 </div>
 
-                <div className="mb-10 break-inside-avoid w-full">
+                <div className="mb-0 break-inside-avoid w-full">
                     <div className="text-center mb-8 bg-[var(--engie-surface-gray)] border border-[#E2E8F0] p-5 rounded-xl w-full">
                         <p className="text-sm font-bold text-[var(--engie-text-muted)] uppercase tracking-widest mb-2">Ciclo de Vida de Resolución</p>
                         <p className="text-lg font-black text-[var(--engie-action-blue)] m-0">1. DETECCIÓN → 2. RESPUESTA → 3. REACCIÓN → 4. RECUPERACIÓN → 5. APRENDIZAJE</p>
