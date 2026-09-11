@@ -204,16 +204,16 @@ const tituloReporte = activeTab === 'menciones' ? 'Menciones y Sentimiento' : 'I
             sectionTitle('Resumen Ejecutivo');
             const kpiData: any[] = activeTab === 'menciones'
                 ? [
-                    ['MEN. MENCIONES', String(commentsStats.totalMenciones), 'Registros verificados', ACCENT.blue],
-                    ['POSITIVAS', String(commentsStats.positivo), commentsStats.positivityRate + '% del total', ACCENT.emerald],
-                    ['NEGATIVAS', String(commentsStats.negativo), 'Canal principal: ' + (commentsStats.topCanal || '—'), ACCENT.red],
-                    ['RIESGO CRÍT. + ALTO', String(commentsStats.actoresCriticosCount), 'Actores detectados', ACCENT.orange]
+                    ['Menciones Verificadas', String(commentsStats.totalMenciones), 'Registros verificados', ACCENT.blue],
+                    ['Menciones Positivas', String(commentsStats.positivo), commentsStats.positivityRate + '% del total', ACCENT.emerald],
+                    ['Menciones Neutrales', String(commentsStats.neutral), 'Sin connotación', ACCENT.purple],
+                    ['Menciones Negativas', String(commentsStats.negativo), 'Canal principal: ' + (commentsStats.topCanal || '—'), ACCENT.red]
                 ]
                 : [
-                    ['REPORTES CREADOS', String(rrssStats.totalReportes), 'Incidencias registradas', ACCENT.blue],
-                    ['FUENTES DETECTADAS', String(Object.keys(rrssStats.fuenteCounts).length), rrssStats.topFuente || '—', ACCENT.purple],
-                    ['RIESGO CRÍT. + ALTO', String((rrssStats.riesgoCounts['Crítico'] || 0) + (rrssStats.riesgoCounts['Alto'] || 0)), 'Requieren atención', ACCENT.red],
-                    ['EN ESCALADA', String(rrssStats.enEscalada), 'Con tendencia creciente', ACCENT.orange]
+                    ['Reportes Creados', String(rrssStats.totalReportes), 'Incidencias registradas', ACCENT.blue],
+                    ['Fuentes de Detección', String(Object.keys(rrssStats.fuenteCounts).length), rrssStats.topFuente || '—', ACCENT.purple],
+                    ['Riesgo en Escalada', String(rrssStats.enEscalada), 'Con tendencia creciente', ACCENT.orange],
+                    ['Fuente Principal', String(rrssStats.topFuente), 'Canal más frecuente', ACCENT.emerald]
                 ];
             const kpiW = (contentW - 12) / 4, kpiGap = 4, kpiH = 25;
             kpiData.forEach((k, i) => {
@@ -229,13 +229,13 @@ const tituloReporte = activeTab === 'menciones' ? 'Menciones y Sentimiento' : 'I
             y += kpiH + 8;// Distribuciones (barras horizontales con color)
             const buckets: any[] = activeTab === 'menciones'
                 ? [
-                    ['Distribución de Sentimiento', commentsStats.sentimentCounts, ['Positivo', 'Neutral', 'Negativo']],
-                    ['Distribución por Nivel de Riesgo', commentsStats.riesgoCounts, ['Bajo', 'Medio', 'Alto', 'Crítico']]
+                    ['Semáforo de Sentimiento', commentsStats.sentimentCounts, ['Positivo', 'Neutral', 'Negativo']],
+                    ['Analítica de Nivel de Riesgo', commentsStats.riesgoCounts, ['Bajo', 'Medio', 'Alto', 'Crítico']]
                 ]
                 : [
-                    ['Distribución por Nivel de Riesgo', rrssStats.riesgoCounts, ['Bajo', 'Medio', 'Alto', 'Crítico']],
-                    ['Distribución por Alcance', rrssStats.alcanceCounts, Object.keys(rrssStats.alcanceCounts)],
-                    ['Distribución por Tendencia', rrssStats.tendenciaCounts, Object.keys(rrssStats.tendenciaCounts)]
+                    ['Nivel de Riesgo Reputacional', rrssStats.riesgoCounts, ['Bajo', 'Medio', 'Alto', 'Crítico']],
+                    ['Alcance Actual', rrssStats.alcanceCounts, Object.keys(rrssStats.alcanceCounts)],
+                    ['Tendencia', rrssStats.tendenciaCounts, Object.keys(rrssStats.tendenciaCounts)]
                 ];
             buckets.forEach(([bt, obj, order]) => {
                 const entries = (order || Object.keys(obj)).filter((k: string) => obj[k]).map((k: string) => [k, obj[k]]);
@@ -250,7 +250,7 @@ const tituloReporte = activeTab === 'menciones' ? 'Menciones y Sentimiento' : 'I
             // Ranking adicional por módulo
             if (activeTab === 'menciones' && commentsStats.topActoresCriticos && commentsStats.topActoresCriticos.length) {
                 checkBreak(14 + commentsStats.topActoresCriticos.length * 7);
-                sectionTitle('Actores Críticos (Alto / Crítico)');
+                sectionTitle('Analítica de Actores Críticos');
                 const maxV = commentsStats.topActoresCriticos.reduce((a: number, e: any) => Math.max(a, e[1]), 1);
                 commentsStats.topActoresCriticos.forEach(([k, v]: any) => { drawBar(k, v, commentsStats.actoresCriticosCount, '#e0485a', maxV); });
                 y += 4;
