@@ -20,7 +20,8 @@
 9. [Comandos de Firebase](#9--comandos-de-firebase)
 10. [Microservicio de Purga Automática (Cron Job en Hostinger)](#10--microservicio-de-purga-automática-cron-job-en-hostinger)
 11. [Centro de Respaldos Core (Backups)](#11--centro-de-respaldos-core-backups)
-12. [Solución de problemas frecuentes](#12--solución-de-problemas-frecuentes)
+12. [PDF Ejecutivo del Dashboard](#12--pdf-ejecutivo-del-dashboard)
+13. [Solución de problemas frecuentes](#13--solución-de-problemas-frecuentes)
 
 ---
 
@@ -32,7 +33,7 @@ ENGIE Management (paquete `tdi-secure-social`) es una herramienta interna tipo S
 
 | Módulo | Carpeta | Qué hace |
 |---|---|---|
-| Dashboard | `dashboard/` | Métricas consolidadas, gráficas SVG, semáforos gemelos de riesgo/estatus |
+| Dashboard | `dashboard/` | Métricas consolidadas, gráficas SVG, semáforos gemelos de riesgo/estatus y **PDF ejecutivo** |
 | Incidencias RRSS | `rrss/` | Registro y seguimiento de incidencias reputacionales en redes sociales |
 | Menciones / Comentarios | `comments/` | Reportes de menciones con análisis de sentimiento |
 | Reportes y Analítica | `reports/` | Inteligencia de negocios con Chart.js; ingesta dual (CSV con PapaParse o Firestore en vivo); exportación a CSV, Word y **PDF ejecutivo con jsPDF** |
@@ -320,7 +321,40 @@ En cada pasada el PHP hace `PATCH` al doc de config con `lastRunAt` (`date('c')`
 
 ---
 
-## 12. Solución de problemas frecuentes
+## 12. PDF Ejecutivo del Dashboard
+
+El dashboard dispone de un botón **Descargar PDF** (arriba a la derecha) en las pestañas de **Menciones** e **Incidencias**. Genera en el cliente un informe ejecutivo con `jsPDF`, con diseño premium (cabecera corporativa navy, tarjetas KPI, barras horizontales con color, pie de página paginado) y **accesibilidad WCAG AA** en el contraste de texto. Los títulos de cada bloque y KPI coinciden exactamente con las tarjetas de la interfaz de la que toman el dato.
+
+### 12.1. Menciones
+
+| Bloque / KPI | Fuente (StatCard/tarjeta del dashboard) | Descripción |
+|---|---|---|
+| Menciones Verificadas | `commentsStats.totalMenciones` | Total de menciones analizadas |
+| Menciones Positivas | `commentsStats.positivo` | Con porcentaje sobre el total |
+| Menciones Neutrales | `commentsStats.neutral` | Sin connotación positiva/negativa |
+| Menciones Negativas | `commentsStats.negativo` | Con porcentaje y canal principal |
+| Semáforo de Sentimiento | `commentsStats.sentimentCounts` | Distribución Positivo · Neutral · Negativo |
+| Analítica de Nivel de Riesgo | `commentsStats.riesgoCounts` | Bajo · Medio · Alto · Crítico |
+| Analítica de Actores Críticos | `commentsStats.topActoresCriticos` | Ranking de actores con riesgo Alto/Crítico |
+
+### 12.2. Incidencias
+
+| Bloque / KPI | Fuente (StatCard/tarjeta del dashboard) | Descripción |
+|---|---|---|
+| Reportes Creados | `rrssStats.totalReportes` | Total de incidencias registradas |
+| Fuentes de Detección | `Object.keys(rrssStats.fuenteCounts).length` | Número de fuentes distintas |
+| Riesgo en Escalada | `rrssStats.enEscalada` | Incidencias con tendencia creciente |
+| Fuente Principal | `rrssStats.topFuente` | Canal más frecuente de origen |
+| Nivel de Riesgo Reputacional | `rrssStats.riesgoCounts` | Bajo · Medio · Alto · Crítico |
+| Alcance Actual | `rrssStats.alcanceCounts` | Local · Regional · Nacional · Viral |
+| Tendencia | `rrssStats.tendenciaCounts` | Disminuyendo · Estable · Aumentando |
+| Temas en Riesgo de Escalada | `rrssStats.temasEscaladaTop` | Temas con Riesgo Alto/Crítico + Tendencia Aumentando |
+
+> **Nota:** este reporte es el del **Dashboard** y no debe confundirse con la **exportación a PDF** del módulo *Reportes y Analítica* ni con los CSV de los historiales de Menciones/Incidencias, que no incluyen botón de PDF.
+
+---
+
+## 13. Solución de problemas frecuentes
 
 | Síntoma | Causa probable | Solución |
 |---|---|---|
