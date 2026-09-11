@@ -5,7 +5,7 @@ const changelogData: { id: string; version: string; date: string; tag: string; t
     {
         id: 'v1.0.0',
         version: '1.0.0',
-        date: 'Noviembre 2026',
+        date: 'Septiembre 2026',
         tag: 'Inicial',
         title: 'Lanzamiento fundacional — Gestión de Reputación Digital',
         changes: [

@@ -291,8 +291,8 @@ export const ConfigView = ({
                                 onClick={toggleTheme}
                                 className="flex items-center gap-2 px-3 py-1.5 theme-bg-low border theme-border rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors font-bold text-xs theme-text-main"
                             >
-                                {isDarkMode ? <Sun className="w-3.5 h-3.5"/> : <Moon className="w-3.5 h-3.5"/>}
-                                {isDarkMode ? 'Claro' : 'Oscuro'}
+                                {isDarkMode ? <Moon className="w-3.5 h-3.5" /> : <Sun className="w-3.5 h-3.5" />}
+                                {isDarkMode ? 'Oscuro' : 'Claro'}
                             </button>
                         </div>
                     </div>

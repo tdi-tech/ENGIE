@@ -179,7 +179,8 @@ const AppContent = () => {
         updateUserRole, toggleUserStatus, deleteUserRecord, addManualUser, userPrefs, updateUserPrefs,
         updateRrssIncident, deleteRrssIncident, deleteRrssBatch,
         updateComment, deleteComment, deleteCommentsBatch,
-        openConfirmModal
+        openConfirmModal,
+        isDarkMode, toggleTheme,
     };
 
     return (
