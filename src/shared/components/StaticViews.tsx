@@ -49,6 +49,20 @@ const PrintStyles = () => (
             .pdf-view { 
                 display: block !important; 
                 width: 100% !important; 
+                height: auto !important;
+                min-height: 0 !important;
+                overflow: hidden !important;
+            }
+
+            /* 4. Anular contenedores padre que heredan h-screen / flex-1 / space-y */
+            .h-screen, .flex-1, [class*="flex-1"], .h-full, .flex-col {
+                height: auto !important;
+                min-height: 0 !important;
+                display: block !important;
+            }
+            body, html, #root, .flex {
+                height: auto !important;
+                min-height: 0 !important;
             }
 
             .break-inside-avoid {
