@@ -2,7 +2,24 @@ import React, { useState, useEffect } from 'react';
 import { History, GitCommit, ChevronDown, ChevronRight, Star, ShieldCheck, Layout, Zap, Sparkles, RefreshCw } from 'lucide-react';
 
 const changelogData: { id: string; version: string; date: string; tag: string; title: string; changes: { id: string; type: string; text: string }[] }[] = [
-    // Registrar aquí las nuevas versiones de la plataforma
+    {
+        id: 'v1.0.0',
+        version: '1.0.0',
+        date: 'Noviembre 2026',
+        tag: 'Inicial',
+        title: 'Lanzamiento fundacional — Gestión de Reputación Digital',
+        changes: [
+            { id: 's1', type: 'title', text: 'Módulo de RRSS y Protocolo de Atención' },
+            { id: 'c1', type: 'feature', text: 'PDF imprimible del "Protocolo de Atención en RRSS" con colores corporativos ENGIE mediante tokens CSS (--engie-*), eliminando colores estáticos.' },
+            { id: 'c2', type: 'ui', text: 'Títulos del PDF establecidos como "Reputación Digital • ENGIE Management" y "Protocolo de Atención en RRSS" en lugar del encabezado genérico.' },
+            { id: 'c3', type: 'ui', text: 'Página final en blanco al imprimir el PDF: se corrigió ocultando el #print-header ("Reporte: ENGIE Management") y los pseudo-elementos body::before/::after (gradiente mesh + noise) que se replicaban en cada página.' },
+            { id: 'd1', type: 'divider', text: '' },
+            { id: 's2', type: 'title', text: 'Correcciones de Layout y Estilos' },
+            { id: 'c4', type: 'ui', text: 'Se añadió PrintStyles en StaticViews.tsx que anula height:100vh, flex-1 y min-height de contenedores padres en modo impresión, forzando display:block y overflow:hidden para evitar páginas extras.' },
+            { id: 'c5', type: 'ui', text: 'Se sustituyeron colores estáticos del PDF por tokens del design-system (--engie-primary-cyan, --engie-action-blue, --engie-dark-blue, --success, --warning, --error) garantizando herencia automática de la paleta corporativa.' },
+            { id: 'c6', type: 'ui', text: 'Margen inferior de la última sección corregido a mb-0 para eliminar espaciado que contribuía a la página en blanco.' },
+        ],
+    },
 ];
 
 const getChangeStyle = (type: string) => {
