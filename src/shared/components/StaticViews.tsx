@@ -801,27 +801,30 @@ export const ProtocoloRRSSView = () => {
             </div>
 
             {/* VISTA PDF (DISEÑO EJECUTIVO FULL WIDTH VERTICAL) */}
-            <div className="hidden pdf-view w-full bg-white text-black font-sans">
-                <div className="text-center border-b-4 border-orange-600 pb-6 mb-10 w-full">
-                    <p className="text-sm font-bold text-orange-600 uppercase tracking-widest mb-2">Reputación Digital • ENGIE Management</p>
-                    <h1 className="text-4xl font-black text-gray-900 m-0">Protocolo de Atención en RRSS</h1>
-                    <p className="text-base text-gray-600 mt-3 max-w-3xl mx-auto">Procedimientos oficiales para gestionar la conversación digital en torno al proyecto Energía Mayakan en redes sociales, protegiendo su reputación y su licencia social en el sureste mexicano.</p>
+            {/* Paleta ENGIE del design system (index.css): tokens --engie-* estables en
+                ambos temas + hexes fijos del modo claro para --border/--success/--warning/
+                --error (el PDF siempre se imprime sobre papel blanco). */}
+            <div className="hidden pdf-view w-full bg-white text-[var(--engie-text-primary)] font-sans">
+                <div className="text-center border-b-4 border-[var(--engie-primary-cyan)] pb-6 mb-10 w-full">
+                    <p className="text-sm font-bold text-[var(--engie-dark-blue)] uppercase tracking-widest mb-2">Reputación Digital • ENGIE Management</p>
+                    <h1 className="text-4xl font-black text-[var(--engie-midnight-navy)] m-0">Protocolo de Atención en RRSS</h1>
+                    <p className="text-base text-[var(--engie-text-muted)] mt-3 max-w-3xl mx-auto">Procedimientos oficiales para gestionar la conversación digital en torno al proyecto Energía Mayakan en redes sociales, protegiendo su reputación y su licencia social en el sureste mexicano.</p>
                 </div>
 
                 <div className="mb-10 break-inside-avoid w-full">
-                    <h2 className="text-2xl font-black text-orange-900 mb-4 flex items-center gap-2 border-b-2 border-gray-200 pb-2"><Target className="w-6 h-6 text-orange-600"/> Objetivo General</h2>
-                    <div className="bg-orange-50 border-l-4 border-orange-500 p-6 rounded-r-xl w-full">
-                        <p className="text-base italic text-orange-900 text-justify leading-relaxed m-0">
+                    <h2 className="text-2xl font-black text-[var(--engie-midnight-navy)] mb-4 flex items-center gap-2 border-b-2 border-[#E2E8F0] pb-2"><Target className="w-6 h-6 text-[var(--engie-action-blue)]"/> Objetivo General</h2>
+                    <div className="bg-[var(--engie-surface-gray)] border-l-4 border-[var(--engie-primary-cyan)] p-6 rounded-r-xl w-full">
+                        <p className="text-base italic text-[var(--engie-dark-blue)] text-justify leading-relaxed m-0">
                             "Posicionar a Energía Mayakan como actor estratégico para la seguridad energética y el desarrollo del sureste mexicano, fortalecer la reputación de la Ampliación Energía Mayakan como empresa comprometida con el desarrollo sostenible y las comunidades, y visibilizar la colaboración público-privada como factor clave para concretar infraestructura estratégica. Este protocolo alinea la comunicación en redes sociales a estos tres objetivos y evita que la conversación digital derive en narrativas que pongan en riesgo la licencia social del proyecto."
                         </p>
                     </div>
                 </div>
 
                 <div className="flex flex-col space-y-8 mb-10 w-full">
-                    <div className="break-inside-avoid bg-slate-50 border border-slate-200 p-6 rounded-xl w-full">
-                        <h2 className="text-xl font-bold text-slate-900 border-b border-slate-300 pb-2 mb-4">¿Qué es una incidencia?</h2>
-                        <p className="text-base text-gray-800 mb-4">Situaciones que producen un pico de comentarios negativos hacia el proyecto Energía Mayakan. Las más comunes incluyen:</p>
-                        <ul className="list-disc pl-5 space-y-3 text-base text-gray-800 m-0">
+                    <div className="break-inside-avoid bg-[var(--engie-surface-gray)] border border-[#E2E8F0] p-6 rounded-xl w-full">
+                        <h2 className="text-xl font-bold text-[var(--engie-midnight-navy)] border-b border-[#E2E8F0] pb-2 mb-4">¿Qué es una incidencia?</h2>
+                        <p className="text-base text-[var(--engie-text-primary)] mb-4">Situaciones que producen un pico de comentarios negativos hacia el proyecto Energía Mayakan. Las más comunes incluyen:</p>
+                        <ul className="list-disc pl-5 space-y-3 text-base text-[var(--engie-text-primary)] m-0">
                             <li><strong>Críticas al proyecto o a sus obras:</strong> Sobre el impacto ambiental, la operación de la planta o el proceso constructivo.</li>
                             <li><strong>Desinformación y narrativas falsas:</strong> Publicaciones que distorsionan datos sobre el proyecto, sus permisos, su operación o sus beneficios.</li>
                             <li><strong>Tensión socioambiental y comunitaria:</strong> Inconformidades de comunidades, ejidos o grupos de interés sobre el diálogo social o el suministro eléctrico.</li>
@@ -829,19 +832,19 @@ export const ProtocoloRRSSView = () => {
                         </ul>
                     </div>
 
-                    <div className="break-inside-avoid bg-slate-50 border border-slate-200 p-6 rounded-xl w-full">
-                        <h2 className="text-xl font-bold text-slate-900 border-b border-slate-300 pb-2 mb-4">Señales de Alerta</h2>
-                        <ul className="space-y-4 text-base text-gray-800 m-0">
+                    <div className="break-inside-avoid bg-[var(--engie-surface-gray)] border border-[#E2E8F0] p-6 rounded-xl w-full">
+                        <h2 className="text-xl font-bold text-[var(--engie-midnight-navy)] border-b border-[#E2E8F0] pb-2 mb-4">Señales de Alerta</h2>
+                        <ul className="space-y-4 text-base text-[var(--engie-text-primary)] m-0">
                             <li className="flex gap-4">
-                                <span className="font-black text-orange-500 text-xl">A.</span> 
+                                <span className="font-black text-[var(--engie-action-blue)] text-xl">A.</span> 
                                 <span>El volumen de interacciones y comentarios negativos se dispara abruptamente.</span>
                             </li>
                             <li className="flex gap-4">
-                                <span className="font-black text-orange-500 text-xl">B.</span> 
+                                <span className="font-black text-[var(--engie-action-blue)] text-xl">B.</span> 
                                 <span>Las críticas suben de nivel de agresividad y se trasladan a medios de comunicación o líderes de opinión.</span>
                             </li>
                             <li className="flex gap-4">
-                                <span className="font-black text-orange-500 text-xl">C.</span> 
+                                <span className="font-black text-[var(--engie-action-blue)] text-xl">C.</span> 
                                 <span>El flujo de actividad relacionada a la crisis se mantiene prolongado durante varios días sin ceder.</span>
                             </li>
                         </ul>
@@ -849,36 +852,39 @@ export const ProtocoloRRSSView = () => {
                 </div>
 
                 <div className="mb-10 break-inside-avoid w-full">
-                    <h2 className="text-2xl font-black text-orange-900 mb-6 flex items-center gap-2 border-b-2 border-gray-200 pb-2">Matriz de Riesgos</h2>
+                    <h2 className="text-2xl font-black text-[var(--engie-midnight-navy)] mb-6 flex items-center gap-2 border-b-2 border-[#E2E8F0] pb-2">Matriz de Riesgos</h2>
                     <div className="flex flex-col space-y-6 w-full">
-                        <div className="bg-green-50 border border-green-200 p-6 rounded-xl w-full">
-                            <h3 className="font-black text-green-800 text-xl mb-2">🟢 Nivel Bajo</h3>
-                            <p className="text-base text-gray-800 mb-3 leading-relaxed">Riesgos de impacto menor, aislados y manejables internamente sin repercusiones graves.</p>
-                            <p className="text-sm text-gray-700 bg-green-100 p-3 rounded-md inline-block m-0"><strong>Casos Típicos:</strong> Comentarios aislados o preguntas puntuales sobre el proyecto sin recurrencia.</p>
+                        {/* Semánticos de la plataforma en variante fija light: --success #0CA5A4 (Teal) */}
+                        <div className="bg-[#0CA5A4]/10 border border-[#0CA5A4]/40 p-6 rounded-xl w-full">
+                            <h3 className="font-black text-[#0F766E] text-xl mb-2">🟢 Nivel Bajo</h3>
+                            <p className="text-base text-[var(--engie-text-primary)] mb-3 leading-relaxed">Riesgos de impacto menor, aislados y manejables internamente sin repercusiones graves.</p>
+                            <p className="text-sm text-[var(--engie-text-primary)] bg-[#0CA5A4]/20 p-3 rounded-md inline-block m-0"><strong>Casos Típicos:</strong> Comentarios aislados o preguntas puntuales sobre el proyecto sin recurrencia.</p>
                         </div>
-                        <div className="bg-yellow-50 border border-yellow-200 p-6 rounded-xl w-full">
-                            <h3 className="font-black text-yellow-800 text-xl mb-2">🟡 Nivel Intermedio</h3>
-                            <p className="text-base text-gray-800 mb-3 leading-relaxed">Situaciones con potencial de generar ruido sostenido, requiriendo acción proactiva y respuestas estructuradas.</p>
-                            <p className="text-sm text-gray-700 bg-yellow-100 p-3 rounded-md inline-block m-0"><strong>Casos Típicos:</strong> Cadenas de quejas coordinadas, viralización de inconformidades vecinales o campañas de reseñas negativas.</p>
+                        {/* --warning #D97706 (Amber ENERGY) */}
+                        <div className="bg-[#D97706]/10 border border-[#D97706]/40 p-6 rounded-xl w-full">
+                            <h3 className="font-black text-[#B45309] text-xl mb-2">🟡 Nivel Intermedio</h3>
+                            <p className="text-base text-[var(--engie-text-primary)] mb-3 leading-relaxed">Situaciones con potencial de generar ruido sostenido, requiriendo acción proactiva y respuestas estructuradas.</p>
+                            <p className="text-sm text-[var(--engie-text-primary)] bg-[#D97706]/20 p-3 rounded-md inline-block m-0"><strong>Casos Típicos:</strong> Cadenas de quejas coordinadas, viralización de inconformidades vecinales o campañas de reseñas negativas.</p>
                         </div>
-                        <div className="bg-red-50 border border-red-200 p-6 rounded-xl w-full">
-                            <h3 className="font-black text-red-800 text-xl mb-2">🔴 Nivel Crítico</h3>
-                            <p className="text-base text-gray-800 mb-3 leading-relaxed">Riesgos mediáticos que comprometen la operación normal, integridad física o legalidad, escalando a la prensa.</p>
-                            <p className="text-sm text-gray-700 bg-red-100 p-3 rounded-md inline-block m-0"><strong>Casos Típicos:</strong> Incidentes en la planta o el ducto con riesgo a personas, filtración de información sensible, denuncia ante autoridades o cobertura negativa nacional.</p>
+                        {/* --error #E11D48 (Rose Stopper) */}
+                        <div className="bg-[#E11D48]/10 border border-[#E11D48]/40 p-6 rounded-xl w-full">
+                            <h3 className="font-black text-[#BE123C] text-xl mb-2">🔴 Nivel Crítico</h3>
+                            <p className="text-base text-[var(--engie-text-primary)] mb-3 leading-relaxed">Riesgos mediáticos que comprometen la operación normal, integridad física o legalidad, escalando a la prensa.</p>
+                            <p className="text-sm text-[var(--engie-text-primary)] bg-[#E11D48]/20 p-3 rounded-md inline-block m-0"><strong>Casos Típicos:</strong> Incidentes en la planta o el ducto con riesgo a personas, filtración de información sensible, denuncia ante autoridades o cobertura negativa nacional.</p>
                         </div>
                     </div>
                 </div>
 
                 <div className="mb-10 break-inside-avoid w-full">
-                    <div className="text-center mb-8 bg-slate-50 border border-slate-200 p-5 rounded-xl w-full">
-                        <p className="text-sm font-bold text-slate-800 uppercase tracking-widest mb-2">Ciclo de Vida de Resolución</p>
-                        <p className="text-lg font-black text-orange-600 m-0">1. DETECCIÓN → 2. RESPUESTA → 3. REACCIÓN → 4. RECUPERACIÓN → 5. APRENDIZAJE</p>
+                    <div className="text-center mb-8 bg-[var(--engie-surface-gray)] border border-[#E2E8F0] p-5 rounded-xl w-full">
+                        <p className="text-sm font-bold text-[var(--engie-text-muted)] uppercase tracking-widest mb-2">Ciclo de Vida de Resolución</p>
+                        <p className="text-lg font-black text-[var(--engie-action-blue)] m-0">1. DETECCIÓN → 2. RESPUESTA → 3. REACCIÓN → 4. RECUPERACIÓN → 5. APRENDIZAJE</p>
                     </div>
                     
                     <div className="flex flex-col space-y-8 w-full">
-                        <div className="w-full bg-white border border-gray-200 p-6 rounded-xl">
-                            <h3 className="text-xl font-bold text-slate-900 border-b border-slate-300 pb-2 mb-4">Principios de Actuación</h3>
-                            <ul className="space-y-4 text-base text-gray-800 m-0">
+                        <div className="w-full bg-white border border-[#E2E8F0] p-6 rounded-xl">
+                            <h3 className="text-xl font-bold text-[var(--engie-midnight-navy)] border-b border-[#E2E8F0] pb-2 mb-4">Principios de Actuación</h3>
+                            <ul className="space-y-4 text-base text-[var(--engie-text-primary)] m-0">
                                 <li className="flex gap-3"><strong>A. Velocidad:</strong> Actuar con prontitud, escalando dudas al equipo ENGIE si no existe certeza.</li>
                                 <li className="flex gap-3"><strong>B. Empatía:</strong> Mantener un tono institucional, empático y estrictamente profesional en todo momento.</li>
                                 <li className="flex gap-3"><strong>C. Transparencia:</strong> Proveer soluciones concretas y viables ante quejas bien fundamentadas.</li>
@@ -886,20 +892,20 @@ export const ProtocoloRRSSView = () => {
                             </ul>
                         </div>
 
-                        <div className="w-full bg-white border border-gray-200 p-6 rounded-xl">
-                            <h3 className="text-xl font-bold text-slate-900 border-b border-slate-300 pb-2 mb-6">Fases Detalladas</h3>
+                        <div className="w-full bg-white border border-[#E2E8F0] p-6 rounded-xl">
+                            <h3 className="text-xl font-bold text-[var(--engie-midnight-navy)] border-b border-[#E2E8F0] pb-2 mb-6">Fases Detalladas</h3>
                             <div className="flex flex-col space-y-6 w-full">
-                                <div className="border-l-4 border-orange-500 pl-4 bg-slate-50 p-4 rounded-r-xl w-full break-inside-avoid">
-                                    <h4 className="font-bold text-orange-900 text-base mb-1">Detección de Señales</h4>
-                                    <p className="text-gray-800 text-sm m-0">Escucha social activa constante. Revisión de menciones para sofocar riesgos antes de su viralización.</p>
+                                <div className="border-l-4 border-[var(--engie-primary-cyan)] pl-4 bg-[var(--engie-surface-gray)] p-4 rounded-r-xl w-full break-inside-avoid">
+                                    <h4 className="font-bold text-[var(--engie-dark-blue)] text-base mb-1">Detección de Señales</h4>
+                                    <p className="text-[var(--engie-text-primary)] text-sm m-0">Escucha social activa constante. Revisión de menciones para sofocar riesgos antes de su viralización.</p>
                                 </div>
-                                <div className="border-l-4 border-orange-500 pl-4 bg-slate-50 p-4 rounded-r-xl w-full break-inside-avoid">
-                                    <h4 className="font-bold text-orange-900 text-base mb-1">Respuesta y Reacción</h4>
-                                    <p className="text-gray-800 text-sm m-0">Aplicar el primer posicionamiento con transparencia, monitoreando el sentimiento y la agresividad.</p>
+                                <div className="border-l-4 border-[var(--engie-primary-cyan)] pl-4 bg-[var(--engie-surface-gray)] p-4 rounded-r-xl w-full break-inside-avoid">
+                                    <h4 className="font-bold text-[var(--engie-dark-blue)] text-base mb-1">Respuesta y Reacción</h4>
+                                    <p className="text-[var(--engie-text-primary)] text-sm m-0">Aplicar el primer posicionamiento con transparencia, monitoreando el sentimiento y la agresividad.</p>
                                 </div>
-                                <div className="border-l-4 border-orange-500 pl-4 bg-slate-50 p-4 rounded-r-xl w-full break-inside-avoid">
-                                    <h4 className="font-bold text-orange-900 text-base mb-1">Recuperación y Aprendizaje</h4>
-                                    <p className="text-gray-800 text-sm m-0">Despliegue de contenido positivo para diluir la crisis, seguido de una reunión forense de actualización.</p>
+                                <div className="border-l-4 border-[var(--engie-primary-cyan)] pl-4 bg-[var(--engie-surface-gray)] p-4 rounded-r-xl w-full break-inside-avoid">
+                                    <h4 className="font-bold text-[var(--engie-dark-blue)] text-base mb-1">Recuperación y Aprendizaje</h4>
+                                    <p className="text-[var(--engie-text-primary)] text-sm m-0">Despliegue de contenido positivo para diluir la crisis, seguido de una reunión forense de actualización.</p>
                                 </div>
                             </div>
                         </div>
