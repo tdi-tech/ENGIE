@@ -339,16 +339,25 @@ El dashboard dispone de un botón **Descargar PDF** (arriba a la derecha) en las
 
 ### 12.2. Incidencias
 
-| Bloque / KPI | Fuente (StatCard/tarjeta del dashboard) | Descripción |
-|---|---|---|
-| Reportes Creados | `rrssStats.totalReportes` | Total de incidencias registradas |
-| Fuentes de Detección | `Object.keys(rrssStats.fuenteCounts).length` | Número de fuentes distintas |
-| Riesgo en Escalada | `rrssStats.enEscalada` | Incidencias con tendencia creciente |
-| Fuente Principal | `rrssStats.topFuente` | Canal más frecuente de origen |
-| Nivel de Riesgo Reputacional | `rrssStats.riesgoCounts` | Bajo · Medio · Alto · Crítico |
-| Alcance Actual | `rrssStats.alcanceCounts` | Local · Regional · Nacional · Viral |
-| Tendencia | `rrssStats.tendenciaCounts` | Disminuyendo · Estable · Aumentando |
-| Temas en Riesgo de Escalada | `rrssStats.temasEscaladaTop` | Temas con Riesgo Alto/Crítico + Tendencia Aumentando |
+#### Protocolo de monitoreo de incidencias
+
+El monitoreo de incidencias se alinea con los tres objetivos de comunicación del proyecto:
+1. **Posicionar a Energía Mayakan** como actor estratégico para la seguridad energética y el desarrollo del sureste mexicano.
+2. **Fortalecer la reputación** de la Ampliación Energía Mayakan como empresa comprometida con el desarrollo sostenible y las comunidades.
+3. **Visibilizar la colaboración público‑privada** como factor clave para concretar infraestructura estratégica.
+
+Cada KPI del dashboard está vinculado a uno de estos objetivos, como se muestra en la tabla siguiente. El equipo de análisis debe priorizar la atención a los indicadores marcados con mayor riesgo (crítico) y a los temas que evidencian tendencia creciente, generando informes y acciones correctivas alineadas con los objetivos estratégicos.
+
+| Bloque / KPI | Fuente (StatCard/tarjeta del dashboard) | Objetivo de Comunicación | Descripción |
+|---|---|---|---|
+| Reportes Creados | `rrssStats.totalReportes` | Visibilizar la colaboración público‑privada | Total de incidencias registradas |
+| Fuentes de Detección | `Object.keys(rrssStats.fuenteCounts).length` | Fortalecer la reputación de Ampliación Energía Mayakan | Número de fuentes distintas |
+| Riesgo en Escalada | `rrssStats.enEscalada` | Posicionar a Energía Mayakan como actor estratégico | Incidencias con tendencia creciente |
+| Fuente Principal | `rrssStats.topFuente` | Visibilizar la colaboración público‑privada | Canal más frecuente de origen |
+| Nivel de Riesgo Reputacional | `rrssStats.riesgoCounts` | Posicionar a Energía Mayakan como actor estratégico | Bajo · Medio · Alto · Crítico |
+| Alcance Actual | `rrssStats.alcanceCounts` | Fortalecer la reputación de Ampliación Energía Mayakan | Local · Regional · Nacional · Viral |
+| Tendencia | `rrssStats.tendenciaCounts` | Visibilizar la colaboración público‑privada | Disminuyendo · Estable · Aumentando |
+| Temas en Riesgo de Escalada | `rrssStats.temasEscaladaTop` | Posicionar a Energía Mayakan como actor estratégico | Temas con Riesgo Alto/Crítico + Tendencia Aumentando |
 
 > **Nota:** este reporte es el del **Dashboard** y no debe confundirse con la **exportación a PDF** del módulo *Reportes y Analítica* ni con los CSV de los historiales de Menciones/Incidencias, que no incluyen botón de PDF.
 
