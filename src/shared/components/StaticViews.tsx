@@ -64,6 +64,11 @@ const PrintStyles = () => (
                 height: auto !important;
                 min-height: 0 !important;
             }
+            /* 5. Los pseudo-elementos body::before (gradiente mesh) y body::after (noise)
+               son position:fixed y el motor de impresión los replica en cada página. */
+            body::before, body::after {
+                display: none !important;
+            }
 
             .break-inside-avoid {
                 page-break-inside: avoid !important;
