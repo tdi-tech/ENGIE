@@ -73,10 +73,10 @@ La plataforma ha sido estructurada visual y operativamente en bloques funcionale
 ### 3. Reputación, Crisis RRSS y Reportes Analíticos de Comentarios
 * **Gestión de Contingencias:** Herramienta enfocada en la detección de picos inusuales de alertas en canales digitales oficiales, equipado con el sistema de **Borrado por Lotes** para un mantenimiento ágil.
 * **Reportes WYSIWYG Purificados:** Editor de texto enriquecido integrado, resguardado con la librería `DOMPurify` para prevenir vulnerabilidades de inyección de código (XSS) al momento de renderizar bitácoras oficiales.
-* **Trazabilidad de Quejas y Selección Masiva:** Registro de ataques focalizados organizados por campus y tipo de contenido (Orgánico/Pautado), incorporando también capacidades de selección interactiva para depuración masiva de historiales.
+* **Trazabilidad de Incidencias y Selección Masiva:** Registro de ataques focalizados organizados por tema principal y tipo de contenido (Orgánico/Pautado), incorporando también capacidades de selección interactiva para depuración masiva de historiales.
 * **Módulo Analítico Avanzado:** Tablero de inteligencia de negocios exclusivo para directivos y edición, impulsado por `Chart.js` para el análisis profundo de Comentarios.
   * **Ingesta Dual Inteligente:** Motor robusto que permite alimentar las gráficas cargando archivos CSV encriptados a prueba de fallos mediante la librería `PapaParse`, o extrayendo la información en tiempo real directamente desde Firestore.
-  * **Radar de Autores y Filtros Dinámicos:** Gráficas camaleónicas que se adaptan al Dark Mode para mostrar la tendencia cronológica de negatividad, campus afectados y usuarios recurrentes, respaldados por una bitácora de trazabilidad con buscador interno y paginación modular.
+  * **Radar de Autores y Filtros Dinámicos:** Gráficas camaleónicas que se adaptan al Dark Mode para mostrar la tendencia cronológica de negatividad, temas de riesgo y usuarios recurrentes, respaldados por una bitácora de trazabilidad con buscador interno y paginación modular.
 
 ---
 

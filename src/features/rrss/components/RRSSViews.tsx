@@ -15,8 +15,6 @@ const inputStyles = "w-full p-3 rounded-xl theme-bg-low border theme-border them
 const optionStyles = "theme-bg-container theme-text-main font-medium";
 const editorStyles = `.wysiwyg-content ul { list-style-type: disc !important; padding-left: 1.5rem !important; margin: 0.5rem 0; } .wysiwyg-content ol { list-style-type: decimal !important; padding-left: 1.5rem !important; margin: 0.5rem 0; }`;
 
-const CAMPUS_OPTIONS = ['Atizapán', 'Coacalco', 'Cuautitlán Izcalli', 'Ecatepec', 'Tecamac', 'Tultepec', 'Zumpango', 'Tizayuca', 'Querétaro: la Joya', 'Querétaro: el Marqués', 'Huehuetoca', 'Chalco'];
-
 // Vocabulario reputacional del formulario — única fuente de verdad para form y filtros
 const FUENTES_DETECCION = ['Facebook', 'Instagram', 'TikTok', 'LinkedIn', 'YouTube', 'X', 'Medios Digitales'];
 const TEMAS_PRINCIPALES = ['Seguridad y regulación', 'Comunidades e impacto social', 'Legal y derechos humanos', 'Medio ambiente', 'Afectaciones o riesgos', 'Avances de obra e infraestructura', 'Reputación corporativa'];
@@ -841,7 +839,7 @@ const handleDownloadDocx = (inc: any) => {
                 </div>
             </div>
 
-            {/* MODAL DE EXPORTACIÓN INTELIGENTE CON FILTRO CAMPUS */}
+            {/* MODAL DE EXPORTACIÓN INTELIGENTE */}
             {isExportModalOpen && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 fade-in">
                     <div className="theme-bg-container rounded-2xl w-full max-w-md shadow-2xl border theme-border flex flex-col overflow-hidden">

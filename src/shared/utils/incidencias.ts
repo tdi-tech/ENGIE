@@ -3,9 +3,11 @@
 //   1. Nuevo form "Incidente Reputacional"
 //      (actorFuente, fuenteDeteccion, tipoFuente, temaPrincipal,
 //       nivelRiesgoReputacional, alcanceActual, tendencia, resumenIncidente,
-//       hallazgosClave, campus, enlacePublicacion, enlaceDrive, reporteTexto)
+//       hallazgosClave, enlacePublicacion, enlaceDrive, reporteTexto)
 //   2. Esquema legacy (RRSS): medio, usuario, descripcion, riesgo,
 //      totalIncidencias, area, comentarios
+// NOTA: `campus` es un campo del proyecto anterior; se conserva solo por
+// compatibilidad con documentos legacy de Firestore. No se captura en el form.
 export interface NormalizedIncidencia {
     id: string;
     fecha: string;
@@ -18,7 +20,7 @@ export interface NormalizedIncidencia {
     nivelRiesgo: number | string;
     alcanceActual: string;
     tendencia: string;
-    campus: string;
+    campus: string; // legacy (proyecto anterior); nunca se captura en el form nuevo
     estado: string;
     area: string;
     totalIncidencias: number;

@@ -348,6 +348,15 @@ El monitoreo de incidencias está alineado con los tres objetivos de comunicaci�
 
 Cada KPI del dashboard se vincula a uno de estos objetivos, facilitando la priorización de análisis y la generación de acciones correctivas alineadas con la estrategia del proyecto.
 
+El protocolo completo de atención se publica en la vista **Incidencias → Protocolo** (`ProtocoloRRSSView` en `StaticViews.tsx`, con versión imprimible en PDF). Define cuatro tipos de incidencia típicos del proyecto:
+
+1. **Críticas al proyecto o a sus obras** — impacto ambiental, operación de la planta o proceso constructivo de la Ampliación Energía Mayakan.
+2. **Desinformación y narrativas falsas** — publicaciones que distorsionan datos sobre el proyecto, sus permisos, su operación o sus beneficios para la región.
+3. **Tensión socioambiental y comunitaria** — inconformidades de comunidades, ejidos o grupos de interés sobre el diálogo social, el reparto de beneficios o el suministro eléctrico.
+4. **Crisis que escalan a medios** — coberturas negativas de prensa, señalamientos contra la colaboración público‑privada o controversias corporativas que impactan al proyecto.
+
+y una **matriz de riesgos** en tres niveles (Bajo: comentarios aislados sin viralización; Intermedio: cadenas de quejas coordinadas o viralización de inconformidades vecinales; Crítico: incidentes en planta/ducto con riesgo a personas, filtración de información sensible o cobertura negativa nacional), más un ciclo de resolución **Detección → Respuesta → Reacción → Recuperación → Aprendizaje**.
+
 | Bloque / KPI                     | Fuente (StatCard/tarjeta del dashboard)            | Objetivo de Comunicación                                           | Descripción |
 |---|---|---|---|
 | Reportes Creados                 | `rrssStats.totalReportes`                           | 3. Visibilizar la colaboración público‑privada                     | Total de incidencias registradas |

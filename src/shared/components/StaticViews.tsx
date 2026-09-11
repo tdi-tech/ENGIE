@@ -649,7 +649,7 @@ export const ProtocoloRRSSView = () => {
                             </p>
                             <h2 className="text-4xl font-black theme-text-main mb-4 tracking-tight">Protocolo de Atención en RRSS</h2>
                             <p className="theme-text-muted text-base max-w-2xl leading-relaxed">
-                                Procedimientos oficiales para gestionar crisis mediáticas y proteger el prestigio institucional de ENGIE en canales sociales.
+                                Procedimientos oficiales para gestionar la conversación digital en torno al proyecto Energía Mayakan en redes sociales, protegiendo su reputación y su licencia social en el sureste mexicano.
                             </p> 
                         </div>
                         <button type="button" onClick={() => window.print()} className="px-6 py-3 bg-[var(--primary)] hover:brightness-110 text-white rounded-xl text-sm font-bold transition-all shadow-sm flex items-center gap-2 no-print whitespace-nowrap hover:-translate-y-0.5">
@@ -663,7 +663,7 @@ export const ProtocoloRRSSView = () => {
                         <Target className="w-6 h-6 text-[var(--primary)]" /> Objetivo General
                     </h3>
                     <p className="text-lg theme-text-main opacity-90 leading-relaxed max-w-4xl font-serif italic border-l-4 border-[var(--primary)] pl-6 py-2">
-                        "Establecer el procedimiento para alinear la comunicación de redes sociales a la estrategia actual, con el fin de servir como protocolo de actuación que oriente a los colaboradores y evite que una comunidad dispuesta a interactuar se convierta en una comunidad tóxica anclada en la crítica destructiva."
+                        "Posicionar a Energía Mayakan como actor estratégico para la seguridad energética y el desarrollo del sureste mexicano, fortalecer la reputación de la Ampliación Energía Mayakan como empresa comprometida con el desarrollo sostenible y las comunidades, y visibilizar la colaboración público-privada como factor clave para concretar infraestructura estratégica. Este protocolo alinea la comunicación en redes sociales a estos tres objetivos y evita que la conversación digital derive en narrativas que pongan en riesgo la licencia social del proyecto."
                     </p>
                 </div>
 
@@ -673,24 +673,24 @@ export const ProtocoloRRSSView = () => {
                             ¿Qué es una incidencia?
                         </h3>
                         <p className="text-base theme-text-muted leading-relaxed">
-                            Situaciones que producen un pico de comentarios negativos hacia ENGIE durante un periodo específico. Las más comunes incluyen:
+                            Situaciones que producen un pico de comentarios negativos hacia el proyecto Energía Mayakan durante un periodo específico. Las más comunes incluyen:
                         </p>
                         <ul className="space-y-5 mt-6 pl-4 border-l-2 border-orange-500/30">
                             <li className="flex items-start gap-4 text-base theme-text-main">
                                 <span className="text-orange-500 font-bold mt-0.5">—</span> 
-                                <span className="opacity-90 leading-relaxed"><strong>Críticas de padres o estudiantes:</strong> Sobre la calidad, el trato del personal o instalaciones.</span>
+                                <span className="opacity-90 leading-relaxed"><strong>Críticas al proyecto o a sus obras:</strong> Sobre el impacto ambiental, la operación de la planta o el proceso constructivo de la Ampliación Energía Mayakan.</span>
                             </li>
                             <li className="flex items-start gap-4 text-base theme-text-main">
                                 <span className="text-orange-500 font-bold mt-0.5">—</span> 
-                                <span className="opacity-90 leading-relaxed"><strong>Ataques en plataformas abiertas:</strong> Reseñas maliciosas o bombardeos en Google My Business.</span>
+                                <span className="opacity-90 leading-relaxed"><strong>Desinformación y narrativas falsas:</strong> Publicaciones que distorsionan datos sobre el proyecto, sus permisos, su operación o sus beneficios para la región.</span>
                             </li>
                             <li className="flex items-start gap-4 text-base theme-text-main">
                                 <span className="text-orange-500 font-bold mt-0.5">—</span> 
-                                <span className="opacity-90 leading-relaxed"><strong>Problemas de seguridad/bienestar:</strong> Acoso, intimidación, discriminación o accidentes en campus.</span>
+                                <span className="opacity-90 leading-relaxed"><strong>Tensión socioambiental y comunitaria:</strong> Inconformidades de comunidades, ejidos o grupos de interés sobre el diálogo social, el reparto de beneficios o el suministro eléctrico.</span>
                             </li>
                             <li className="flex items-start gap-4 text-base theme-text-main">
                                 <span className="text-orange-500 font-bold mt-0.5">—</span> 
-                                <span className="opacity-90 leading-relaxed"><strong>Filtraciones y controversias:</strong> Publicaciones inapropiadas del personal o quejas comunitarias vecinales.</span>
+                                <span className="opacity-90 leading-relaxed"><strong>Crisis que escalan a medios:</strong> Coberturas negativas de prensa, señalamientos contra la colaboración público-privada o controversias corporativas que impactan al proyecto.</span>
                             </li>
                         </ul>
                     </div>
@@ -706,7 +706,7 @@ export const ProtocoloRRSSView = () => {
                             </div>
                             <div className="flex items-start gap-5">
                                 <span className="text-4xl font-black text-[var(--primary)] opacity-40 leading-none">B</span>
-                                <p className="text-base theme-text-main opacity-90 leading-relaxed mt-1">Las críticas suben de nivel de agresividad y se trasladan a escenarios de influencia fuera de las redes sociales oficiales.</p>
+                                <p className="text-base theme-text-main opacity-90 leading-relaxed mt-1">Las críticas suben de nivel de agresividad y se trasladan a escenarios de mayor influencia: medios de comunicación, líderes de opinión o hashtags propios.</p>
                             </div>
                             <div className="flex items-start gap-5">
                                 <span className="text-4xl font-black text-[var(--primary)] opacity-40 leading-none">C</span>
@@ -719,7 +719,7 @@ export const ProtocoloRRSSView = () => {
                 <div className="space-y-12 px-4 sm:px-8 pt-12 border-t border-gray-200 dark:border-gray-800">
                     <div>
                         <h3 className="text-3xl font-black theme-text-main mb-3">Matriz de Riesgos</h3>
-                        <p className="text-base theme-text-muted max-w-3xl">Guía estructural para evaluar y categorizar el impacto potencial de la crisis sobre la reputación institucional.</p>
+                        <p className="text-base theme-text-muted max-w-3xl">Guía estructural para evaluar y categorizar el impacto potencial de la crisis sobre la reputación del proyecto Energía Mayakan.</p>
                     </div>
                     
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
@@ -728,7 +728,7 @@ export const ProtocoloRRSSView = () => {
                             <h4 className="font-black text-2xl text-green-700 dark:text-green-500 mb-4">Nivel Bajo</h4>
                             <p className="text-base theme-text-main mb-8 opacity-90 leading-relaxed">Riesgos de impacto menor, aislados y manejables internamente sin repercusiones graves para la institución.</p>
                             <div className="mt-auto">
-                                <p className="text-sm theme-text-main opacity-70 leading-relaxed"><strong>Casos Típicos:</strong><br/>Quejas puntuales de padres o alumnos sin recurrencia ni viralización externa.</p>
+                                <p className="text-sm theme-text-main opacity-70 leading-relaxed"><strong>Casos Típicos:</strong><br/>Comentarios aislados o preguntas puntuales sobre el proyecto sin recurrencia ni viralización externa.</p>
                             </div>
                         </div>
 
@@ -737,7 +737,7 @@ export const ProtocoloRRSSView = () => {
                             <h4 className="font-black text-2xl text-yellow-700 dark:text-yellow-500 mb-4">Nivel Intermedio</h4>
                             <p className="text-base theme-text-main mb-8 opacity-90 leading-relaxed">Situaciones con potencial de generar ruido sostenido en la comunidad, requiriendo acción proactiva y respuestas estructuradas.</p>
                             <div className="mt-auto">
-                                <p className="text-sm theme-text-main opacity-70 leading-relaxed"><strong>Casos Típicos:</strong><br/>Reportes de bullying o difamación, bombardeos de reseñas negativas coordinadas.</p>
+                                <p className="text-sm theme-text-main opacity-70 leading-relaxed"><strong>Casos Típicos:</strong><br/>Cadenas de quejas coordinadas, viralización de inconformidades vecinales (ruido, tráfico, construcción) o campañas de reseñas negativas.</p>
                             </div>
                         </div>
 
@@ -746,7 +746,7 @@ export const ProtocoloRRSSView = () => {
                             <h4 className="font-black text-2xl text-red-700 dark:text-red-500 mb-4">Nivel Crítico</h4>
                             <p className="text-base theme-text-main mb-8 opacity-90 leading-relaxed">Riesgos mediáticos que comprometen la operación normal, integridad física o legalidad, escalando a la prensa.</p>
                             <div className="mt-auto">
-                                <p className="text-sm theme-text-main opacity-70 leading-relaxed"><strong>Casos Típicos:</strong><br/>Accidentes con riesgo vital en campus, filtración de material sensible o intervención de autoridades.</p>
+                                <p className="text-sm theme-text-main opacity-70 leading-relaxed"><strong>Casos Típicos:</strong><br/>Incidentes en la planta o el ducto con riesgo a personas, filtración de información sensible, denuncia ante autoridades o cobertura negativa nacional.</p>
                             </div>
                         </div>
                     </div>
@@ -805,14 +805,14 @@ export const ProtocoloRRSSView = () => {
                 <div className="text-center border-b-4 border-orange-600 pb-6 mb-10 w-full">
                     <p className="text-sm font-bold text-orange-600 uppercase tracking-widest mb-2">Reputación Digital • ENGIE Management</p>
                     <h1 className="text-4xl font-black text-gray-900 m-0">Protocolo de Atención en RRSS</h1>
-                    <p className="text-base text-gray-600 mt-3 max-w-3xl mx-auto">Procedimientos oficiales para gestionar crisis mediáticas y proteger el prestigio institucional de ENGIE en canales sociales.</p>
+                    <p className="text-base text-gray-600 mt-3 max-w-3xl mx-auto">Procedimientos oficiales para gestionar la conversación digital en torno al proyecto Energía Mayakan en redes sociales, protegiendo su reputación y su licencia social en el sureste mexicano.</p>
                 </div>
 
                 <div className="mb-10 break-inside-avoid w-full">
                     <h2 className="text-2xl font-black text-orange-900 mb-4 flex items-center gap-2 border-b-2 border-gray-200 pb-2"><Target className="w-6 h-6 text-orange-600"/> Objetivo General</h2>
                     <div className="bg-orange-50 border-l-4 border-orange-500 p-6 rounded-r-xl w-full">
                         <p className="text-base italic text-orange-900 text-justify leading-relaxed m-0">
-                            "Establecer el procedimiento para alinear la comunicación de redes sociales a la estrategia actual, con el fin de servir como protocolo de actuación que oriente a los colaboradores y evite que una comunidad dispuesta a interactuar se convierta en una comunidad tóxica anclada en la crítica destructiva."
+                            "Posicionar a Energía Mayakan como actor estratégico para la seguridad energética y el desarrollo del sureste mexicano, fortalecer la reputación de la Ampliación Energía Mayakan como empresa comprometida con el desarrollo sostenible y las comunidades, y visibilizar la colaboración público-privada como factor clave para concretar infraestructura estratégica. Este protocolo alinea la comunicación en redes sociales a estos tres objetivos y evita que la conversación digital derive en narrativas que pongan en riesgo la licencia social del proyecto."
                         </p>
                     </div>
                 </div>
@@ -820,12 +820,12 @@ export const ProtocoloRRSSView = () => {
                 <div className="flex flex-col space-y-8 mb-10 w-full">
                     <div className="break-inside-avoid bg-slate-50 border border-slate-200 p-6 rounded-xl w-full">
                         <h2 className="text-xl font-bold text-slate-900 border-b border-slate-300 pb-2 mb-4">¿Qué es una incidencia?</h2>
-                        <p className="text-base text-gray-800 mb-4">Situaciones que producen un pico de comentarios negativos hacia ENGIE. Las más comunes incluyen:</p>
+                        <p className="text-base text-gray-800 mb-4">Situaciones que producen un pico de comentarios negativos hacia el proyecto Energía Mayakan. Las más comunes incluyen:</p>
                         <ul className="list-disc pl-5 space-y-3 text-base text-gray-800 m-0">
-                            <li><strong>Críticas de padres o estudiantes:</strong> Sobre la calidad, el trato del personal o instalaciones.</li>
-                            <li><strong>Ataques en plataformas:</strong> Reseñas maliciosas o bombardeos en Google My Business.</li>
-                            <li><strong>Problemas de seguridad:</strong> Acoso, intimidación, discriminación o accidentes.</li>
-                            <li><strong>Filtraciones:</strong> Publicaciones inapropiadas del personal o quejas comunitarias.</li>
+                            <li><strong>Críticas al proyecto o a sus obras:</strong> Sobre el impacto ambiental, la operación de la planta o el proceso constructivo.</li>
+                            <li><strong>Desinformación y narrativas falsas:</strong> Publicaciones que distorsionan datos sobre el proyecto, sus permisos, su operación o sus beneficios.</li>
+                            <li><strong>Tensión socioambiental y comunitaria:</strong> Inconformidades de comunidades, ejidos o grupos de interés sobre el diálogo social o el suministro eléctrico.</li>
+                            <li><strong>Crisis que escalan a medios:</strong> Coberturas negativas de prensa o señalamientos contra la colaboración público-privada.</li>
                         </ul>
                     </div>
 
@@ -838,7 +838,7 @@ export const ProtocoloRRSSView = () => {
                             </li>
                             <li className="flex gap-4">
                                 <span className="font-black text-orange-500 text-xl">B.</span> 
-                                <span>Las críticas suben de nivel de agresividad y se trasladan a escenarios de influencia.</span>
+                                <span>Las críticas suben de nivel de agresividad y se trasladan a medios de comunicación o líderes de opinión.</span>
                             </li>
                             <li className="flex gap-4">
                                 <span className="font-black text-orange-500 text-xl">C.</span> 
@@ -854,17 +854,17 @@ export const ProtocoloRRSSView = () => {
                         <div className="bg-green-50 border border-green-200 p-6 rounded-xl w-full">
                             <h3 className="font-black text-green-800 text-xl mb-2">🟢 Nivel Bajo</h3>
                             <p className="text-base text-gray-800 mb-3 leading-relaxed">Riesgos de impacto menor, aislados y manejables internamente sin repercusiones graves.</p>
-                            <p className="text-sm text-gray-700 bg-green-100 p-3 rounded-md inline-block m-0"><strong>Casos Típicos:</strong> Quejas puntuales de padres o alumnos sin recurrencia.</p>
+                            <p className="text-sm text-gray-700 bg-green-100 p-3 rounded-md inline-block m-0"><strong>Casos Típicos:</strong> Comentarios aislados o preguntas puntuales sobre el proyecto sin recurrencia.</p>
                         </div>
                         <div className="bg-yellow-50 border border-yellow-200 p-6 rounded-xl w-full">
                             <h3 className="font-black text-yellow-800 text-xl mb-2">🟡 Nivel Intermedio</h3>
                             <p className="text-base text-gray-800 mb-3 leading-relaxed">Situaciones con potencial de generar ruido sostenido, requiriendo acción proactiva y respuestas estructuradas.</p>
-                            <p className="text-sm text-gray-700 bg-yellow-100 p-3 rounded-md inline-block m-0"><strong>Casos Típicos:</strong> Reportes de bullying, bombardeos de reseñas negativas coordinadas.</p>
+                            <p className="text-sm text-gray-700 bg-yellow-100 p-3 rounded-md inline-block m-0"><strong>Casos Típicos:</strong> Cadenas de quejas coordinadas, viralización de inconformidades vecinales o campañas de reseñas negativas.</p>
                         </div>
                         <div className="bg-red-50 border border-red-200 p-6 rounded-xl w-full">
                             <h3 className="font-black text-red-800 text-xl mb-2">🔴 Nivel Crítico</h3>
                             <p className="text-base text-gray-800 mb-3 leading-relaxed">Riesgos mediáticos que comprometen la operación normal, integridad física o legalidad, escalando a la prensa.</p>
-                            <p className="text-sm text-gray-700 bg-red-100 p-3 rounded-md inline-block m-0"><strong>Casos Típicos:</strong> Accidentes graves, filtración de material sensible, intervención de autoridades.</p>
+                            <p className="text-sm text-gray-700 bg-red-100 p-3 rounded-md inline-block m-0"><strong>Casos Típicos:</strong> Incidentes en la planta o el ducto con riesgo a personas, filtración de información sensible, denuncia ante autoridades o cobertura negativa nacional.</p>
                         </div>
                     </div>
                 </div>
