@@ -41,9 +41,12 @@ const PrintStyles = () => (
             }
 
             /* 2. Ocultar elementos de la web (Sidebar, Nav, Botones) */
-            .web-view, nav, aside, header, footer, button, .no-print, [class*="sidebar"] { 
+            .web-view, nav, aside, header, footer, button, .no-print, [class*="sidebar"], #print-header { 
                 display: none !important; 
             }
+            /* El #print-header ("Reporte: ENGIE Management") está fuera del <main> en el
+               layout, index.css lo fuerza a display:block en print, generando una página
+               extra al final. Lo ocultamos aquí — el pdf-view ya tiene su propio header. */
 
             /* 3. Mostrar VISTA PDF EJECUTIVA */
             .pdf-view { 
