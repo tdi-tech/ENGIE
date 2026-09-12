@@ -41,8 +41,9 @@ ENGIE Management (paquete `tdi-secure-social`) es una herramienta interna tipo S
 | Auditoría SIEM | `audit/` | Radar forense de intrusos: registra accesos denegados (403) con IP real, país y UserAgent |
 | Backups Core | `backups/` | Respaldo cifrado AES-256 (crypto-js) de todo el ecosistema + restauración inteligente |
 | Usuarios | `users/` | Administración de usuarios, roles y sincronización automática al primer login |
-| Configuración | `settings/` | Salud de Firestore en tiempo real, purga manual y programación del microservicio de purga |
+| Configuración | `settings/` | Salud de Firestore en tiempo real, purga manual y programación del microservicio de purga, y **selector de tema claro/oscuro** (apariencia) |
 | Auth | `auth/` | Login corporativo restringido por dominio + firewall anti-spam |
+| Changelog | `shared/components/ChangelogView.tsx` | Historial de versiones y notas de lanzamiento (v1.0.0), visible para administradores |
 
 ### Flujo típico de uso
 
@@ -323,7 +324,7 @@ En cada pasada el PHP hace `PATCH` al doc de config con `lastRunAt` (`date('c')`
 
 ## 12. PDF Ejecutivo del Dashboard
 
-El dashboard dispone de un botón **Descargar PDF** (arriba a la derecha) en las pestañas de **Menciones** e **Incidencias**. Genera en el cliente un informe ejecutivo con `jsPDF`, con diseño premium (cabecera corporativa navy, tarjetas KPI, barras horizontales con color, pie de página paginado) y **accesibilidad WCAG AA** en el contraste de texto. Los títulos de cada bloque y KPI coinciden exactamente con las tarjetas de la interfaz de la que toman el dato.
+El dashboard dispone de un botón **Descargar PDF** (arriba a la derecha) en las pestañas de **Menciones** e **Incidencias**. Genera en el cliente un informe ejecutivo con `jsPDF` y los **colores corporativos ENGIE del design-system** (tokens `--engie-*`, que siguen el tema claro/oscuro en vez de valores fijos), con diseño premium (cabecera corporativa, tarjetas KPI, barras horizontales con color, pie de página paginado) y **accesibilidad WCAG AA** en el contraste de texto. Los títulos de cada bloque y KPI coinciden exactamente con las tarjetas de la interfaz de la que toman el dato.
 
 ### 12.1. Menciones
 
@@ -348,7 +349,7 @@ El monitoreo de incidencias está alineado con los tres objetivos de comunicaci�
 
 Cada KPI del dashboard se vincula a uno de estos objetivos, facilitando la priorización de análisis y la generación de acciones correctivas alineadas con la estrategia del proyecto.
 
-El protocolo completo de atención se publica en la vista **Incidencias → Protocolo** (`ProtocoloRRSSView` en `StaticViews.tsx`, con versión imprimible en PDF). Define cuatro tipos de incidencia típicos del proyecto:
+El protocolo completo de atención se publica en la vista **Incidencias → Protocolo** (`ProtocoloRRSSView` en `StaticViews.tsx`) y tiene una **versión imprimible en PDF** que encabeza el documento con los títulos **"Reputación Digital • ENGIE Management"** y **"Protocolo de Atención en RRSS"**, todo renderizado con los **tokens de color corporativos del design-system ENGIE** (`--engie-*`: `--engie-midnight-navy`, `--engie-dark-blue`, `--engie-primary-cyan`) para heredar automáticamente la paleta oficial sin colores estáticos. Define cuatro tipos de incidencia típicos del proyecto:
 
 1. **Críticas al proyecto o a sus obras** — impacto ambiental, operación de la planta o proceso constructivo de la Ampliación Energía Mayakan.
 2. **Desinformación y narrativas falsas** — publicaciones que distorsionan datos sobre el proyecto, sus permisos, su operación o sus beneficios para la región.

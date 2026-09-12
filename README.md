@@ -53,6 +53,8 @@ La plataforma ha sido estructurada visual y operativamente en bloques funcionale
 * **Persistencia de Navegación UX:** Integración de estados basados en `localStorage` coordinados entre la aplicación y el Sidebar para evitar redirecciones accidentales al Dashboard al presionar F5 o refrescar la página.
 * **Optimización Lazy Loading y Skeletons:** Los datos de los historiales solo se consultan al servidor cuando el usuario ingresa a la vista explícitamente. La carga se suaviza mediante animaciones vectoriales limpias, eliminando parpadeos bruscos.
 * **Sincronización en Tiempo Real:** Reemplazo de lecturas estáticas por escuchadores activos (`onSnapshot`), proyectando cambios de estado, contadores del firewall y nuevas incidencias de forma simultánea en todas las pestañas abiertas sin requerir recargas manuales.
+* **Selector de Tema Claro/Oscuro:** Cambio de apariencia global desde **Configuración** (persistido en `localStorage`), con la paleta corporativa ENGIE (tokens `--engie-*`) que la interfaz y los PDFs heredan automáticamente.
+* **Changelog / Notas de Lanzamiento:** Vista exclusiva para administradores (`ChangelogView`) que documenta el historial de versiones y mejoras de la plataforma, inaugurada con la versión **v1.0.0**.
 
 ### 1. Seguridad IT, Cumplimiento (Compliance) y SIEM
 * **Radar de Intrusos (SIEM Forense):** Módulo de ciberseguridad que detecta y registra silenciosamente accesos denegados (Errores 403), capturando la IP pública real, País de origen y UserAgent del atacante (incluyendo el rastreo de atacantes externos bajo el identificador `anonymous_attacker`). 
@@ -91,6 +93,7 @@ La plataforma ha sido estructurada visual y operativamente en bloques funcionale
   * **CSV Dinámico con Filtros Server-Side:** Descarga masiva optimizada para Excel que consulta directamente a la base de datos para ofrecer segmentación dinámica mediante años y meses reales que cuentan con registros. Incluye soporte para spinners de carga asíncrona y procesamiento robusto con `PapaParse`.
   * **Documentos Word (.docx):** Generación nativa basada en XML para descargar reportes con texto enriquecido.
   * **Reportes Ejecutivos PDF Premium:** Sistema de impresión ejecutivo impulsado por `jsPDF` que renderiza documentos de alta fidelidad con gráficas interactivas incrustadas, respetando el Modo Oscuro de la plataforma y garantizando la entregabilidad de los datos visualizados en el tablero.
+  * **PDF del Protocolo de Atención (RRSS):** La vista **Incidencias → Protocolo** tiene versión imprimible en PDF encabezada por los títulos **"Reputación Digital • ENGIE Management"** y **"Protocolo de Atención en RRSS"**, renderizada con los **tokens de color corporativos** del design-system ENGIE (`--engie-*`: `--engie-midnight-navy`, `--engie-dark-blue`, `--engie-primary-cyan`) para heredar la paleta oficial sin colores estáticos.
 
 ---
 
