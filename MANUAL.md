@@ -101,7 +101,7 @@ El rol vive en el documento del usuario en Firestore y **solo `ADMIN_IT` puede m
 - `hasRole(appId, role)` exige además `disabled != true`.
 - `isContentAdmin(appId)` = `ADMIN_IT` **o** `ADMIN_CM` → usado en `create`/`update` de `rrss_incidents` y `comments` para que **ambos perfiles puedan restaurar backups sin validador estricto**.
 - `config/*` (microservicio) y lectura de `auditLogs` son **exclusivos de `ADMIN_IT`**.
-- El firewall (`firewall_locks`) bloquea IP 30 min tras 5 intentos fallidos de PIN/Login.
+- El firewall (`firewall_locks`) bloquea la IP por 30 minutos tras 5 intentos fallidos en el Login corporativo.
 
 ---
 
