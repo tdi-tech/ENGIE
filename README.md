@@ -1,8 +1,16 @@
 # ENGIE Management
 
-**Plataforma Integral SaaS para la Gestión de Seguridad, Cumplimiento y Control Operativo de Incidencias.**
+**Plataforma Corporativa de Reputación Digital y Social Listening para el proyecto Energía Mayakan.**
 
-Innova Management es una herramienta interna tipo SaaS (Software as a Service) diseñada para centralizar la documentación, el monitoreo y la mitigación de crisis digitales. La plataforma opera bajo una estricta **arquitectura Zero-Trust (Cero Confianza)**, dividiendo su operación de manera estratégica para dar soporte técnico al área de IT y control de reputación a los equipos de Community Managers, asegurando un historial inmutable y auditable bajo estrictos protocolos de confidencialidad corporativa.
+**ENGIE Management** es una plataforma interna tipo SaaS, desarrollada por Tierra de Ideas para la marca **ENGIE / Energía Mayakan** en el sureste mexicano. Su propósito central es el **social listening**: el monitoreo continuo de menciones y comentarios en redes sociales, la detección temprana de tendencias y picos de conversación negativa, el registro de incidencias reputacionales y la protección de la **licencia social** del proyecto.
+
+La plataforma alinea toda la operación de monitoreo y análisis con los **tres objetivos de comunicación del proyecto Energía Mayakan**:
+
+1. **Posicionar a Energía Mayakan** como actor estratégico para la seguridad energética y el desarrollo del sureste mexicano.
+2. **Fortalecer la reputación de la Ampliación Energía Mayakan** como empresa comprometida con el desarrollo sostenible y las comunidades.
+3. **Visibilizar la colaboración público-privada** como factor clave para concretar infraestructura estratégica.
+
+Cada KPI, incidencia y reporte del tablero se vincula a uno de estos objetivos, facilitando la priorización de análisis y las acciones correctivas, y evitando que la conversación digital derive en narrativas que pongan en riesgo la licencia social del proyecto en la región. La plataforma opera bajo una estricta **arquitectura Zero-Trust (Cero Confianza)**, con historial inmutable y auditable bajo protocolos de confidencialidad corporativa.
 
 ---
 
@@ -72,7 +80,9 @@ La plataforma ha sido estructurada visual y operativamente en bloques funcionale
 * **Borrado Dinámico por Lotes:** Sistema de multi-selección de elementos que permite a los administradores destruir masivamente múltiples tickets o registros desde una sola interfaz, optimizando el mantenimiento y la depuración del sistema en un solo clic.
 * **Asignación Dinámica de Responsables:** Selector personalizado conectado a los perfiles de Google Workspace que muestra fotografía y rol de cada miembro, disparando notificaciones directas y alertas de asignación exclusivas al usuario seleccionado.
 
-### 3. Reputación, Crisis RRSS y Reportes Analíticos de Comentarios
+### 3. Social Listening, Reputación RRSS y Análisis de Tendencias
+* **Monitoreo de Menciones y Tendencias:** Detección y análisis de comentarios y menciones sobre Energía Mayakan en redes sociales, identificando tendencias, picos de conversación negativa y la evolución cronológica de la opinión (positiva, neutra y negativa).
+* **Protocolo de Atención en RRSS:** Procedimiento oficial para gestionar la conversación digital alrededor del proyecto (vista **Incidencias → Protocolo**, con versión imprimible en PDF alineada a la paleta corporativa ENGIE). Define cuatro tipos de incidencia — críticas al proyecto o sus obras, desinformación y narrativas falsas, tensión socioambiental y comunitaria, y crisis que escalan a medios —, una **matriz de riesgos** en tres niveles (Bajo / Intermedio / Crítico) y el ciclo de resolución **Detección → Respuesta → Reacción → Recuperación → Aprendizaje**.
 * **Gestión de Contingencias:** Herramienta enfocada en la detección de picos inusuales de alertas en canales digitales oficiales, equipado con el sistema de **Borrado por Lotes** para un mantenimiento ágil.
 * **Reportes WYSIWYG Purificados:** Editor de texto enriquecido integrado, resguardado con la librería `DOMPurify` para prevenir vulnerabilidades de inyección de código (XSS) al momento de renderizar bitácoras oficiales.
 * **Trazabilidad de Incidencias y Selección Masiva:** Registro de ataques focalizados organizados por tema principal y tipo de contenido (Orgánico/Pautado), incorporando también capacidades de selección interactiva para depuración masiva de historiales.
