@@ -23,6 +23,7 @@ const changelogData: { id: string; version: string; date: string; tag: string; t
             { id: 'c7', type: 'feature', text: 'Botón de impresión del reporte de menciones: ahora genera un documento A4 con la misma información de la tarjeta (metadatos del reporte y una ficha por mención con usuario/sitio web, tipo de actor, sentimiento, riesgo, estatus, narrativa, hallazgo, métricas y enlace original) en lugar de imprimir sólo el encabezado y el pie del modal.' },
             { id: 'c8', type: 'ui', text: 'Se añadió el área de impresión menciones-print-area y las reglas @media print de index.css se generalizaron con :is() para cubrir también menciones: aíslan el bloque del documento, neutralizan los contenedores padre (scroll, alturas, fondos, backdrop-blur) y ocultan el #print-header global para evitar páginas en blanco.' },
             { id: 'c9', type: 'ui', text: 'El campo "Usuario o Sitio Web" se muestra como etiqueta corta enlazable (@usuario para redes sociales o dominio para medios digitales) conservando la URL completa como destino del enlace y como columna "URL Fuente" en la exportación CSV.' },
+            { id: 'c10', type: 'ui', text: 'Los modales de consulta de los historiales de Menciones e Incidencias ahora también se cierran con un clic fuera de la tarjeta (en el fondo oscuro), además del botón X. Se evaluó el mousedown del fondo para no cerrar la ventana al iniciar una selección de texto dentro.' },
         ],
     },
 ];

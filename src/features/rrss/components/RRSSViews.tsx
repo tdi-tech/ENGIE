@@ -232,6 +232,9 @@ export const HistorialRRSSView = ({ showToast, isAdmin, updateRrssIncident, dele
     const [selectedIncident, setSelectedIncident] = useState<any>(null);
     const [isDetailOpen, setIsDetailOpen] = useState(false);
     const [isEditOpen, setIsEditOpen] = useState(false);
+    // Cierra el modal de detalle al hacer clic fuera de la tarjeta. Se guarda el mousedown
+    // en lugar del clic para no cerrar cuando el usuario inicia una selección de texto dentro.
+    const backdropMouseDownRef = useRef(false);
     const nDetail = normalizeIncidencia(selectedIncident);
     const editEditorRef = useRef<HTMLDivElement>(null);
     const [searchTerm, setSearchTerm] = useState('');
@@ -934,7 +937,11 @@ const handleDownloadDocx = (inc: any) => {
 
             {/* MODAL DETALLE DE REPORTE */}
             {isDetailOpen && selectedIncident && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 fade-in print:static print:block print:p-0 print:bg-transparent">
+                <div
+                    className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 fade-in print:static print:block print:p-0 print:bg-transparent"
+                    onMouseDown={(e) => { backdropMouseDownRef.current = e.target === e.currentTarget; }}
+                    onClick={(e) => { if (backdropMouseDownRef.current && e.target === e.currentTarget) setIsDetailOpen(false); }}
+                >
                     <div className="theme-bg-container rounded-2xl w-full max-w-2xl shadow-2xl border theme-border overflow-hidden flex flex-col max-h-[90vh] print:max-h-none print:shadow-none print:border-none print:w-full print:max-w-full rrss-print-area">
                         <div className="p-5 border-b theme-border flex justify-between items-center bg-orange-500/5 no-print print:hidden">
                             <div className="flex items-center gap-3">

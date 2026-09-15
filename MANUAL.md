@@ -53,6 +53,7 @@ ENGIE Management (paquete `tdi-secure-social`) es una herramienta interna tipo S
 4. Los datos se sincronizan en tiempo real con `onSnapshot` (sin recargar).
 5. Los formularios validan en cliente, pero **las reglas de Firestore son la autoridad final**.
 6. El ADMIN_IT puede programar la purga automática, hacer backups y gestionar usuarios.
+7. Consultar un reporte de los historiales de **Menciones** o **Incidencias** abre un **modal de detalle** que se cierra con el botón **X** o haciendo **clic fuera de la tarjeta** (clic en el fondo oscuro). El clic externo no se dispara si el usuario empieza a seleccionar texto dentro de la ventana.
 
 ---
 

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { 
     Save, Download, Trash2, MessageSquare, Printer, X, Edit3, 
@@ -453,6 +453,9 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
     const [selectedComment, setSelectedComment] = useState<any>(null);
     const [isDetailOpen, setIsDetailOpen] = useState(false);
     const [isEditOpen, setIsEditOpen] = useState(false);
+    // Cierra el modal de detalle al hacer clic fuera de la tarjeta. Se guarda el mousedown
+    // en lugar del clic para no cerrar cuando el usuario inicia una selección de texto dentro.
+    const backdropMouseDownRef = useRef(false);
     const [editData, setEditData] = useState<any>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [filterYear, setFilterYear] = useState('Todos');
@@ -1077,7 +1080,11 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
             )}
 
             {isDetailOpen && selectedComment && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 fade-in print:static print:block print:p-0 print:bg-transparent">
+                <div
+                    className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 fade-in print:static print:block print:p-0 print:bg-transparent"
+                    onMouseDown={(e) => { backdropMouseDownRef.current = e.target === e.currentTarget; }}
+                    onClick={(e) => { if (backdropMouseDownRef.current && e.target === e.currentTarget) setIsDetailOpen(false); }}
+                >
                     <div className="theme-bg-container rounded-2xl w-full max-w-2xl shadow-2xl border theme-border overflow-hidden flex flex-col max-h-[90vh] print:max-h-none print:shadow-none print:border-none print:w-full print:max-w-full menciones-print-area">
                         <div className="p-5 border-b theme-border flex justify-between items-center bg-blue-500/5 no-print print:hidden">
                             <div className="flex items-center gap-3"><div className="p-2 bg-blue-500/20 rounded-lg"><MessageSquare className="w-5 h-5 text-blue-500" /></div><div><h3 className="font-bold theme-text-main text-lg">Reporte de Comentarios</h3><p className="text-xs theme-text-muted font-medium">Publicación: {selectedComment.fechaPublicacion} | Detección: {selectedComment.horaDeteccion}</p></div></div>
