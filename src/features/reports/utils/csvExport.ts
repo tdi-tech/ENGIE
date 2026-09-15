@@ -1,3 +1,5 @@
+import { extractFuenteLabel, extractFuenteUrl } from '../../../shared/utils/fuenteUtils';
+
 export interface ReportRow {
     id: string;
     fecha: string;
@@ -19,6 +21,9 @@ export interface ReportRow {
     sentimiento?: string;
     linkPublicacion?: string;
     evidencia?: string;
+    // URL cruda del "Usuario o Sitio Web": se usa como destino del enlace
+    // en dashboard y PDF; nunca se muestra como texto.
+    enlaceFuente?: string;
     metricas?: {
         visualizaciones?: string | number;
         reacciones?: string | number;
@@ -70,28 +75,32 @@ export const normalizeMentions = (data: any): ReportRow[] => {
 // Registro expandido de mención → fila analítica
 // Mapeo: canal/sitioWeb→fuenteDeteccion · usuario→actorFuente · tipoActor→tipoFuente
 //        narrativa→temaPrincipal · nivelRiesgo→nivelRiesgo · estatus→estado · hallazgo→resumen
-export const normalizeMencionRow = (c: any, i: any = {}): ReportRow => ({
-    id: c.id || i.id || '',
-    fecha: (i.fechaPublicacion || '').split('T')[0] || '',
-    fuenteDeteccion: c.canal || c.sitioWeb || c.usuarioSitioWeb || 'N/D',
-    actorFuente: c.usuario || c.usuarioSitioWeb || 'Anónimo',
-    tipoFuente: c.tipoActor || 'Sin clasificar',
-    temaPrincipal: c.narrativa || 'Sin clasificar',
-    nivelRiesgo: c.nivelRiesgo || 'Bajo',
-    alcanceActual: 'N/A',
-    tendencia: 'N/A',
-    resumen: c.hallazgo || c.comentario || '',
-    hallazgosClave: c.hallazgo || '',
-    estado: c.estatus || '',
-    area: '',
-    totalIncidencias: 1,
-    autor: i.autor || '',
-    fuenteMonitoreo: c.fuenteMonitoreo || i.fuenteMonitoreo || '',
-    sentimiento: c.sentiment || c.sentimiento || '',
-    linkPublicacion: c.linkPublicacion || '',
-    evidencia: i.evidencia || '',
-    metricas: c.metricas || {},
-});
+export const normalizeMencionRow = (c: any, i: any = {}): ReportRow => {
+    const fuenteRaw: string = String(c.usuario || c.usuarioSitioWeb || c.sitioWeb || '').trim();
+    return {
+        id: c.id || i.id || '',
+        fecha: (i.fechaPublicacion || '').split('T')[0] || '',
+        fuenteDeteccion: extractFuenteLabel(c.canal || c.sitioWeb || c.usuarioSitioWeb || 'N/D'),
+        actorFuente: extractFuenteLabel(fuenteRaw || 'Anónimo'),
+        tipoFuente: c.tipoActor || 'Sin clasificar',
+        temaPrincipal: c.narrativa || 'Sin clasificar',
+        nivelRiesgo: c.nivelRiesgo || 'Bajo',
+        alcanceActual: 'N/A',
+        tendencia: 'N/A',
+        resumen: c.hallazgo || c.comentario || '',
+        hallazgosClave: c.hallazgo || '',
+        estado: c.estatus || '',
+        area: '',
+        totalIncidencias: 1,
+        autor: i.autor || '',
+        fuenteMonitoreo: c.fuenteMonitoreo || i.fuenteMonitoreo || '',
+        sentimiento: c.sentiment || c.sentimiento || '',
+        linkPublicacion: c.linkPublicacion || '',
+        evidencia: i.evidencia || '',
+        enlaceFuente: extractFuenteUrl(fuenteRaw) || '',
+        metricas: c.metricas || {},
+    };
+};
 
 // Documento de la colección comments (menciones) → filas analíticas
 // Expande registrosList / registrosDigitalesList a una fila por registro
@@ -124,6 +133,7 @@ export const normalizeCsvMenciones = (vals: any): ReportRow => ({
     sentimiento: vals['Sentimiento'] || '',
     linkPublicacion: vals['Link Publicación'] || '',
     evidencia: vals['Evidencias'] || '',
+    enlaceFuente: vals['URL Fuente'] || extractFuenteUrl(vals['Usuario o Sitio Web']) || '',
     metricas: {
         visualizaciones: vals['Visualizaciones'] || '',
         reacciones: vals['Reacciones'] || '',

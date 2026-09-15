@@ -573,7 +573,17 @@ export const useReportGenerator = () => {
             doc.text(truncateToWidth(doc, r.sentimiento || '—', cols[5].width - 2), cx, y + 3.8);
             doc.setTextColor(TEXT_DARK[0], TEXT_DARK[1], TEXT_DARK[2]);
             cx += cols[5].width;
-            doc.text(truncateToWidth(doc, r.actorFuente, cols[6].width - 2), cx, y + 3.8); cx += cols[6].width;
+            // Usuario/Sitio: solo la etiqueta corta, con región clickeable hacia la URL cruda
+            const fuenteLabel = truncateToWidth(doc, r.actorFuente, cols[6].width - 2);
+            const linkCol: RGB = r.enlaceFuente ? readableOnDark('#5B8DEF') : TEXT_DARK;
+            doc.setTextColor(linkCol[0], linkCol[1], linkCol[2]);
+            const labelW = doc.getTextWidth(fuenteLabel);
+            doc.text(fuenteLabel, cx, y + 3.8);
+            if (r.enlaceFuente) {
+                doc.setTextColor(TEXT_DARK[0], TEXT_DARK[1], TEXT_DARK[2]);
+                doc.link(cx, y, Math.min(labelW + 1.5, cols[6].width - 1), 5.5, { url: r.enlaceFuente });
+            }
+            cx += cols[6].width;
             doc.setTextColor(estCol[0], estCol[1], estCol[2]);
             doc.text(truncateToWidth(doc, r.estado || '—', cols[7].width - 2), cx, y + 3.8);
             doc.setDrawColor(LINE[0], LINE[1], LINE[2]); doc.setLineWidth(0.1);

@@ -3,6 +3,8 @@
 //   1. registrosList          → nuevo form "Redes sociales"
 //   2. registrosDigitalesList → nuevo form "Medios digitales"
 //   3. comentariosList        → esquema legacy (retrocompatibilidad)
+import { extractFuenteLabel, extractFuenteUrl } from './fuenteUtils';
+
 export interface NormalizedMencion {
     id: string;
     usuario: string;
@@ -16,6 +18,9 @@ export interface NormalizedMencion {
     linkPublicacion: string;
     hallazgo: string;
     metricas: { visualizaciones: string; reacciones: string; comentarios: string; compartidos: string };
+    // Etiqueta corta para mostrar (@usuario / dominio) y URL cruda como destino
+    fuenteLabel: string;
+    fuenteUrl: string | null;
 }
 
 const NA = 'N/A';
@@ -43,7 +48,9 @@ export const normalizeMenciones = (com: any): NormalizedMencion[] => {
                 comentarios: r.comentarios || '',
                 compartidos: r.compartidos || ''
             },
-            fuenteMonitoreo: 'Redes sociales'
+            fuenteMonitoreo: 'Redes sociales',
+            fuenteLabel: extractFuenteLabel(r.usuarioSitioWeb || ''),
+            fuenteUrl: extractFuenteUrl(r.usuarioSitioWeb || '')
         }));
     }
 
@@ -62,7 +69,9 @@ export const normalizeMenciones = (com: any): NormalizedMencion[] => {
             linkPublicacion: r.linkPublicacion || '',
             hallazgo: r.hallazgoReputacional || '',
             metricas: { visualizaciones: '', reacciones: '', comentarios: '', compartidos: '' },
-            fuenteMonitoreo: 'Medios digitales'
+            fuenteMonitoreo: 'Medios digitales',
+            fuenteLabel: extractFuenteLabel(r.sitioWeb || ''),
+            fuenteUrl: extractFuenteUrl(r.sitioWeb || '')
         }));
     }
 
@@ -89,6 +98,8 @@ export const normalizeMenciones = (com: any): NormalizedMencion[] => {
         linkPublicacion: c.linkPublicacion || c.posteoUrl || '',
         hallazgo: '',
         fuenteMonitoreo: 'Redes sociales',
+        fuenteLabel: extractFuenteLabel(c.usuario || com.usuario || ''),
+        fuenteUrl: extractFuenteUrl(c.usuario || com.usuario || ''),
         metricas: { visualizaciones: '', reacciones: '', comentarios: '', compartidos: '' }
     }));
 };

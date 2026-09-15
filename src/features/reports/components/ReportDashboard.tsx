@@ -547,7 +547,13 @@ export const ReportDashboard = ({ showToast, isAdmin, userRole }: any) => {
                                                     {r.sentimiento || '—'}
                                                 </span>
                                             </td>
-                                            <td className="p-4 font-bold theme-text-main text-xs truncate max-w-[150px]" title={r.actorFuente}>{r.actorFuente}</td>
+                                            <td className="p-4 font-bold theme-text-main text-xs max-w-[150px]">
+                                                    {r.enlaceFuente ? (
+                                                        <a href={r.enlaceFuente} target="_blank" rel="noreferrer" title={r.enlaceFuente} className="truncate block text-blue-500 hover:underline">{r.actorFuente}</a>
+                                                    ) : (
+                                                        <span className="truncate block" title={r.actorFuente}>{r.actorFuente}</span>
+                                                    )}
+                                                </td>
                                             <td className="p-4 whitespace-nowrap text-center">
                                                 <span className="px-2 py-1 text-[10px] font-bold rounded-md" style={badge(ESTATUS_COLORS[r.estado] || '#6B7280')}>{r.estado || '—'}</span>
                                             </td>

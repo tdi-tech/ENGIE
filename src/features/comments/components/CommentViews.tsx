@@ -10,6 +10,7 @@ import { collection, addDoc, onSnapshot } from 'firebase/firestore';
 import { db, appId, IS_MOCK } from '../../../services/firebase/config';
 import { getMonthName } from '../../../shared/utils/date';
 import { calcCommentAnalytics, normalizeMenciones, isRegistroVacio } from '../../../shared/utils/menciones';
+import { extractFuenteLabel, extractFuenteUrl } from '../../../shared/utils/fuenteUtils';
 
 const inputStyles = "w-full p-3 rounded-xl theme-bg-low border theme-border theme-text-main focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all text-sm";
 const radioLabelStyles = "flex items-center gap-2 text-sm font-medium theme-text-main cursor-pointer";
@@ -24,9 +25,7 @@ const SentimentBadge = ({ sentiment }: { sentiment: string }) => {
     return null;
 };
 
-// ── Helpers de semáforo y URLs para el modal de menciones ──
-const isUrl = (s: string): boolean => !!s && /^https?:\/\//i.test(String(s).trim());
-
+// ── Helpers de semáforo para el modal de menciones ──
 // Semáforo: devuelve punto de color + clases de badge
 const getSentimentDot = (s: string): { dot: string; badge: string } => {
     if (s === 'Positivo') return { dot: 'bg-green-500', badge: 'bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/30' };
@@ -743,14 +742,14 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
 
         setTimeout(() => {
             const headers = isAdmin
-                ? ['Fecha Publicación,Hora Detección,Fuente Monitoreo,Evidencias,Canal,Usuario o Sitio Web,Tipo de Actor,Sentimiento,Nivel de Riesgo,Estatus,Narrativa,Link Publicación,Hallazgo Reputacional,Visualizaciones,Reacciones,Comentarios,Compartidos,Autor']
-                : ['Fecha Publicación,Hora Detección,Fuente Monitoreo,Evidencias,Canal,Usuario o Sitio Web,Tipo de Actor,Sentimiento,Nivel de Riesgo,Estatus,Narrativa,Link Publicación,Hallazgo Reputacional,Visualizaciones,Reacciones,Comentarios,Compartidos'];
+                ? ['Fecha Publicación,Hora Detección,Fuente Monitoreo,Evidencias,Canal,Usuario o Sitio Web,URL Fuente,Tipo de Actor,Sentimiento,Nivel de Riesgo,Estatus,Narrativa,Link Publicación,Hallazgo Reputacional,Visualizaciones,Reacciones,Comentarios,Compartidos,Autor']
+                : ['Fecha Publicación,Hora Detección,Fuente Monitoreo,Evidencias,Canal,Usuario o Sitio Web,URL Fuente,Tipo de Actor,Sentimiento,Nivel de Riesgo,Estatus,Narrativa,Link Publicación,Hallazgo Reputacional,Visualizaciones,Reacciones,Comentarios,Compartidos'];
 
             const rows = registros.map(({ i, c }: any) => {
                 const escape = (text: any) => `"${(text ?? '').toString().replace(/"/g, '""')}"`;
                 const baseData = [
                     escape(i.fechaPublicacion), escape(i.horaDeteccion), escape(i.fuenteMonitoreo), escape(i.evidencia),
-                    escape(c.canal || 'N/D'), escape(c.usuario), escape(c.tipoActor || ''), escape(c.sentiment || 'N/A'),
+                    escape(c.canal || 'N/D'), escape(extractFuenteLabel(c.usuario) || ''), escape(extractFuenteUrl(c.usuario) || ''), escape(c.tipoActor || ''), escape(c.sentiment || 'N/A'),
                     escape(c.nivelRiesgo || ''), escape(c.estatus || ''), escape(c.comentario), escape(c.linkPublicacion), escape(c.hallazgo || ''),
                     escape(c.metricas?.visualizaciones || ''), escape(c.metricas?.reacciones || ''),
                     escape(c.metricas?.comentarios || ''), escape(c.metricas?.compartidos || '')
@@ -939,7 +938,7 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
                                                                                              <p className="text-[10px] font-semibold theme-text-muted mt-0.5 truncate flex items-center gap-1">Detección: {com.horaDeteccion}{isAdmin && <><span className="mx-1">|</span> Por: <span className="text-blue-500 truncate">{com.autor || 'Administrador'}</span></>}</p>
                                                                                         </div>
                                                                                     </div>
-                                                                                    <div className="text-sm theme-text-main line-clamp-2 min-h-[40px] opacity-90 mb-1 w-full"><span className="font-bold mr-1">{firstComment.usuario}:</span>{firstComment.comentario}</div>
+                                                                                    <div className="text-sm theme-text-main line-clamp-2 min-h-[40px] opacity-90 mb-1 w-full"><span className="font-bold mr-1">{extractFuenteLabel(firstComment.usuario)}:</span>{firstComment.comentario}</div>
                                                                                     {hasMore && <p className="text-[10px] font-bold text-blue-500 mb-2">+ {list.length - 1} comentario(s) más</p>}
                                                                                     <div className="mt-auto pt-3 border-t theme-border flex flex-wrap gap-2 items-center w-full"><span className={`px-2 py-1 text-[10px] font-bold rounded-md ${com.fuenteMonitoreo === 'Medios digitales' ? 'bg-violet-500/10 text-violet-600 dark:text-violet-400 border border-violet-500/30' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'}`}>{com.fuenteMonitoreo || 'Fuente de monitoreo'}</span><SentimentBadge sentiment={cardSentimentStatus} />{uniqueNetworks.map((net: any) => <span key={net} className={`px-2 py-1 text-[10px] font-bold rounded-md border ${isSelectionMode && isSelected ? 'bg-red-500/20 border-red-500/30 text-red-600 dark:text-red-400' : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 border-gray-200 dark:border-gray-700'}`}>{net}</span>)}</div>
                                                                                 </button>
@@ -1098,7 +1097,7 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
                                         <div className="flex flex-wrap items-center gap-2 border-b theme-border pb-2 border-dashed">
                                             <span className="flex items-center gap-1 text-[10px] font-bold text-gray-500 uppercase tracking-wider"><Share2 className="w-3 h-3"/> {c.fuenteMonitoreo === 'Medios digitales' ? 'Medio digital' : (c.canal || 'N/D')}</span>
                                             <span className="text-gray-300 dark:text-gray-600">|</span>
-                                            {isUrl(c.usuario) ? (<a href={c.usuario} target="_blank" rel="noreferrer" title={c.usuario} className="font-bold text-sm text-blue-500 hover:underline inline-flex items-center gap-1"><LinkIcon className="w-3 h-3 flex-shrink-0" /> Enlace</a>) : (<span className="font-bold text-sm text-blue-500 break-all">{c.usuario}</span>)}
+                                            {extractFuenteUrl(c.usuario) ? (<a href={extractFuenteUrl(c.usuario) as string} target="_blank" rel="noreferrer" title={c.usuario} className="font-bold text-sm text-blue-500 hover:underline inline-flex items-center gap-1"><LinkIcon className="w-3 h-3 flex-shrink-0" /> {extractFuenteLabel(c.usuario)}</a>) : (<span className="font-bold text-sm text-blue-500 break-all">{extractFuenteLabel(c.usuario)}</span>)}
                                             {c.tipoActor && (<><span className="text-gray-300 dark:text-gray-600">|</span><span className="text-[10px] font-bold theme-text-muted uppercase tracking-wider">Actor: <span className="theme-text-main normal-case">{c.tipoActor}</span></span></>)}
                                         </div>
                                         <div className="flex flex-wrap gap-2">
