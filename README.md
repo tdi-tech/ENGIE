@@ -98,6 +98,7 @@ La plataforma ha sido estructurada visual y operativamente en bloques funcionale
   * **Documentos Word (.docx):** Generación nativa basada en XML para descargar reportes con texto enriquecido.
   * **Reportes Ejecutivos PDF Premium:** Sistema de impresión ejecutivo impulsado por `jsPDF` que renderiza documentos de alta fidelidad con gráficas interactivas incrustadas, respetando el Modo Oscuro de la plataforma y garantizando la entregabilidad de los datos visualizados en el tablero.
   * **PDF del Protocolo de Atención (RRSS):** La vista **Incidencias → Protocolo** tiene versión imprimible en PDF encabezada por los títulos **"Reputación Digital • ENGIE Management"** y **"Protocolo de Atención en RRSS"**, renderizada con los **tokens de color corporativos** del design-system ENGIE (`--engie-*`: `--engie-midnight-navy`, `--engie-dark-blue`, `--engie-primary-cyan`) para heredar la paleta oficial sin colores estáticos.
+  * **PDF del Reporte de Menciones (Historial):** Cada reporte del **Historial de Menciones** se abre en un modal con botón de impresión que genera un documento A4 con la misma información de la tarjeta: metadatos del reporte y una ficha por mención (usuario/sitio web con etiqueta corta y URL completa, tipo de actor, sentimiento, riesgo, estatus, narrativa, hallazgo, métricas y enlace original). Usa el área de impresión `menciones-print-area`, que comparte con el informe de incidencias RRSS (`rrss-print-area`) las reglas `@media print` que aíslan el documento y evitan páginas en blanco.
 
 ---
 

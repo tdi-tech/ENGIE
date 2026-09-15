@@ -338,6 +338,12 @@ El dashboard dispone de un botón **Descargar PDF** (arriba a la derecha) en las
 | Analítica de Nivel de Riesgo | `commentsStats.riesgoCounts` | Bajo · Medio · Alto · Crítico |
 | Analítica de Actores Críticos | `commentsStats.topActoresCriticos` | Ranking de actores con riesgo Alto/Crítico |
 
+#### Impresión del reporte de menciones
+
+El **Historial de Menciones** abre cada reporte en un modal de detalle que incluye un botón de **impresión** (icono de impresora) para **imprimir o guardar como PDF** desde el navegador. Al imprimir, la plataforma oculta la interfaz y renderiza un **documento A4 blanco y negro con la misma información de la tarjeta**: encabezado corporativo, metadatos del reporte (fecha de publicación, hora de detección, fuente de monitoreo, autor y enlace de evidencias) y **una ficha por mención** con usuario/sitio web (etiqueta corta `@usuario` o dominio + URL completa), tipo de actor, sentimiento, nivel de riesgo, estatus, narrativa, hallazgo reputacional, métricas de alcance y enlace a la publicación original.
+
+La mecánica es compartida con el informe de incidencias: el bloque de impresión se marca con la clase `menciones-print-area` (incidencias usa `rrss-print-area`) y las reglas `@media print` de `src/index.css` conservan únicamente ese bloque, neutralizando los contenedores padre (scroll, alturas, fondos y desenfoque) y ocultando el `#print-header` global para evitar páginas en blanco. El estilo de las tablas del documento replica el del informe de incidencias RRSS.
+
 ### 12.2. Incidencias
 
 #### Protocolo de monitoreo de incidencias para **Energía Mayakan**
@@ -369,7 +375,7 @@ y una **matriz de riesgos** en tres niveles (Bajo: comentarios aislados sin vira
 | Tendencia                         | `rrssStats.tendenciaCounts`                         | 3. Visibilizar la colaboración público‑privada                     | Disminuyendo · Estable · Aumentando |
 | Temas en Riesgo de Escalada       | `rrssStats.temasEscaladaTop`                        | 1. Posicionar a Energía Mayakan                                    | Temas con Riesgo Alto/Crítico + Tendencia Aumentando |
 
-> **Nota:** este reporte es el del **Dashboard** y no debe confundirse con la **exportación a PDF** del módulo *Reportes y Analítica* ni con los CSV de los historiales de Menciones/Incidencias, que no incluyen botón de PDF.
+> **Nota:** este reporte es el del **Dashboard** y no debe confundirse con la **exportación a PDF** del módulo *Reportes y Analítica*, ni con los CSV de los historiales de Menciones/Incidencias (que no incluyen botón de PDF, aunque el modal de detalle de cada reporte sí permite imprimir o guardar como PDF desde el navegador — ver *Impresión del reporte de menciones*).
 
 ---
 

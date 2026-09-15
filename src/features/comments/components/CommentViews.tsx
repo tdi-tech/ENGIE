@@ -44,6 +44,20 @@ const getEstatusDot = (e: string): { dot: string; badge: string } => {
     return { dot: 'bg-yellow-500', badge: 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border border-yellow-500/30' };
 };
 
+// ── Piezas del layout de impresión del reporte de menciones ──
+// Fila etiqueta/valor con el mismo estilo de tabla que el informe de incidencias RRSS
+const PrintRow = ({ label, children }: { label: string; children: React.ReactNode }) => (
+    <tr>
+        <td className="border border-gray-400 px-2 py-1.5 font-bold bg-gray-100 w-[30%] align-top">{label}</td>
+        <td className="border border-gray-400 px-2 py-1.5 align-top break-words">{children}</td>
+    </tr>
+);
+
+// Punto de semáforo para el documento impreso (se conserva el color exacto en el PDF)
+const PrintDot = ({ color }: { color: string }) => (
+    <span className={`inline-block w-2 h-2 rounded-full align-middle mr-1 ${color}`} />
+);
+
 export const NewCommentView = ({ isAdmin, showToast, navigate, user, logAction }: any) => {
     const [formData, setFormData] = useState<any>({
         fechaPublicacion: '', horaDeteccion: '', fuenteMonitoreo: 'Redes sociales', evidencia: '',
@@ -1064,8 +1078,8 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
 
             {isDetailOpen && selectedComment && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 fade-in print:static print:block print:p-0 print:bg-transparent">
-                    <div className="theme-bg-container rounded-2xl w-full max-w-2xl shadow-2xl border theme-border overflow-hidden flex flex-col max-h-[90vh] print:max-h-none print:shadow-none print:border-none print:w-full print:max-w-full">
-                        <div className="p-5 border-b theme-border flex justify-between items-center bg-blue-500/5 no-print">
+                    <div className="theme-bg-container rounded-2xl w-full max-w-2xl shadow-2xl border theme-border overflow-hidden flex flex-col max-h-[90vh] print:max-h-none print:shadow-none print:border-none print:w-full print:max-w-full menciones-print-area">
+                        <div className="p-5 border-b theme-border flex justify-between items-center bg-blue-500/5 no-print print:hidden">
                             <div className="flex items-center gap-3"><div className="p-2 bg-blue-500/20 rounded-lg"><MessageSquare className="w-5 h-5 text-blue-500" /></div><div><h3 className="font-bold theme-text-main text-lg">Reporte de Comentarios</h3><p className="text-xs theme-text-muted font-medium">Publicación: {selectedComment.fechaPublicacion} | Detección: {selectedComment.horaDeteccion}</p></div></div>
                             <div className="flex items-center gap-2">
                                 <button type="button" onClick={() => window.print()} className="p-2 theme-text-muted hover:theme-text-main hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors"><Printer className="w-5 h-5"/></button>
@@ -1076,7 +1090,55 @@ export const HistorialCommentView = ({ showToast, isAdmin, updateComment, delete
                             </div>
                         </div>
 
-                        <div className="p-6 overflow-y-auto custom-scrollbar print:overflow-visible flex-1">
+                        {/* ── LAYOUT DE IMPRESIÓN: la misma información de la tarjeta, en formato documento ── */}
+                        <div className="hidden print:block text-black text-[10.5pt] leading-normal">
+                            <h1 className="text-[16pt] font-bold text-blue-700 border-b-2 border-blue-600 pb-1.5 mb-3">ENGIE MANAGEMENT - REPORTE DE MENCIONES</h1>
+                            <table className="w-full border-collapse mb-4">
+                                <tbody>
+                                    <PrintRow label="Fecha de Publicación">{selectedComment.fechaPublicacion || '—'}</PrintRow>
+                                    <PrintRow label="Hora de Detección">{selectedComment.horaDeteccion || '—'}</PrintRow>
+                                    <PrintRow label="Fuente de Monitoreo">{selectedComment.fuenteMonitoreo || '—'}</PrintRow>
+                                    <PrintRow label="Reportado por">{selectedComment.autor || 'Administrador'}</PrintRow>
+                                    <PrintRow label="Evidencias">{selectedComment.evidencia ? (<a href={selectedComment.evidencia} target="_blank" rel="noreferrer" className="text-blue-700 underline break-all">{selectedComment.evidencia}</a>) : 'Sin evidencias adjuntas'}</PrintRow>
+                                </tbody>
+                            </table>
+                            <p className="text-[12pt] font-bold text-blue-700 border-b border-blue-600 pb-0.5 mb-2">Menciones Registradas ({getNormalizedComments(selectedComment).length})</p>
+                            {getNormalizedComments(selectedComment).map((c: any, idx: number) => (
+                                <div key={c.id || idx} className="border border-gray-400 mb-3 break-inside-avoid">
+                                    <p className="bg-gray-100 border-b border-gray-400 px-2 py-1 font-bold text-[11pt]">Mención #{idx + 1} · {c.fuenteMonitoreo === 'Medios digitales' ? 'Medio digital' : (c.canal || 'N/D')}</p>
+                                    <table className="w-full border-collapse">
+                                        <tbody>
+                                            <PrintRow label="Usuario o Sitio Web">
+                                                <b>{c.fuenteLabel || c.usuario || '—'}</b>
+                                                {c.fuenteUrl && (<><br /><a href={c.fuenteUrl} target="_blank" rel="noreferrer" className="text-blue-700 underline break-all">{c.fuenteUrl}</a></>)}
+                                            </PrintRow>
+                                            <PrintRow label="Tipo de Actor">{c.tipoActor || '—'}</PrintRow>
+                                            <PrintRow label="Evaluación">
+                                                {c.sentiment && (<span className="mr-4 whitespace-nowrap"><PrintDot color={getSentimentDot(c.sentiment).dot} />Sentimiento: <b>{c.sentiment}</b></span>)}
+                                                {c.nivelRiesgo && (<span className="mr-4 whitespace-nowrap"><PrintDot color={getRiesgoDot(c.nivelRiesgo).dot} />Riesgo: <b>{c.nivelRiesgo}</b></span>)}
+                                                {c.estatus && (<span className="whitespace-nowrap"><PrintDot color={getEstatusDot(c.estatus).dot} />Estatus: <b>{c.estatus}</b></span>)}
+                                                {!c.sentiment && !c.nivelRiesgo && !c.estatus && '—'}
+                                            </PrintRow>
+                                            <PrintRow label="Narrativa"><span className="whitespace-pre-wrap">{c.comentario || 'Sin narrativa'}</span></PrintRow>
+                                            {c.hallazgo && (<PrintRow label="Hallazgo Reputacional"><span className="whitespace-pre-wrap">{c.hallazgo}</span></PrintRow>)}
+                                            {(c.fuenteMonitoreo !== 'Medios digitales') && (c.metricas?.visualizaciones || c.metricas?.reacciones || c.metricas?.comentarios || c.metricas?.compartidos) && (
+                                                <PrintRow label="Métricas">
+                                                    <span className="mr-3 whitespace-nowrap">Visualizaciones: <b>{c.metricas?.visualizaciones || '0'}</b></span>
+                                                    <span className="mr-3 whitespace-nowrap">Reacciones: <b>{c.metricas?.reacciones || '0'}</b></span>
+                                                    <span className="mr-3 whitespace-nowrap">Comentarios: <b>{c.metricas?.comentarios || '0'}</b></span>
+                                                    <span className="whitespace-nowrap">Compartidos: <b>{c.metricas?.compartidos || '0'}</b></span>
+                                                </PrintRow>
+                                            )}
+                                            {c.linkPublicacion && (<PrintRow label="Publicación Original"><a href={c.linkPublicacion} target="_blank" rel="noreferrer" className="text-blue-700 underline break-all">{c.linkPublicacion}</a></PrintRow>)}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            ))}
+                            {getNormalizedComments(selectedComment).length === 0 && (<p className="italic text-gray-600">Sin menciones registradas.</p>)}
+                            <p className="mt-4 pt-2 border-t border-gray-400 text-[9.5pt] text-gray-600 italic">Reportado por: {selectedComment.autor || 'Administrador'} · Generado el {new Date().toLocaleDateString('es-MX', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
+                        </div>
+
+                        <div className="p-6 overflow-y-auto custom-scrollbar flex-1 print:hidden">
                             <div className="mb-6 flex items-center gap-2 no-print">{selectedComment.fuenteMonitoreo === 'Medios digitales' ? <span className="px-3 py-1 bg-violet-500/10 text-violet-600 dark:text-violet-400 border border-violet-500/30 rounded-lg text-xs font-bold uppercase tracking-wider">Medios Digitales</span> : <span className="px-3 py-1 bg-blue-500/10 text-blue-500 rounded-lg text-xs font-bold uppercase tracking-wider">{selectedComment.fuenteMonitoreo || 'Fuente de monitoreo'}</span>}{selectedComment.evidencia && (<a href={selectedComment.evidencia} target="_blank" rel="noreferrer" className="px-3 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-lg text-xs font-bold uppercase tracking-wider flex items-center gap-1 hover:brightness-110 no-print"><LinkIcon className="w-3 h-3"/> Evidencias</a>)}</div>
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6 no-print">
                                 {[

@@ -332,14 +332,16 @@ body::after {
     scrollbar-color: var(--scrollbar-thumb) transparent;
 }
 
-/* ── Impresión del modal de incidencias: réplica exacta del .docx ── */
+/* ── Impresión de documentos (incidencias RRSS · menciones): réplica exacta del .docx ── */
+/* Ambas vistas comparten la misma mecánica: al imprimir sólo se conserva el bloque
+   marcado con .rrss-print-area / .menciones-print-area, limpiando sus ancestros. */
 @media print {
     /* 1. Oculta todo lo que NO contenga el área de impresión */
-    body:has(.rrss-print-area) > *:not(:has(.rrss-print-area)) {
+    body:has(:is(.rrss-print-area, .menciones-print-area)) > *:not(:has(:is(.rrss-print-area, .menciones-print-area))) {
         display: none !important;
     }
     /* 2. Neutraliza los contenedores ancestros (quita flex, scroll, alturas, fondos) */
-    body:has(.rrss-print-area) *:has(.rrss-print-area) {
+    body:has(:is(.rrss-print-area, .menciones-print-area)) *:has(:is(.rrss-print-area, .menciones-print-area)) {
         display: block !important;
         position: static !important;
         overflow: visible !important;
@@ -352,7 +354,7 @@ body::after {
         box-shadow: none !important;
     }
     /* 3. El área de impresión ocupa todo el ancho, fondo blanco */
-    .rrss-print-area {
+    :is(.rrss-print-area, .menciones-print-area) {
         width: 100% !important;
         max-width: none !important;
         background: white !important;
@@ -360,17 +362,24 @@ body::after {
         border-radius: 0 !important;
         border: none !important;
         box-shadow: none !important;
+        overflow: visible !important;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
     }
     /* 4. Evita cortes feos de página en la tabla y secciones */
-    .rrss-print-area tr,
-    .rrss-print-area .prose-editor {
+    :is(.rrss-print-area, .menciones-print-area) tr,
+    :is(.rrss-print-area, .menciones-print-area) .prose-editor {
         page-break-inside: avoid;
     }
-    .rrss-print-area h1,
-    .rrss-print-area p {
+    :is(.rrss-print-area, .menciones-print-area) h1,
+    :is(.rrss-print-area, .menciones-print-area) p {
         page-break-after: avoid;
+    }
+    /* 5. El encabezado global "Reporte: ENGIE Management" (fuera del <main>) no
+       pertenece al documento: index.css lo fuerza a display:block y genera una
+       página extra con una línea suelta al final. */
+    body:has(:is(.rrss-print-area, .menciones-print-area)) #print-header {
+        display: none !important;
     }
     @page {
         margin: 1.5cm;
