@@ -15,9 +15,10 @@ import { useTheme } from '../../../app/providers/ThemeProvider';
 // Chart.js: se registran únicamente las piezas que consume el radar del panel
 ChartJS.register(RadialLinearScale, PointElement, LineElement, Filler, Tooltip, Legend);
 
-// Radar legible: máximo de ejes trazables (el resto se ve en el ranking con su conteo)
-const RADAR_TOP = 6;
+// Radar de Top Actores / Fuentes: traza exactamente el mismo Top que lista el
+// ranking (RANKING_TOP), de modo que gráfico y lista muestren lo mismo.
 const RANKING_TOP = 10;
+const RADAR_TOP = RANKING_TOP;
 
 // Los ejes del radar no admiten etiquetas largas (@usuario o dominio ya vienen cortos)
 const shortenAxisLabel = (label: string, max = 18): string =>
@@ -157,9 +158,14 @@ export const DashboardView = ({ showToast, user }: any) => {
         const grid = isDarkMode ? 'rgba(147, 162, 192, 0.22)' : 'rgba(71, 85, 105, 0.18)';
         const accent = isDarkMode ? '#00A3E0' : '#0072CE';
         const maxVal = radarTopActores.reduce((a, [, c]) => Math.max(a, c), 1);
+        // Con muchos ejes (hasta RADAR_TOP) se compactan etiquetas y puntos para que
+        // el polígono siga siendo legible sin solaparse.
+        const axisCount = radarTopActores.length;
+        const crowded = axisCount > 6;
+        const totalMenciones = commentsStats.totalMenciones;
         return {
             data: {
-                labels: radarTopActores.map(([name]) => shortenAxisLabel(name)),
+                labels: radarTopActores.map(([name]) => shortenAxisLabel(name, crowded ? 13 : 18)),
                 datasets: [{
                     label: 'Menciones registradas',
                     data: radarTopActores.map(([, count]) => count),
@@ -169,8 +175,8 @@ export const DashboardView = ({ showToast, user }: any) => {
                     pointBackgroundColor: accent,
                     pointBorderColor: isDarkMode ? '#0a1120' : '#ffffff',
                     pointBorderWidth: 2,
-                    pointRadius: 4,
-                    pointHoverRadius: 6
+                    pointRadius: crowded ? 3 : 4,
+                    pointHoverRadius: crowded ? 5 : 6
                 }]
             },
             options: {
@@ -180,7 +186,13 @@ export const DashboardView = ({ showToast, user }: any) => {
                     legend: { display: false },
                     tooltip: {
                         callbacks: {
-                            label: (ctx: TooltipItem<'radar'>) => `${ctx.formattedValue} menciones registradas`
+                            // El eje muestra la etiqueta acortada; el tooltip recupera el
+                            // nombre completo del actor/fuente y añade su peso porcentual.
+                            title: (items: TooltipItem<'radar'>[]) => radarTopActores[items[0]?.dataIndex ?? 0]?.[0] ?? '',
+                            label: (ctx: TooltipItem<'radar'>) => {
+                                const pct = totalMenciones > 0 ? Math.round((Number(ctx.raw) / totalMenciones) * 100) : 0;
+                                return `${ctx.formattedValue} menciones registradas (${pct}%)`;
+                            }
                         }
                     }
                 },
@@ -190,7 +202,7 @@ export const DashboardView = ({ showToast, user }: any) => {
                         suggestedMax: maxVal,
                         grid: { color: grid },
                         angleLines: { color: grid },
-                        pointLabels: { color: tick, font: { size: 10, weight: 'bold' } },
+                        pointLabels: { color: tick, font: { size: crowded ? 9 : 10, weight: 'bold' } },
                         ticks: {
                             color: tick,
                             backdropColor: 'transparent',
@@ -202,7 +214,7 @@ export const DashboardView = ({ showToast, user }: any) => {
                 }
             }
         };
-    }, [radarTopActores, isDarkMode]);
+    }, [radarTopActores, isDarkMode, commentsStats.totalMenciones]);
 
     if (isLoading) {
         return (
@@ -470,7 +482,7 @@ return (
                             <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
                                 <div>
                                     <h4 className="text-xs font-bold theme-text-muted uppercase tracking-wider flex items-center gap-2"><Users className="w-4 h-4" style={{ color: 'var(--engie-primary-cyan)' }} /> Top Actores / Fuentes Recurrentes</h4>
-                                    <p className="text-[11px] theme-text-muted mt-1">Actores y fuentes con más menciones registradas · clave analítica <span className="font-semibold">Usuario o Sitio Web</span></p>
+                                    <p className="text-[11px] theme-text-muted mt-1">Actores y fuentes con más menciones registradas · clave analítica <span className="font-semibold">Usuario o Sitio Web</span> · el radar y el ranking reflejan el mismo <span className="font-semibold">Top {RADAR_TOP}</span></p>
                                 </div>
                                 <span className="text-[11px] font-bold rounded-full px-3 py-1" style={{ backgroundColor: 'rgba(0,163,224,0.12)', color: 'var(--engie-primary-cyan)' }}>{commentsStats.actoresFuentesUnicos} actores / fuentes distintos</span>
                             </div>
@@ -480,7 +492,7 @@ return (
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
                                     {radarTopActores.length >= 3 ? (
                                         <div
-                                            className="h-72"
+                                            className={radarTopActores.length > 6 ? 'h-[26rem]' : 'h-72'}
                                             role="img"
                                             aria-label={`Radar de Top Actores y Fuentes por menciones registradas: ${radarTopActores.map(([name, count]) => `${name} con ${count} ${count === 1 ? 'mención' : 'menciones'}`).join(', ')}.`}
                                         >
