@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { Activity, AlertTriangle, Megaphone, MessageSquare, TrendingUp, TrendingDown, Minus, Loader2, Globe, Download } from 'lucide-react';
+import { Activity, AlertTriangle, Megaphone, MessageSquare, TrendingUp, TrendingDown, Minus, Loader2, Globe, Download, Users } from 'lucide-react';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { db, appId, auth, IS_MOCK, ALLOWED_EMAIL_DOMAIN_MAIL } from '../../../services/firebase/config';
 import { StatCard } from '../../../shared/components/UIComponents';
@@ -7,9 +7,25 @@ import { normalizeIncidencia, riesgoValue } from '../../../shared/utils/incidenc
 import { normalizeMenciones } from '../../../shared/utils/menciones';
 import { MOCK_RRSS_INCIDENTS, MOCK_COMMENTS } from '../../../shared/utils/mockData';
 import { jsPDF } from 'jspdf';
+import { Chart as ChartJS, RadialLinearScale, PointElement, LineElement, Filler, Tooltip, Legend } from 'chart.js';
+import type { ChartData, ChartOptions, TooltipItem } from 'chart.js';
+import { Radar } from 'react-chartjs-2';
+import { useTheme } from '../../../app/providers/ThemeProvider';
+
+// Chart.js: se registran únicamente las piezas que consume el radar del panel
+ChartJS.register(RadialLinearScale, PointElement, LineElement, Filler, Tooltip, Legend);
+
+// Radar legible: máximo de ejes trazables (el resto se ve en el ranking con su conteo)
+const RADAR_TOP = 6;
+const RANKING_TOP = 10;
+
+// Los ejes del radar no admiten etiquetas largas (@usuario o dominio ya vienen cortos)
+const shortenAxisLabel = (label: string, max = 18): string =>
+    label.length > max ? label.slice(0, max - 1) + '…' : label;
 
 // ── Panel de control ENGIE: Menciones + Incidencias ───────────────────────
 export const DashboardView = ({ showToast, user }: any) => {
+    const { isDarkMode } = useTheme();
     const [rrssIncidents, setRrssIncidents] = useState<any[]>([]);
     const [comments, setComments] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -84,6 +100,7 @@ export const DashboardView = ({ showToast, user }: any) => {
         const canalCounts: Record<string, number> = {};
         const riesgoCounts: Record<string, number> = { Bajo: 0, Medio: 0, Alto: 0, 'Crítico': 0 };
         const actoresCriticos: Record<string, number> = {};
+        const actoresFuentes: Record<string, number> = {};
         comments.forEach((com: any) => {
             normalizeMenciones(com).forEach((m: any) => {
                 const s = (m.sentiment || '').toLowerCase();
@@ -97,11 +114,22 @@ export const DashboardView = ({ showToast, user }: any) => {
                     const actor = (m.tipoActor && m.tipoActor !== 'N/A' ? m.tipoActor : '') || (m.usuario && m.usuario !== 'N/A' ? m.usuario : '') || 'Actor sin identificar';
                     actoresCriticos[actor] = (actoresCriticos[actor] || 0) + 1;
                 }
+                // Top Actores / Fuentes recurrentes: misma clave analítica que los reportes
+                // (actorFuente = etiqueta corta del campo "Usuario o Sitio Web": @usuario o dominio)
+                const actorFuenteRaw = (m.fuenteLabel || m.usuario || '').trim();
+                const actorFuente = actorFuenteRaw && actorFuenteRaw !== 'N/A' && actorFuenteRaw !== 'N/D'
+                    ? actorFuenteRaw
+                    : 'Actor sin identificar';
+                actoresFuentes[actorFuente] = (actoresFuentes[actorFuente] || 0) + 1;
             });
         });
         const topActoresCriticos = Object.entries(actoresCriticos)
             .sort((a, b) => b[1] - a[1])
             .slice(0, 5);
+        // Ranking completo de actores/fuentes (el radar traza los primeros RADAR_TOP y el
+        // ranking en pantalla muestra hasta RANKING_TOP con su conteo concreto de menciones)
+        const topActoresFuentes = Object.entries(actoresFuentes)
+            .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
         return {
             totalMenciones,
             positivo,
@@ -112,9 +140,69 @@ export const DashboardView = ({ showToast, user }: any) => {
             riesgoCounts,
             actoresCriticosCount: Object.values(actoresCriticos).reduce((a: number, b: number) => a + b, 0),
             topActoresCriticos,
+            topActoresFuentes,
+            actoresFuentesUnicos: topActoresFuentes.length,
             topCanal: Object.keys(canalCounts).sort((a, b) => canalCounts[b] - canalCounts[a])[0] || 'N/D',
         };
     }, [comments]);
+
+    // ── Radar: Top Actores / Fuentes recurrentes ────────────────────────────
+    // Se alimenta del mismo ranking y colorea con la paleta corporativa según el tema activo
+    const radarTopActores = useMemo(
+        () => commentsStats.topActoresFuentes.slice(0, RADAR_TOP),
+        [commentsStats.topActoresFuentes]
+    );
+    const radarActores = useMemo<{ data: ChartData<'radar'>; options: ChartOptions<'radar'> }>(() => {
+        const tick = isDarkMode ? '#93a2c0' : '#475569';
+        const grid = isDarkMode ? 'rgba(147, 162, 192, 0.22)' : 'rgba(71, 85, 105, 0.18)';
+        const accent = isDarkMode ? '#00A3E0' : '#0072CE';
+        const maxVal = radarTopActores.reduce((a, [, c]) => Math.max(a, c), 1);
+        return {
+            data: {
+                labels: radarTopActores.map(([name]) => shortenAxisLabel(name)),
+                datasets: [{
+                    label: 'Menciones registradas',
+                    data: radarTopActores.map(([, count]) => count),
+                    backgroundColor: isDarkMode ? 'rgba(0, 163, 224, 0.22)' : 'rgba(0, 114, 206, 0.18)',
+                    borderColor: accent,
+                    borderWidth: 2,
+                    pointBackgroundColor: accent,
+                    pointBorderColor: isDarkMode ? '#0a1120' : '#ffffff',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx: TooltipItem<'radar'>) => `${ctx.formattedValue} menciones registradas`
+                        }
+                    }
+                },
+                scales: {
+                    r: {
+                        beginAtZero: true,
+                        suggestedMax: maxVal,
+                        grid: { color: grid },
+                        angleLines: { color: grid },
+                        pointLabels: { color: tick, font: { size: 10, weight: 'bold' } },
+                        ticks: {
+                            color: tick,
+                            backdropColor: 'transparent',
+                            showLabelBackdrop: false,
+                            precision: 0,
+                            stepSize: maxVal <= 5 ? 1 : undefined
+                        }
+                    }
+                }
+            }
+        };
+    }, [radarTopActores, isDarkMode]);
 
     if (isLoading) {
         return (
@@ -262,6 +350,16 @@ const tituloReporte = activeTab === 'menciones' ? 'Menciones y Sentimiento' : 'I
                 y += 4;
             }
 
+            // Top Actores / Fuentes recurrentes (misma analítica del radar en pantalla)
+            if (activeTab === 'menciones' && commentsStats.topActoresFuentes.length) {
+                const topActoresPdf = commentsStats.topActoresFuentes.slice(0, RADAR_TOP);
+                checkBreak(14 + topActoresPdf.length * 7);
+                sectionTitle('Top Actores / Fuentes Recurrentes');
+                const maxActoresPdf = topActoresPdf.reduce((a: number, e: [string, number]) => Math.max(a, e[1]), 1);
+                topActoresPdf.forEach(([k, v]: [string, number]) => { drawBar(k, v, commentsStats.totalMenciones, '#377ef5', maxActoresPdf); });
+                y += 4;
+            }
+
             // Pie de página
             doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(120, 135, 160);
             doc.text('ENGIE — Social Listening · Página ' + page + ' de ' + (doc.getNumberOfPages?.() || page), pageW / 2, pageH - 8, { align: 'center' });
@@ -366,6 +464,52 @@ return (
                                 <p className="text-xs font-bold theme-text-muted uppercase tracking-wider">Canal Principal</p>
                                 <p className="text-2xl font-black theme-text-main">{commentsStats.topCanal}</p>
                             </div>
+                        </div>
+                        {/* Fila 4: Radar de Top Actores / Fuentes recurrentes (misma analítica que los reportes) */}
+                        <div className="p-5 theme-bg-container border theme-border rounded-xl shadow-sm engie-card-hover">
+                            <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
+                                <div>
+                                    <h4 className="text-xs font-bold theme-text-muted uppercase tracking-wider flex items-center gap-2"><Users className="w-4 h-4" style={{ color: 'var(--engie-primary-cyan)' }} /> Top Actores / Fuentes Recurrentes</h4>
+                                    <p className="text-[11px] theme-text-muted mt-1">Actores y fuentes con más menciones registradas · clave analítica <span className="font-semibold">Usuario o Sitio Web</span></p>
+                                </div>
+                                <span className="text-[11px] font-bold rounded-full px-3 py-1" style={{ backgroundColor: 'rgba(0,163,224,0.12)', color: 'var(--engie-primary-cyan)' }}>{commentsStats.actoresFuentesUnicos} actores / fuentes distintos</span>
+                            </div>
+                            {commentsStats.topActoresFuentes.length === 0 ? (
+                                <p className="text-sm theme-text-muted text-center py-6">Sin actores o fuentes registradas hasta la fecha</p>
+                            ) : (
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
+                                    {radarTopActores.length >= 3 ? (
+                                        <div
+                                            className="h-72"
+                                            role="img"
+                                            aria-label={`Radar de Top Actores y Fuentes por menciones registradas: ${radarTopActores.map(([name, count]) => `${name} con ${count} ${count === 1 ? 'mención' : 'menciones'}`).join(', ')}.`}
+                                        >
+                                            <Radar data={radarActores.data} options={radarActores.options} />
+                                        </div>
+                                    ) : (
+                                        <p className="text-sm theme-text-muted text-center py-6">Se necesitan al menos 3 actores o fuentes distintas para trazar el radar; el ranking de la derecha ya refleja el total de menciones.</p>
+                                    )}
+                                    <div className="space-y-2.5">
+                                        <p className="text-[11px] font-bold theme-text-muted uppercase tracking-wider">Menciones registradas por actor / fuente</p>
+                                        {commentsStats.topActoresFuentes.slice(0, RANKING_TOP).map(([actor, count], i) => {
+                                            const percent = commentsStats.totalMenciones ? Math.round((count / commentsStats.totalMenciones) * 100) : 0;
+                                            const maxCount = commentsStats.topActoresFuentes[0][1] || 1;
+                                            return (
+                                                <div key={actor}>
+                                                    <div className="flex justify-between text-xs mb-1 gap-3">
+                                                        <span className="font-bold theme-text-main truncate" title={actor}><span className="theme-text-muted mr-1.5">{i + 1}.</span>{actor}</span>
+                                                        <span className="theme-text-muted shrink-0">{count} {count === 1 ? 'mención' : 'menciones'} ({percent}%)</span>
+                                                    </div>
+                                                    <div className="h-2 w-full bg-black/5 dark:bg-white/5 rounded-full overflow-hidden"><div className="h-full rounded-full transition-all duration-1000 ease-out" style={{ width: mounted ? `${Math.round((count / maxCount) * 100)}%` : '0%', backgroundColor: 'var(--engie-primary-cyan)' }}></div></div>
+                                                </div>
+                                            );
+                                        })}
+                                        {commentsStats.topActoresFuentes.length > RANKING_TOP && (
+                                            <p className="text-[11px] theme-text-muted pt-1">+{commentsStats.topActoresFuentes.length - RANKING_TOP} actores / fuentes adicionales con {commentsStats.topActoresFuentes.slice(RANKING_TOP).reduce((a, [, c]) => a + c, 0)} menciones acumuladas.</p>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}

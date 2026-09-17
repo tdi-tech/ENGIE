@@ -33,7 +33,7 @@ ENGIE Management (paquete `tdi-secure-social`) es una herramienta interna tipo S
 
 | Módulo | Carpeta | Qué hace |
 |---|---|---|
-| Dashboard | `dashboard/` | Métricas consolidadas, gráficas SVG, semáforos gemelos de riesgo/estatus y **PDF ejecutivo** |
+| Dashboard | `dashboard/` | Métricas consolidadas, gráficas SVG, semáforos gemelos de riesgo/estatus, **radar de Top Actores/Fuentes en Menciones** y **PDF ejecutivo** |
 | Incidencias RRSS | `rrss/` | Registro y seguimiento de incidencias reputacionales en redes sociales |
 | Menciones / Comentarios | `comments/` | Reportes de menciones con análisis de sentimiento |
 | Reportes y Analítica | `reports/` | Inteligencia de negocios con Chart.js; ingesta dual (CSV con PapaParse o Firestore en vivo); exportación a CSV, Word y **PDF ejecutivo con jsPDF** |
@@ -54,6 +54,7 @@ ENGIE Management (paquete `tdi-secure-social`) es una herramienta interna tipo S
 5. Los formularios validan en cliente, pero **las reglas de Firestore son la autoridad final**.
 6. El ADMIN_IT puede programar la purga automática, hacer backups y gestionar usuarios.
 7. Consultar un reporte de los historiales de **Menciones** o **Incidencias** abre un **modal de detalle** que se cierra con el botón **X** o haciendo **clic fuera de la tarjeta** (clic en el fondo oscuro). El clic externo no se dispara si el usuario empieza a seleccionar texto dentro de la ventana.
+8. La pestaña **Menciones** del Dashboard incorpora la analítica **Top Actores / Fuentes Recurrentes**: un **radar** (`chart.js`) con los **seis actores o fuentes de más menciones registradas** y, al lado, el **ranking con el número concreto de menciones** y su porcentaje sobre el total (hasta 10 posiciones, con el resumen de los restantes). Agrupa con la misma clave analítica del módulo de *Reportes y Analítica* —el campo **Usuario o Sitio Web** reducido a etiqueta corta `@usuario` o dominio— y respeta el tema claro/oscuro con los tokens corporativos.
 
 ---
 
@@ -338,6 +339,16 @@ El dashboard dispone de un botón **Descargar PDF** (arriba a la derecha) en las
 | Semáforo de Sentimiento | `commentsStats.sentimentCounts` | Distribución Positivo · Neutral · Negativo |
 | Analítica de Nivel de Riesgo | `commentsStats.riesgoCounts` | Bajo · Medio · Alto · Crítico |
 | Analítica de Actores Críticos | `commentsStats.topActoresCriticos` | Ranking de actores con riesgo Alto/Crítico |
+| Top Actores / Fuentes Recurrentes | `commentsStats.topActoresFuentes` | Radar + ranking de los actores/fuentes con más menciones registradas (número concreto y porcentaje) |
+
+#### Etiqueta corta de "Usuario o Sitio Web" (normalización de `@`)
+
+La etiqueta corta la genera `extractFuenteLabel()` en `src/shared/utils/fuenteUtils.ts`, que es la **única fuente** del prefijo `@` en toda la plataforma (historial y modal de Menciones, PDF del reporte, CSV y analíticas del Dashboard). Reglas:
+
+* URLs de redes sociales → `@handle`: se toman los segmentos de la ruta y **se descartan las arrobas que ya vengan en la URL**, de modo que `https://www.youtube.com/@EnergiaMayakan`, `.../@EnergiaMayakan/videos` o `https://x.com/@energia_mx` producen `@EnergiaMayakan` y `@energia_mx` (nunca `@@handle`).
+* Prefijos estructurales por plataforma → el handle es el **segmento siguiente**: `youtube.com/c/Canal` y `/user/Canal`, `linkedin.com/in/juan-perez` y `/company/engie-mexico`, `reddit.com/r/mexico` y `/u/energia_mx` generan `@Canal`, `@juan-perez`, `@engie-mexico`, `@mexico` y `@energia_mx` (antes estos casos producían etiquetas erróneas como `@c`, `@in`, `@company` o `@r`, que además fusionaban personas distintas en una sola fila del ranking).
+* Rutas y recursos que no son un perfil (`/watch`, `/shorts`, `/p/`, `/reels/`, `/stories/`, `/status`, `/i/`, `/channel/UC...`, `/groups/`, `/pages/`, `/pin/`, `/results`, `/intent`, `/search`, scripts tipo `profile.php`…) → se muestra el **dominio** (`youtube.com`, `instagram.com`, `facebook.com`), igual que antes.
+* Sitios web y medios digitales → dominio sin `www` (`reforma.com`); valores no URL (p. ej. `Dir. Comunicación`) se conservan tal cual. Los handles con punto (`instagram.com/juan.perez`) se respetan. La URL íntegra sigue guardándose como destino del enlace (`extractFuenteUrl`) y en la columna *URL Fuente* del CSV.
 
 #### Impresión del reporte de menciones
 

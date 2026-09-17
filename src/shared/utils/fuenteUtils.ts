@@ -15,7 +15,35 @@ const NON_USER_PATH = new Set([
     'watch', 'shorts', 'reels', 'reel', 'posts', 'post', 'status', 'i',
     'channel', 'user', 'live', 'video', 'videos', 'events', 'share',
     'hashtag', 'search', 'feed', 'home', 'tab', 'project', 'explore',
+    'p', 'tv', 'stories', 'results', 'pin', 'groups', 'pages',
+    'marketplace', 'intent', 'discover', 'directory',
 ]);
+
+// Segmentos que son scripts de plataforma (facebook.com/profile.php, photo.php):
+// nunca son un handle, aunque no figuren en la lista de rutas.
+const SCRIPT_SEGMENT = /\.(php|aspx?|html?|jsp|cgi|do)$/i;
+
+// Prefijos estructurales por plataforma: el handle real es el segmento SIGUIENTE
+// (youtube.com/c/Canal, linkedin.com/in/usuario, reddit.com/r/mexico). Se declaran
+// por host para no afectar a plataformas donde esa misma palabra sí es el usuario.
+const USER_PATH_PREFIXES: Record<string, Set<string>> = {
+    'youtube.com': new Set(['c', 'user']),
+    'linkedin.com': new Set(['in', 'company', 'school']),
+    'reddit.com': new Set(['u', 'user', 'r']),
+};
+
+// El handle ya puede venir con arroba en la propia URL (youtube.com/@canal),
+// por lo que se quitan las arrobas iniciales antes de volver a prefijarlas
+// para no generar etiquetas duplicadas del tipo `@@canal`.
+const safeDecode = (value: string): string => {
+    try {
+        return decodeURIComponent(value);
+    } catch {
+        return value;
+    }
+};
+
+const stripAt = (segment: string): string => safeDecode(segment).replace(/^@+/, '').trim();
 
 export const isUrl = (value: string): boolean => {
     const raw = String(value ?? '').trim();
@@ -44,17 +72,22 @@ export const extractFuenteLabel = (value: string): string => {
     if (!raw || !isUrl(raw)) return raw;
 
     let hostname: string;
-    let firstPath: string;
+    let segments: string[];
     try {
         const u = new URL(raw);
         hostname = bareHost(u.hostname);
-        firstPath = u.pathname.replace(/^\/+/, '').split('/')[0] || '';
+        segments = u.pathname.split('/').map(stripAt).filter(Boolean);
     } catch {
         return raw;
     }
 
-    if (SOCIAL_HOSTS.has(hostname) && firstPath && !NON_USER_PATH.has(firstPath.toLowerCase())) {
-        return `@${firstPath}`;
+    if (SOCIAL_HOSTS.has(hostname)) {
+        const first = segments[0] || '';
+        const prefixes = USER_PATH_PREFIXES[hostname];
+        const handle = prefixes?.has(first.toLowerCase()) ? segments[1] || '' : first;
+        if (handle && !NON_USER_PATH.has(handle.toLowerCase()) && !SCRIPT_SEGMENT.test(handle)) {
+            return `@${handle}`;
+        }
     }
 
     return hostname || raw;
