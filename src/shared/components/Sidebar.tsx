@@ -122,7 +122,7 @@ export const Sidebar = ({ sidebarOpen, setSidebarOpen, currentView, navigate, is
         <>
             {sidebarOpen && <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-30 md:hidden" onClick={() => setSidebarOpen(false)}></div>}
 
-            <aside className={`fixed md:static inset-y-0 left-0 transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 transition-transform duration-300 w-64 flex-shrink-0 theme-bg-lowest border-r theme-border flex flex-col z-40 no-print`}>
+            <aside id="app-sidebar" className={`fixed md:static inset-y-0 left-0 transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 transition-transform duration-300 w-64 flex-shrink-0 theme-bg-lowest border-r theme-border flex flex-col z-40 no-print`}>
 
                 <div className="p-6 flex flex-col items-center mb-2">
                     <img src="/logo-engie.svg" alt="ENGIE" className="h-8 w-auto" />

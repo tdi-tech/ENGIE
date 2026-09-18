@@ -1,5 +1,5 @@
 import React from 'react';
-import { Menu, Sun, Moon, LogOut, Bell, Trash2, Eye, Users, CheckCircle2, Lock } from 'lucide-react';
+import { Menu, X, Sun, Moon, LogOut, Bell, Trash2, Eye, Users, CheckCircle2, Lock } from 'lucide-react';
 import { Sidebar } from '../Sidebar';
 import { Inactivity } from '../Inactivity';
 
@@ -49,7 +49,15 @@ export const MainLayout = ({
             <main className="flex-1 print:block flex flex-col h-full print:h-auto relative overflow-x-hidden print:overflow-visible w-full bg-transparent">
                 <header className="h-16 border-b theme-border theme-bg-container flex items-center justify-between px-4 sm:px-6 no-print shadow-sm z-50 relative">
                     <div className="flex items-center gap-2 sm:gap-3">
-                        <button onClick={() => setSidebarOpen(true)} className="md:hidden p-2 -ml-2 theme-text-muted hover:theme-text-main rounded-lg"><Menu className="w-6 h-6"/></button>
+                        <button
+                            type="button"
+                            onClick={() => setSidebarOpen(!sidebarOpen)}
+                            aria-label={sidebarOpen ? 'Cerrar menú de navegación' : 'Abrir menú de navegación'}
+                            aria-expanded={sidebarOpen}
+                            aria-controls="app-sidebar"
+                            title={sidebarOpen ? 'Cerrar menú' : 'Abrir menú'}
+                            className="md:hidden p-2 -ml-2 theme-text-muted hover:theme-text-main rounded-lg"
+                        >{sidebarOpen ? <X className="w-6 h-6"/> : <Menu className="w-6 h-6"/>}</button>
                         <div className="flex items-center">{renderHeaderTitle()}</div>
                     </div>
                     
